@@ -27,6 +27,7 @@ export function useGamePlayer(initialPin: string = "") {
   const stateRef = useRef(state);
   stateRef.current = state;
   const timerRef = useRef<any>(null);
+  const joinHandshakeIntervalRef = useRef<any>(null);
 
   // Restore session from localStorage if available
   useEffect(() => {
@@ -101,6 +102,7 @@ export function useGamePlayer(initialPin: string = "") {
     }));
 
     const channel = getRealtimeChannel(currentState.pin);
+    // Broadcast answer immediately
     channel.broadcast("SUBMIT_ANSWER", {
       playerId: currentState.player.id,
       answerIndex,
@@ -108,19 +110,31 @@ export function useGamePlayer(initialPin: string = "") {
     });
   }, []);
 
-  // Realtime Event Listeners
+  // Realtime Event Listeners & Auto-Handshake
   useEffect(() => {
     if (!state.pin) return;
 
     const channel = getRealtimeChannel(state.pin);
 
-    // Initial Join Broadcast announcement when mounted
+    // Continuous Join Handshake: Resend PLAYER_JOIN every 2s while in lobby to guarantee delivery over slow mobile connections
+    if (joinHandshakeIntervalRef.current) {
+      clearInterval(joinHandshakeIntervalRef.current);
+      joinHandshakeIntervalRef.current = null;
+    }
+
     if (state.player && state.phase === "lobby") {
-      channel.broadcast("PLAYER_JOIN", {
-        id: state.player.id,
-        nickname: state.player.nickname,
-        avatar: state.player.avatar,
-      });
+      const announce = () => {
+        if (stateRef.current.player && stateRef.current.phase === "lobby") {
+          channel.broadcast("PLAYER_JOIN", {
+            id: stateRef.current.player.id,
+            nickname: stateRef.current.player.nickname,
+            avatar: stateRef.current.player.avatar,
+          });
+        }
+      };
+
+      announce();
+      joinHandshakeIntervalRef.current = setInterval(announce, 2000);
     }
 
     const unsubscribe = channel.subscribe((payload) => {
@@ -132,6 +146,13 @@ export function useGamePlayer(initialPin: string = "") {
       if (payload.event === "LOBBY_SYNC") {
         const { totalQuestions, players } = payload.data;
         const me = players ? players.find((p: any) => p.id === myId) : null;
+
+        // If Host confirmed we are in the lobby, stop the handshake interval
+        if (me && joinHandshakeIntervalRef.current) {
+          clearInterval(joinHandshakeIntervalRef.current);
+          joinHandshakeIntervalRef.current = null;
+        }
+
         setState((prev) => ({
           ...prev,
           totalQuestions: totalQuestions || prev.totalQuestions,
@@ -155,7 +176,12 @@ export function useGamePlayer(initialPin: string = "") {
 
       // 3. Get Ready Phase
       if (payload.event === "GET_READY") {
+        if (joinHandshakeIntervalRef.current) {
+          clearInterval(joinHandshakeIntervalRef.current);
+          joinHandshakeIntervalRef.current = null;
+        }
         if (timerRef.current) clearInterval(timerRef.current);
+
         const { questionIndex, totalQuestions } = payload.data;
 
         setState((prev) => ({
@@ -172,8 +198,13 @@ export function useGamePlayer(initialPin: string = "") {
 
       // 4. Question Started
       if (payload.event === "QUESTION_START") {
-        const { questionIndex, totalQuestions, timeLimit } = payload.data;
+        if (joinHandshakeIntervalRef.current) {
+          clearInterval(joinHandshakeIntervalRef.current);
+          joinHandshakeIntervalRef.current = null;
+        }
         if (timerRef.current) clearInterval(timerRef.current);
+
+        const { questionIndex, totalQuestions, timeLimit } = payload.data;
 
         setState((prev) => ({
           ...prev,
@@ -259,12 +290,14 @@ export function useGamePlayer(initialPin: string = "") {
 
     return () => {
       unsubscribe();
+      if (joinHandshakeIntervalRef.current) clearInterval(joinHandshakeIntervalRef.current);
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [state.pin, state.player, state.phase]);
 
   const leaveRoom = useCallback(() => {
     localStorage.removeItem("cahoot_player_session");
+    if (joinHandshakeIntervalRef.current) clearInterval(joinHandshakeIntervalRef.current);
     setState({
       pin: "",
       player: null,

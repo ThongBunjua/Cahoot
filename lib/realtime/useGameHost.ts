@@ -57,6 +57,16 @@ export function useGameHost(pin: string, quiz: Quiz) {
     });
   }, [broadcast, pin, quiz]);
 
+  // Periodic heartbeat sync during lobby for newly arriving mobile devices
+  useEffect(() => {
+    if (state.phase === "lobby") {
+      const interval = setInterval(() => {
+        syncLobby(stateRef.current.players);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [state.phase, syncLobby]);
+
   // Handle incoming player join / answer submissions / check room pings
   useEffect(() => {
     const channel = getRealtimeChannel(pin);
