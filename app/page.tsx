@@ -57,10 +57,7 @@ function KahootPlayerContent() {
       {/* Material / Paper-Cut Purple Gradient Background */}
       <PaperCutBackground />
 
-      {/* Top Header Bar */}
-      <header className="relative z-20 w-full max-w-4xl flex items-center justify-end px-2 py-1">
-        <SoundControl />
-      </header>
+
 
       {/* Main Center Floating Card Area */}
       <main className="relative z-20 w-full flex-1 flex flex-col items-center justify-center my-auto py-4">
