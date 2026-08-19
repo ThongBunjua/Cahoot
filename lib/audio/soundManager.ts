@@ -12,6 +12,7 @@ class SoundManager {
   private isQuestionBeatPlaying: boolean = false;
   private musicInterval: any = null;
   private listeners: Set<SoundEventListener> = new Set();
+  private unlocked: boolean = false;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -21,7 +22,37 @@ class SoundManager {
           this.isMuted = saved === "true";
         }
       } catch (e) {}
+
+      this.setupAutoUnlock();
     }
+  }
+
+  private setupAutoUnlock() {
+    if (typeof window === "undefined" || this.unlocked) return;
+
+    const unlock = () => {
+      this.unlocked = true;
+      const ctx = this.initContext();
+      if (ctx && ctx.state === "suspended") {
+        ctx.resume().then(() => {
+          if (!this.isMuted) {
+            if (this.isLobbyPlaying) {
+              this.startLobbyMusic();
+            } else if (this.isQuestionBeatPlaying) {
+              this.startQuestionMusic();
+            }
+          }
+        }).catch(() => {});
+      }
+
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+
+    window.addEventListener("click", unlock);
+    window.addEventListener("keydown", unlock);
+    window.addEventListener("touchstart", unlock);
   }
 
   public subscribe(fn: SoundEventListener) {
@@ -48,7 +79,11 @@ class SoundManager {
   }
 
   public toggleMute(): boolean {
-    this.initContext();
+    const ctx = this.initContext();
+    if (ctx && ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+
     this.isMuted = !this.isMuted;
     try {
       localStorage.setItem("cahoot_audio_muted", String(this.isMuted));
@@ -59,6 +94,8 @@ class SoundManager {
     } else {
       if (this.isLobbyPlaying) {
         this.startLobbyMusic();
+      } else if (this.isQuestionBeatPlaying) {
+        this.startQuestionMusic();
       }
     }
 
@@ -132,7 +169,7 @@ class SoundManager {
     const ctx = this.initContext();
     if (!ctx) return;
 
-    const freq = count === 1 ? 880 : 587.33; // Higher pitch on 1
+    const freq = count === 1 ? 880 : 587.33;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -154,7 +191,7 @@ class SoundManager {
     const ctx = this.initContext();
     if (!ctx) return;
 
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6 arpeggio
+    const notes = [523.25, 659.25, 783.99, 1046.5];
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -243,10 +280,10 @@ class SoundManager {
     if (!ctx) return;
 
     const chords = [
-      { notes: [261.63, 329.63, 392.0], start: 0.0, dur: 0.3 }, // C
-      { notes: [293.66, 369.99, 440.0], start: 0.35, dur: 0.3 }, // D
-      { notes: [329.63, 415.3, 493.88], start: 0.7, dur: 0.3 }, // E
-      { notes: [523.25, 659.25, 783.99, 1046.5], start: 1.05, dur: 1.5 }, // High C major victory chord
+      { notes: [261.63, 329.63, 392.0], start: 0.0, dur: 0.3 },
+      { notes: [293.66, 369.99, 440.0], start: 0.35, dur: 0.3 },
+      { notes: [329.63, 415.3, 493.88], start: 0.7, dur: 0.3 },
+      { notes: [523.25, 659.25, 783.99, 1046.5], start: 1.05, dur: 1.5 },
     ];
 
     chords.forEach((chord) => {
@@ -274,7 +311,9 @@ class SoundManager {
   // 1. Energetic Lobby Theme (Bouncy Kahoot-style syncopated melody & funk bass)
   public startLobbyMusic() {
     this.isLobbyPlaying = true;
+    this.isQuestionBeatPlaying = false;
     if (this.isMuted) return;
+
     const ctx = this.initContext();
     if (!ctx) return;
 
@@ -334,7 +373,9 @@ class SoundManager {
   // 2. Question Countdown Tension Beat (Fast pulsing arcade suspense)
   public startQuestionMusic() {
     this.isQuestionBeatPlaying = true;
+    this.isLobbyPlaying = false;
     if (this.isMuted) return;
+
     const ctx = this.initContext();
     if (!ctx) return;
 
