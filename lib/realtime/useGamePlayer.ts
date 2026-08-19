@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { GamePlayerState, Player } from "./types";
 import { getRealtimeChannel } from "./realtimeProvider";
 import { sounds } from "@/lib/audio/soundManager";
+import { SyncBridge } from "./syncBridge";
 
 export function useGamePlayer(initialPin: string = "") {
   const [state, setState] = useState<GamePlayerState>({
@@ -78,12 +79,16 @@ export function useGamePlayer(initialPin: string = "") {
       localStorage.setItem("cahoot_player_session", JSON.stringify({ pin, player: playerObj }));
     } catch (e) {}
 
+    // 1. Send Realtime WebSocket Broadcast
     const channel = getRealtimeChannel(pin);
     channel.broadcast("PLAYER_JOIN", {
       id: playerId,
       nickname,
       avatar,
     });
+
+    // 2. Dual-Path: Register in Supabase DB
+    SyncBridge.playerJoinRoom(pin, playerObj);
   }, []);
 
   // Submit Answer function
@@ -102,7 +107,6 @@ export function useGamePlayer(initialPin: string = "") {
     }));
 
     const channel = getRealtimeChannel(currentState.pin);
-    // Broadcast answer immediately
     channel.broadcast("SUBMIT_ANSWER", {
       playerId: currentState.player.id,
       answerIndex,
@@ -116,7 +120,7 @@ export function useGamePlayer(initialPin: string = "") {
 
     const channel = getRealtimeChannel(state.pin);
 
-    // Continuous Join Handshake: Resend PLAYER_JOIN every 2s while in lobby to guarantee delivery over slow mobile connections
+    // Continuous Join Handshake: Resend PLAYER_JOIN every 2s while in lobby
     if (joinHandshakeIntervalRef.current) {
       clearInterval(joinHandshakeIntervalRef.current);
       joinHandshakeIntervalRef.current = null;
@@ -130,6 +134,7 @@ export function useGamePlayer(initialPin: string = "") {
             nickname: stateRef.current.player.nickname,
             avatar: stateRef.current.player.avatar,
           });
+          SyncBridge.playerJoinRoom(stateRef.current.pin, stateRef.current.player);
         }
       };
 

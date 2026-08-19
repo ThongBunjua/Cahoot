@@ -7,6 +7,7 @@ import { calculateScore } from "@/lib/utils/scoring";
 import { sounds } from "@/lib/audio/soundManager";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { SessionManager } from "./sessionManager";
+import { SyncBridge } from "./syncBridge";
 
 export function useGameHost(pin: string, quiz: Quiz) {
   const [state, setState] = useState<GameHostState>({
@@ -27,21 +28,13 @@ export function useGameHost(pin: string, quiz: Quiz) {
   const timerRef = useRef<any>(null);
   const answersMapRef = useRef<Map<string, { answerIndex: number; timestamp: number }>>(new Map());
 
-  // Register Host in Active Session Registry
-  useEffect(() => {
-    SessionManager.registerHost(pin, quiz.title);
-    return () => {
-      SessionManager.unregisterHost(pin);
-    };
-  }, [pin, quiz.title]);
-
   // Broadcast event helper
   const broadcast = useCallback((event: RealtimeEvent, data: any) => {
     const channel = getRealtimeChannel(pin);
     channel.broadcast(event, data);
   }, [pin]);
 
-  // Sync lobby state
+  // Sync lobby state helper
   const syncLobby = useCallback((players: Player[]) => {
     broadcast("LOBBY_SYNC", {
       pin,
@@ -57,15 +50,55 @@ export function useGameHost(pin: string, quiz: Quiz) {
     });
   }, [broadcast, pin, quiz]);
 
-  // Periodic heartbeat sync during lobby for newly arriving mobile devices
+  // Register Host in Active Session Registry & DB Session
+  useEffect(() => {
+    SessionManager.registerHost(pin, quiz.title);
+    SyncBridge.hostRegisterRoom(pin, quiz.id);
+
+    return () => {
+      SessionManager.unregisterHost(pin);
+    };
+  }, [pin, quiz.id, quiz.title]);
+
+  // Dual-Path: Periodic heartbeat broadcast + DB sync during lobby
   useEffect(() => {
     if (state.phase === "lobby") {
-      const interval = setInterval(() => {
+      const interval = setInterval(async () => {
+        // 1. Broadcast Lobby Sync
         syncLobby(stateRef.current.players);
-      }, 3000);
+
+        // 2. Fetch any players from DB fallback
+        try {
+          const dbPlayers = await SyncBridge.fetchRoomPlayers(pin);
+          if (dbPlayers.length > 0) {
+            const current = stateRef.current.players;
+            let hasNew = false;
+            const merged = [...current];
+
+            for (const dp of dbPlayers) {
+              const exists = merged.some(
+                (p) => p.id === dp.id || p.nickname.toLowerCase() === dp.nickname.toLowerCase()
+              );
+              if (!exists) {
+                merged.push(dp);
+                hasNew = true;
+              }
+            }
+
+            if (hasNew) {
+              setState((prev) => ({ ...prev, players: merged }));
+              sounds.playClick();
+              syncLobby(merged);
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }, 2000);
+
       return () => clearInterval(interval);
     }
-  }, [state.phase, syncLobby]);
+  }, [state.phase, pin, syncLobby]);
 
   // Handle incoming player join / answer submissions / check room pings
   useEffect(() => {
@@ -90,7 +123,10 @@ export function useGameHost(pin: string, quiz: Quiz) {
       // 1. Player Joins Lobby
       if (payload.event === "PLAYER_JOIN") {
         const { id, nickname, avatar } = payload.data;
-        const exists = currentState.players.some((p) => p.id === id || p.nickname.toLowerCase() === nickname.toLowerCase());
+        const exists = currentState.players.some(
+          (p) => p.id === id || p.nickname.toLowerCase() === nickname.toLowerCase()
+        );
+
         if (!exists) {
           const newPlayer: Player = {
             id,
@@ -409,7 +445,6 @@ async function persistGameResults(pin: string, quizId: string, players: Player[]
   if (!supabase) return;
 
   try {
-    // 1. Update or create game session
     const { data: session } = await supabase
       .from("game_sessions")
       .upsert({
@@ -422,7 +457,6 @@ async function persistGameResults(pin: string, quizId: string, players: Player[]
       .single();
 
     if (session && session.id) {
-      // 2. Batch upsert session players
       const playerRows = players.map((p) => ({
         session_id: session.id,
         nickname: p.nickname,
