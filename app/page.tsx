@@ -58,17 +58,7 @@ function KahootPlayerContent() {
       <PaperCutBackground />
 
       {/* Top Header Bar */}
-      <header className="relative z-20 w-full max-w-4xl flex items-center justify-between px-2 py-1">
-        <div className="flex items-center gap-2">
-          {step !== "game" && (
-            <Link
-              href="/quizzes"
-              className="text-[11px] sm:text-xs font-black uppercase tracking-wider bg-white/15 hover:bg-white/25 text-white px-3.5 py-1.5 rounded-full border border-white/20 transition-all backdrop-blur-md shadow-md"
-            >
-              Host a Game
-            </Link>
-          )}
-        </div>
+      <header className="relative z-20 w-full max-w-4xl flex items-center justify-end px-2 py-1">
         <SoundControl />
       </header>
 

@@ -8,6 +8,7 @@ import { CreatorHeader } from "@/components/creator/CreatorHeader";
 import { SlideSidebar } from "@/components/creator/SlideSidebar";
 import { QuestionStage } from "@/components/creator/QuestionStage";
 import { generateGamePin } from "@/lib/utils/pinGenerator";
+import { HostGuard } from "@/components/auth/HostGuard";
 
 const DEFAULT_QUESTION: Omit<Question, "id" | "order_index"> = {
   question_text: "",
@@ -23,7 +24,7 @@ const DEFAULT_QUESTION: Omit<Question, "id" | "order_index"> = {
   ],
 };
 
-export default function CreatorStudioPage() {
+function CreatorStudioContent() {
   const router = useRouter();
   const [title, setTitle] = useState("My New Quiz");
   const [description, setDescription] = useState("");
@@ -133,7 +134,7 @@ export default function CreatorStudioPage() {
         onSaveAndHost={handleSaveAndHost}
       />
 
-      {/* Main Studio Viewport */}
+      {/* Main Viewport */}
       <div className="flex-1 h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] flex flex-col md:flex-row overflow-hidden relative">
         {/* Left Slide List */}
         <SlideSidebar
@@ -157,5 +158,13 @@ export default function CreatorStudioPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CreatorStudioPage() {
+  return (
+    <HostGuard>
+      <CreatorStudioContent />
+    </HostGuard>
   );
 }

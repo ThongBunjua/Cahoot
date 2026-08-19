@@ -8,6 +8,7 @@ import { CreatorHeader } from "@/components/creator/CreatorHeader";
 import { SlideSidebar } from "@/components/creator/SlideSidebar";
 import { QuestionStage } from "@/components/creator/QuestionStage";
 import { generateGamePin } from "@/lib/utils/pinGenerator";
+import { HostGuard } from "@/components/auth/HostGuard";
 
 const DEFAULT_QUESTION: Omit<Question, "id" | "order_index"> = {
   question_text: "",
@@ -23,7 +24,7 @@ const DEFAULT_QUESTION: Omit<Question, "id" | "order_index"> = {
   ],
 };
 
-export default function EditQuizPage() {
+function EditQuizContent() {
   const params = useParams();
   const router = useRouter();
   const quizId = params.id as string;
@@ -161,5 +162,13 @@ export default function EditQuizPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function EditQuizPage() {
+  return (
+    <HostGuard>
+      <EditQuizContent />
+    </HostGuard>
   );
 }
