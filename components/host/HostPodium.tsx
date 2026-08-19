@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Player, Quiz } from "@/lib/realtime/types";
 import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
+import { AudioControl } from "@/components/ui/AudioControl";
 import { Trophy, Crown, RotateCcw, ListOrdered, Sparkles, Home } from "lucide-react";
 import Link from "next/link";
 
@@ -21,7 +22,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
   const third = players[2];
 
   return (
-    <div className="min-h-screen bg-kahoot-dark text-white flex flex-col justify-between p-4 sm:p-8 select-none relative overflow-hidden">
+    <div className="min-h-screen bg-kahoot-dark text-white flex flex-col justify-between p-4 sm:p-8 select-none relative overflow-hidden font-sans">
       <ConfettiEffect trigger={true} duration={8000} />
 
       {/* Top Header Bar */}
@@ -39,20 +40,22 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          <AudioControl />
+
           <button
             onClick={() => setShowFullScoreboard(!showFullScoreboard)}
-            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-white/10"
+            className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-white/10 cursor-pointer"
           >
             <ListOrdered className="w-4 h-4" />
             <span>{showFullScoreboard ? "Hide Table" : "Full Scoreboard"}</span>
           </button>
 
           <Link
-            href="/host"
+            href="/quizzes"
             className="px-5 py-2.5 bg-kahoot-purple hover:bg-kahoot-purple-light text-white rounded-xl text-sm font-black transition-all flex items-center gap-2 shadow-lg"
           >
             <Home className="w-4 h-4" />
-            <span>Back to Hub</span>
+            <span>Quizzes</span>
           </Link>
         </div>
       </header>

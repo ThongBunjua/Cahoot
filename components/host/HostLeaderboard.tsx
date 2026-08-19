@@ -3,7 +3,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Player } from "@/lib/realtime/types";
-import { Trophy, Flame, ArrowRight, Sparkles, Medal } from "lucide-react";
+import { AudioControl } from "@/components/ui/AudioControl";
+import { Trophy, Flame, ArrowRight } from "lucide-react";
 
 interface HostLeaderboardProps {
   players: Player[];
@@ -15,7 +16,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const topPlayers = players.slice(0, 5);
 
   return (
-    <div className="h-screen max-h-screen bg-gradient-to-b from-[#18092e] via-[#100321] to-[#0a0117] text-white flex flex-col justify-between p-4 sm:p-8 select-none overflow-hidden relative">
+    <div className="h-screen max-h-screen bg-gradient-to-b from-[#18092e] via-[#100321] to-[#0a0117] text-white flex flex-col justify-between p-4 sm:p-8 select-none overflow-hidden relative font-sans">
       {/* Ambient Lighting */}
       <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-purple-600/15 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
@@ -34,15 +35,19 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
           </div>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onNext}
-          className="px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-[0_8px_25px_rgba(16,185,129,0.4)] flex items-center gap-2.5 transition-all cursor-pointer border-b-4 border-emerald-800 active:border-b-0 active:translate-y-1"
-        >
-          <span>{isLastQuestion ? "Show Final Podium 🏆" : "Next Question"}</span>
-          <ArrowRight className="w-5 h-5 stroke-[3]" />
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <AudioControl />
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onNext}
+            className="px-6 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-[0_8px_25px_rgba(16,185,129,0.4)] flex items-center gap-2.5 transition-all cursor-pointer border-b-4 border-emerald-800 active:border-b-0 active:translate-y-1"
+          >
+            <span>{isLastQuestion ? "Show Final Podium 🏆" : "Next Question"}</span>
+            <ArrowRight className="w-5 h-5 stroke-[3]" />
+          </motion.button>
+        </div>
       </header>
 
       {/* Middle Top 5 Leaderboard Cards */}

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Player, Quiz } from "@/lib/realtime/types";
 import { formatPin } from "@/lib/utils/pinGenerator";
 import { QRCodeModal } from "@/components/ui/QRCodeModal";
-import { SoundControl } from "@/components/ui/SoundControl";
+import { AudioControl } from "@/components/ui/AudioControl";
 import { sounds } from "@/lib/audio/soundManager";
 import {
   Users,
@@ -15,7 +15,6 @@ import {
   Minimize2,
   X,
   Sparkles,
-  Music,
 } from "lucide-react";
 
 interface HostLobbyProps {
@@ -35,12 +34,10 @@ export function HostLobby({
 }: HostLobbyProps) {
   const [showQR, setShowQR] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
   useEffect(() => {
-    // Start lobby music on mount
+    // Start lobby music
     sounds.startLobbyMusic();
-    setIsMusicPlaying(!sounds.getMuted());
 
     return () => {
       sounds.stopLobbyMusic();
@@ -54,16 +51,6 @@ export function HostLobby({
     } else {
       document.exitFullscreen().catch(() => {});
       setIsFullscreen(false);
-    }
-  };
-
-  const toggleLobbyMusic = () => {
-    if (isMusicPlaying) {
-      sounds.stopLobbyMusic();
-      setIsMusicPlaying(false);
-    } else {
-      sounds.startLobbyMusic();
-      setIsMusicPlaying(true);
     }
   };
 
@@ -97,7 +84,7 @@ export function HostLobby({
         <div className="flex items-center gap-3 bg-white text-slate-950 px-6 py-3 rounded-2xl shadow-2xl border-b-4 border-slate-300">
           <div className="text-left">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-              Join at <span className="text-kahoot-purple font-bold">kahoot.it</span>
+              Join with Game PIN:
             </p>
             <p className="text-3xl sm:text-4xl font-black tracking-widest font-mono">
               {formatPin(pin)}
@@ -113,20 +100,12 @@ export function HostLobby({
         </div>
 
         {/* Control Tools */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleLobbyMusic}
-            className={`p-2.5 rounded-full border border-white/10 backdrop-blur-md transition-all ${
-              isMusicPlaying ? "bg-kahoot-purple text-white shadow-lg" : "bg-slate-800 text-slate-400"
-            }`}
-            title="Toggle Lobby Synth Loop"
-          >
-            <Music className="w-5 h-5" />
-          </button>
-          <SoundControl />
+        <div className="flex items-center gap-3">
+          <AudioControl autoPlayLobby={true} />
+
           <button
             onClick={toggleFullscreen}
-            className="p-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white border border-white/10 shadow-lg backdrop-blur-md transition-all"
+            className="p-3 rounded-2xl bg-slate-900/80 hover:bg-slate-800 text-white border border-white/10 shadow-lg backdrop-blur-md transition-all cursor-pointer"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
@@ -144,38 +123,35 @@ export function HostLobby({
         </div>
 
         {players.length === 0 ? (
-          <div className="text-center p-8 max-w-md bg-white/5 rounded-3xl border border-white/10 backdrop-blur-md shadow-2xl">
-            <div className="w-20 h-20 mx-auto mb-4 bg-kahoot-purple/40 rounded-full flex items-center justify-center text-4xl animate-bounce-subtle">
-              🎮
+          <div className="text-center text-slate-400 max-w-sm">
+            <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <Sparkles className="w-8 h-8 text-yellow-400" />
             </div>
-            <h2 className="text-2xl font-black text-white mb-2">Waiting for players...</h2>
-            <p className="text-slate-300 text-sm font-medium">
-              Ask players to visit <span className="font-bold text-yellow-300">kahoot.it</span> and enter PIN{" "}
-              <span className="font-mono font-bold text-white bg-white/20 px-2 py-0.5 rounded-md">
-                {pin}
-              </span>
+            <h3 className="text-xl font-bold text-white mb-1">Waiting for players...</h3>
+            <p className="text-sm">
+              Ask participants to enter PIN <span className="text-yellow-400 font-bold font-mono">{formatPin(pin)}</span> on their devices.
             </p>
           </div>
         ) : (
-          <div className="w-full max-w-5xl flex flex-wrap items-center justify-center gap-3 max-h-[50vh] overflow-y-auto p-4 custom-scrollbar">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-5xl max-h-[45vh] overflow-y-auto p-4 custom-scrollbar">
             <AnimatePresence>
               {players.map((player) => (
                 <motion.div
                   key={player.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="group relative flex items-center gap-2.5 bg-white text-slate-900 px-4 py-2.5 rounded-2xl font-black text-lg shadow-xl border-b-4 border-slate-300 transition-all hover:scale-105"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="group relative bg-kahoot-dark-surface/90 border border-white/20 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-xl backdrop-blur-sm transition-all"
                 >
-                  <span className="text-2xl">{player.avatar}</span>
-                  <span className="truncate max-w-[140px]">{player.nickname}</span>
+                  <span className="text-2xl select-none">{player.avatar}</span>
+                  <span className="text-lg font-bold text-white tracking-wide">{player.nickname}</span>
                   <button
                     onClick={() => onKickPlayer(player.id)}
-                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-all"
-                    title="Remove Player"
+                    className="opacity-0 group-hover:opacity-100 ml-2 p-1 bg-red-500 hover:bg-red-600 rounded-full text-white transition-opacity shadow-md"
+                    title={`Remove ${player.nickname}`}
                   >
-                    <X className="w-4 h-4 stroke-[3]" />
+                    <X className="w-3.5 h-3.5 stroke-[3]" />
                   </button>
                 </motion.div>
               ))}
@@ -184,30 +160,35 @@ export function HostLobby({
         )}
       </main>
 
-      {/* Bottom Start Game Controller */}
-      <footer className="relative z-10 flex items-center justify-between bg-kahoot-dark-surface/80 backdrop-blur-xl border border-white/10 p-4 sm:p-6 rounded-3xl shadow-2xl">
-        <div className="flex items-center gap-2 text-slate-300 text-xs sm:text-sm font-bold">
-          <span>{players.length} {players.length === 1 ? "player joined" : "players joined"}</span>
+      {/* Bottom Floating Bar */}
+      <footer className="relative z-10 flex items-center justify-between bg-kahoot-dark-surface/80 backdrop-blur-xl border border-white/10 p-4 sm:p-5 rounded-3xl shadow-2xl">
+        <div className="flex items-center gap-2 text-sm text-slate-400 font-bold">
+          <span>Game PIN:</span>
+          <span className="text-white font-mono font-black text-base">{pin}</span>
         </div>
 
         <motion.button
-          disabled={players.length === 0}
           whileHover={players.length > 0 ? { scale: 1.04 } : {}}
           whileTap={players.length > 0 ? { scale: 0.96 } : {}}
+          disabled={players.length === 0}
           onClick={onStartGame}
-          className={`px-8 py-4 rounded-2xl font-black text-lg tracking-wide flex items-center gap-2.5 transition-all shadow-2xl ${
+          className={`px-10 py-4 rounded-2xl font-black text-xl flex items-center gap-3 transition-all ${
             players.length > 0
               ? "bg-kahoot-green hover:bg-kahoot-green-dark text-white shadow-3d-green cursor-pointer"
-              : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-60"
+              : "bg-slate-800 text-slate-500 border border-white/5 cursor-not-allowed"
           }`}
         >
-          <Play className="w-5 h-5 fill-current" />
           <span>Start Game</span>
+          <Play className="w-6 h-6 fill-current" />
         </motion.button>
       </footer>
 
-      {/* QR Code Modal */}
-      <QRCodeModal isOpen={showQR} onClose={() => setShowQR(false)} pin={pin} />
+      {/* QR Code Big Overlay Modal */}
+      <QRCodeModal
+        isOpen={showQR}
+        pin={pin}
+        onClose={() => setShowQR(false)}
+      />
     </div>
   );
 }
