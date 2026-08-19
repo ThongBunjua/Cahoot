@@ -84,6 +84,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
             }
 
             if (hasNew) {
+              stateRef.current = { ...stateRef.current, players: merged };
               setState((prev) => ({ ...prev, players: merged }));
               sounds.playClick();
               syncLobby(merged);
@@ -97,6 +98,52 @@ export function useGameHost(pin: string, quiz: Quiz) {
       return () => clearInterval(interval);
     }
   }, [state.phase, pin, syncLobby]);
+
+  // End the question and show results
+  const endQuestion = useCallback((overridePlayers?: Player[], overrideAnswerCounts?: [number, number, number, number]) => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    const currentState = stateRef.current;
+    sounds.playTimesUp();
+
+    const currentQ = currentState.quiz.questions[currentState.currentQuestionIndex];
+    const sourcePlayers = overridePlayers || currentState.players;
+    const sourceAnswerCounts = overrideAnswerCounts || currentState.answerCounts;
+
+    // Compute updated ranks
+    const sorted = [...sourcePlayers].sort((a, b) => b.score - a.score);
+    const rankedPlayers = sorted.map((p, idx) => ({ ...p, rank: idx + 1 }));
+
+    // Synchronously update stateRef to prevent stale state reads
+    stateRef.current = {
+      ...currentState,
+      phase: "question_results",
+      timeRemaining: 0,
+      players: rankedPlayers,
+      answerCounts: sourceAnswerCounts,
+    };
+
+    setState(stateRef.current);
+
+    // Broadcast question end to all players with full result data
+    broadcast("QUESTION_END", {
+      questionIndex: currentState.currentQuestionIndex,
+      correctIndex: currentQ.correct_index,
+      answerCounts: sourceAnswerCounts,
+      playerResults: rankedPlayers.map((p) => ({
+        id: p.id,
+        nickname: p.nickname,
+        isCorrect: Boolean(p.lastCorrect),
+        pointsEarned: p.lastPoints || 0,
+        totalScore: p.score,
+        streak: p.streak,
+        rank: p.rank,
+      })),
+    });
+  }, [broadcast]);
 
   // Handle incoming player join / answer submissions / check room pings
   useEffect(() => {
@@ -139,32 +186,31 @@ export function useGameHost(pin: string, quiz: Quiz) {
             joinedAt: Date.now(),
           };
           const updatedPlayers = [...currentState.players, newPlayer];
+          stateRef.current = { ...stateRef.current, players: updatedPlayers };
           setState((prev) => ({ ...prev, players: updatedPlayers }));
           sounds.playClick();
           syncLobby(updatedPlayers);
         } else {
-          // Re-send lobby state for reconnecting player
           syncLobby(currentState.players);
         }
       }
 
       // 2. Player Submits Answer during Question Phase
       if (payload.event === "SUBMIT_ANSWER" && currentState.phase === "question") {
-        const { playerId, nickname, answerIndex, clientTimestamp } = payload.data;
-        const answerKey = playerId || nickname;
-        if (answersMapRef.current.has(answerKey)) return; // prevent duplicate answer
+        const { playerId, nickname, answerIndex } = payload.data;
+        const answerKey = `${playerId}_${nickname || ""}`;
+        if (answersMapRef.current.has(answerKey)) return;
 
         const question = currentState.quiz.questions[currentState.currentQuestionIndex];
         if (!question) return;
 
-        // Anti-cheat verification against Host questionStartTime
         const hostNow = Date.now();
         const responseTimeMs = Math.max(0, hostNow - currentState.questionStartTime);
         answersMapRef.current.set(answerKey, { answerIndex, timestamp: hostNow });
 
         const isCorrect = answerIndex === question.correct_index;
         
-        // Find player by ID or Nickname for 100% reliable matching
+        // Match player by ID or Nickname
         const player = currentState.players.find(
           (p) => p.id === playerId || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())
         );
@@ -201,18 +247,20 @@ export function useGameHost(pin: string, quiz: Quiz) {
           return p;
         });
 
-        setState((prev) => ({
-          ...prev,
+        // Synchronously update stateRef
+        stateRef.current = {
+          ...currentState,
           players: updatedPlayers,
           answerCounts: newAnswerCounts,
           totalAnswersReceived: newTotalAnswers,
-        }));
+        };
 
+        setState(stateRef.current);
         sounds.playClick();
 
-        // If all players have answered, immediately end question
+        // If all players have answered, end question immediately with the updated players
         if (newTotalAnswers >= currentState.players.length && currentState.players.length > 0) {
-          endQuestion();
+          endQuestion(updatedPlayers, newAnswerCounts);
         }
       }
     });
@@ -220,47 +268,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
     return () => {
       unsubscribe();
     };
-  }, [pin, syncLobby, broadcast, quiz.title]);
-
-  // End the question and show results
-  const endQuestion = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-
-    const currentState = stateRef.current;
-    sounds.playTimesUp();
-
-    const currentQ = currentState.quiz.questions[currentState.currentQuestionIndex];
-
-    // Compute updated ranks
-    const sorted = [...currentState.players].sort((a, b) => b.score - a.score);
-    const rankedPlayers = sorted.map((p, idx) => ({ ...p, rank: idx + 1 }));
-
-    setState((prev) => ({
-      ...prev,
-      phase: "question_results",
-      timeRemaining: 0,
-      players: rankedPlayers,
-    }));
-
-    // Broadcast question end to all players with BOTH id and nickname
-    broadcast("QUESTION_END", {
-      questionIndex: currentState.currentQuestionIndex,
-      correctIndex: currentQ.correct_index,
-      answerCounts: currentState.answerCounts,
-      playerResults: rankedPlayers.map((p) => ({
-        id: p.id,
-        nickname: p.nickname,
-        isCorrect: p.lastCorrect ?? false,
-        pointsEarned: p.lastPoints,
-        totalScore: p.score,
-        streak: p.streak,
-        rank: p.rank,
-      })),
-    });
-  }, [broadcast]);
+  }, [pin, syncLobby, broadcast, quiz.title, endQuestion]);
 
   // Start the Game from Lobby
   const startGame = useCallback(() => {
@@ -271,13 +279,15 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
   // 4-Second "Get Ready" Countdown
   const startGetReady = useCallback((questionIndex: number) => {
-    setState((prev) => ({
-      ...prev,
-      phase: "get_ready",
+    const updatedState = {
+      ...stateRef.current,
+      phase: "get_ready" as GamePhase,
       currentQuestionIndex: questionIndex,
-      answerCounts: [0, 0, 0, 0],
+      answerCounts: [0, 0, 0, 0] as [number, number, number, number],
       totalAnswersReceived: 0,
-    }));
+    };
+    stateRef.current = updatedState;
+    setState(updatedState);
 
     answersMapRef.current.clear();
 
@@ -307,15 +317,17 @@ export function useGameHost(pin: string, quiz: Quiz) {
     const startTime = Date.now();
     const limit = currentQ.time_limit;
 
-    setState((prev) => ({
-      ...prev,
-      phase: "question",
+    const updatedState = {
+      ...stateRef.current,
+      phase: "question" as GamePhase,
       currentQuestionIndex: questionIndex,
       questionStartTime: startTime,
       timeRemaining: limit,
-      answerCounts: [0, 0, 0, 0],
+      answerCounts: [0, 0, 0, 0] as [number, number, number, number],
       totalAnswersReceived: 0,
-    }));
+    };
+    stateRef.current = updatedState;
+    setState(updatedState);
 
     broadcast("QUESTION_START", {
       questionIndex,
@@ -353,11 +365,13 @@ export function useGameHost(pin: string, quiz: Quiz) {
     sounds.playLeaderboard();
     const sorted = [...stateRef.current.players].sort((a, b) => b.score - a.score);
 
-    setState((prev) => ({
-      ...prev,
-      phase: "leaderboard",
+    const updatedState = {
+      ...stateRef.current,
+      phase: "leaderboard" as GamePhase,
       players: sorted,
-    }));
+    };
+    stateRef.current = updatedState;
+    setState(updatedState);
 
     broadcast("SHOW_LEADERBOARD", {
       topPlayers: sorted.slice(0, 5).map((p) => ({
@@ -387,11 +401,13 @@ export function useGameHost(pin: string, quiz: Quiz) {
     sounds.playPodiumFanfare();
     const sorted = [...stateRef.current.players].sort((a, b) => b.score - a.score);
 
-    setState((prev) => ({
-      ...prev,
-      phase: "podium",
+    const updatedState = {
+      ...stateRef.current,
+      phase: "podium" as GamePhase,
       players: sorted,
-    }));
+    };
+    stateRef.current = updatedState;
+    setState(updatedState);
 
     broadcast("GAME_OVER", {
       top3: sorted.slice(0, 3).map((p) => ({
@@ -410,7 +426,6 @@ export function useGameHost(pin: string, quiz: Quiz) {
       })),
     });
 
-    // Asynchronously persist game summary to Supabase
     if (isSupabaseConfigured()) {
       persistGameResults(pin, quiz.id, sorted).catch(console.warn);
     }
@@ -419,6 +434,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
   // Kick a player from lobby
   const kickPlayer = useCallback((playerId: string) => {
     const updated = stateRef.current.players.filter((p) => p.id !== playerId);
+    stateRef.current = { ...stateRef.current, players: updated };
     setState((prev) => ({ ...prev, players: updated }));
     broadcast("PLAYER_KICK", { playerId });
     syncLobby(updated);

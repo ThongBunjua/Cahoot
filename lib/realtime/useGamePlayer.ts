@@ -160,7 +160,6 @@ export function useGamePlayer(initialPin: string = "") {
             )
           : null;
 
-        // If Host confirmed we are in the lobby, update ID and stop the handshake interval
         if (me) {
           if (joinHandshakeIntervalRef.current) {
             clearInterval(joinHandshakeIntervalRef.current);
@@ -247,11 +246,11 @@ export function useGamePlayer(initialPin: string = "") {
         }, 1000);
       }
 
-      // 5. Question Results - Match by BOTH ID and Nickname
+      // 5. Question Results
       if (payload.event === "QUESTION_END") {
         if (timerRef.current) clearInterval(timerRef.current);
 
-        const { playerResults } = payload.data;
+        const { playerResults, correctIndex } = payload.data;
         const myResult = playerResults
           ? playerResults.find(
               (p: any) =>
@@ -260,8 +259,8 @@ export function useGamePlayer(initialPin: string = "") {
             )
           : null;
 
-        if (myResult) {
-          const isCorrect = Boolean(myResult.isCorrect);
+        if (myResult && typeof myResult.isCorrect === "boolean") {
+          const isCorrect = myResult.isCorrect;
 
           if (isCorrect) {
             sounds.playCorrect();
@@ -272,20 +271,20 @@ export function useGamePlayer(initialPin: string = "") {
           setState((prev) => ({
             ...prev,
             phase: "question_results",
-            isCorrect: isCorrect,
+            isCorrect,
             pointsEarned: myResult.pointsEarned || 0,
-            currentScore: myResult.totalScore || prev.currentScore,
-            streak: myResult.streak || 0,
+            currentScore: myResult.totalScore ?? prev.currentScore,
+            streak: myResult.streak ?? prev.streak,
             currentRank: myResult.rank || prev.currentRank,
             totalPlayers: playerResults.length,
           }));
         } else {
-          // Fallback: If player selected answer locally, check if choice matches correct index directly
+          // Direct fallback: check selectedAnswer vs host correctIndex
           const localSelected = stateRef.current.selectedAnswer;
-          const correctIdx = payload.data.correctIndex;
-          const localCorrect = localSelected !== null && localSelected === correctIdx;
+          const isCorrect = localSelected !== null && localSelected === correctIndex;
+          const earned = isCorrect ? 850 : 0;
 
-          if (localCorrect) {
+          if (isCorrect) {
             sounds.playCorrect();
           } else {
             sounds.playWrong();
@@ -294,8 +293,10 @@ export function useGamePlayer(initialPin: string = "") {
           setState((prev) => ({
             ...prev,
             phase: "question_results",
-            isCorrect: localCorrect,
-            pointsEarned: localCorrect ? 800 : 0,
+            isCorrect,
+            pointsEarned: earned,
+            currentScore: prev.currentScore + earned,
+            streak: isCorrect ? prev.streak + 1 : 0,
           }));
         }
       }
