@@ -186,9 +186,8 @@ export function HostLobby({
 
       {/* Bottom Start Game Controller */}
       <footer className="relative z-10 flex items-center justify-between bg-kahoot-dark-surface/80 backdrop-blur-xl border border-white/10 p-4 sm:p-6 rounded-3xl shadow-2xl">
-        <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm font-bold">
-          <Sparkles className="w-4 h-4 text-yellow-400" />
-          <span>Realtime Broadcast Active (100% Free-Tier Architecture)</span>
+        <div className="flex items-center gap-2 text-slate-300 text-xs sm:text-sm font-bold">
+          <span>{players.length} {players.length === 1 ? "player joined" : "players joined"}</span>
         </div>
 
         <motion.button

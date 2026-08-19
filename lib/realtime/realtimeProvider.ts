@@ -9,6 +9,8 @@ export class RealtimeChannelBridge {
   private broadcastChannel: BroadcastChannel | null = null;
   private supabaseChannel: any = null;
   private isDestroyed: boolean = false;
+  private isSubscribed: boolean = false;
+  private pendingQueue: any[] = [];
 
   constructor(pin: string) {
     this.pin = pin;
@@ -18,7 +20,7 @@ export class RealtimeChannelBridge {
   private init() {
     if (typeof window === "undefined") return;
 
-    // 1. Initialize Local BroadcastChannel for instant local & multi-tab/window communication
+    // 1. Initialize Local BroadcastChannel for instant same-browser cross-tab sync
     try {
       if ("BroadcastChannel" in window) {
         this.broadcastChannel = new BroadcastChannel(`cahoot_room_${this.pin}`);
@@ -29,28 +31,33 @@ export class RealtimeChannelBridge {
         };
       }
     } catch (e) {
-      console.warn("BroadcastChannel not supported or error:", e);
+      console.warn("BroadcastChannel error:", e);
     }
 
-    // 2. Initialize Supabase Realtime Channel if configured
+    // 2. Initialize Supabase Realtime Channel for cross-device mobile-to-host sync
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseClient();
       if (supabase) {
         this.supabaseChannel = supabase.channel(`game_room_${this.pin}`, {
           config: {
-            broadcast: { self: false, ack: false },
+            broadcast: { self: true, ack: false },
           },
         });
 
         this.supabaseChannel
           .on("broadcast", { event: "game_event" }, (payload: any) => {
-            if (payload && payload.payload) {
+            if (payload && payload.payload && payload.payload.pin === this.pin) {
               this.notifyListeners(payload.payload);
             }
           })
           .subscribe((status: string) => {
             if (status === "SUBSCRIBED") {
-              console.log(`[Supabase Realtime] Connected to room ${this.pin}`);
+              this.isSubscribed = true;
+              // Flush any messages queued while connection was establishing
+              while (this.pendingQueue.length > 0) {
+                const msg = this.pendingQueue.shift();
+                this.supabaseChannel.send(msg).catch(console.warn);
+              }
             }
           });
       }
@@ -99,34 +106,41 @@ export class RealtimeChannelBridge {
       timestamp: Date.now(),
     };
 
-    // Notify local listeners in same tab
+    // Notify local listeners
     this.notifyListeners(payload);
 
-    // Broadcast across tabs/windows via BroadcastChannel
+    // Cross-tab broadcast
     if (this.broadcastChannel) {
       try {
         this.broadcastChannel.postMessage(payload);
       } catch (e) {
-        console.warn("Error posting to BroadcastChannel:", e);
+        console.warn("BroadcastChannel post error:", e);
       }
     }
 
-    // Broadcast via localStorage event
+    // LocalStorage fallback
     try {
       localStorage.setItem(`cahoot_event_${this.pin}`, JSON.stringify(payload));
     } catch (e) {
       // ignore
     }
 
-    // Broadcast via Supabase Realtime Broadcast (Zero DB writes!)
+    // Supabase Realtime Broadcast (Internet Cross-Device)
     if (this.supabaseChannel) {
-      this.supabaseChannel.send({
+      const message = {
         type: "broadcast",
         event: "game_event",
         payload,
-      }).catch((err: any) => {
-        console.warn("Supabase broadcast error:", err);
-      });
+      };
+
+      if (this.isSubscribed) {
+        this.supabaseChannel.send(message).catch((err: any) => {
+          console.warn("Supabase broadcast error:", err);
+        });
+      } else {
+        // Queue until SUBSCRIBED
+        this.pendingQueue.push(message);
+      }
     }
   }
 
@@ -153,7 +167,7 @@ export class RealtimeChannelBridge {
   }
 }
 
-// Global active channels cache to prevent duplicate connections
+// Global active channels cache
 const channels = new Map<string, RealtimeChannelBridge>();
 
 export function getRealtimeChannel(pin: string): RealtimeChannelBridge {

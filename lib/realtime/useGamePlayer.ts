@@ -114,6 +114,15 @@ export function useGamePlayer(initialPin: string = "") {
 
     const channel = getRealtimeChannel(state.pin);
 
+    // Initial Join Broadcast announcement when mounted
+    if (state.player && state.phase === "lobby") {
+      channel.broadcast("PLAYER_JOIN", {
+        id: state.player.id,
+        nickname: state.player.nickname,
+        avatar: state.player.avatar,
+      });
+    }
+
     const unsubscribe = channel.subscribe((payload) => {
       if (payload.pin !== stateRef.current.pin) return;
 
@@ -122,11 +131,11 @@ export function useGamePlayer(initialPin: string = "") {
       // 1. Lobby Sync
       if (payload.event === "LOBBY_SYNC") {
         const { totalQuestions, players } = payload.data;
-        const me = players.find((p: any) => p.id === myId);
+        const me = players ? players.find((p: any) => p.id === myId) : null;
         setState((prev) => ({
           ...prev,
           totalQuestions: totalQuestions || prev.totalQuestions,
-          totalPlayers: players.length,
+          totalPlayers: players ? players.length : prev.totalPlayers,
           currentRank: me ? me.rank : prev.currentRank,
         }));
       }
@@ -194,7 +203,7 @@ export function useGamePlayer(initialPin: string = "") {
         if (timerRef.current) clearInterval(timerRef.current);
 
         const { playerResults } = payload.data;
-        const myResult = playerResults.find((p: any) => p.id === myId);
+        const myResult = playerResults ? playerResults.find((p: any) => p.id === myId) : null;
 
         if (myResult) {
           if (myResult.isCorrect) {
@@ -226,7 +235,7 @@ export function useGamePlayer(initialPin: string = "") {
       // 6. Leaderboard
       if (payload.event === "SHOW_LEADERBOARD") {
         const { topPlayers } = payload.data;
-        const me = topPlayers.find((p: any) => p.id === myId);
+        const me = topPlayers ? topPlayers.find((p: any) => p.id === myId) : null;
         setState((prev) => ({
           ...prev,
           phase: "leaderboard",
@@ -237,7 +246,7 @@ export function useGamePlayer(initialPin: string = "") {
       // 7. Game Over / Podium
       if (payload.event === "GAME_OVER") {
         const { allPlayers } = payload.data;
-        const me = allPlayers.find((p: any) => p.id === myId);
+        const me = allPlayers ? allPlayers.find((p: any) => p.id === myId) : null;
 
         setState((prev) => ({
           ...prev,
@@ -252,7 +261,7 @@ export function useGamePlayer(initialPin: string = "") {
       unsubscribe();
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [state.pin]);
+  }, [state.pin, state.player, state.phase]);
 
   const leaveRoom = useCallback(() => {
     localStorage.removeItem("cahoot_player_session");
