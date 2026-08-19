@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Check, X, Flame, Award, Clock } from "lucide-react";
+import { Check, X, Flame, Award, Clock, Sparkles } from "lucide-react";
 import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 
 interface PlayerFeedbackProps {
@@ -27,95 +27,102 @@ export function PlayerFeedback({
 
   return (
     <div
-      className={`fixed inset-0 z-40 flex flex-col items-center justify-center p-6 text-white text-center transition-colors ${
+      className={`fixed inset-0 z-40 flex flex-col items-center justify-between p-6 text-white text-center select-none overflow-hidden transition-colors ${
         isWinner
-          ? "bg-kahoot-green"
+          ? "bg-gradient-to-b from-[#1db954] via-[#15803d] to-[#0e5c29]"
           : isTimeUp
-          ? "bg-amber-600"
-          : "bg-kahoot-red"
+          ? "bg-gradient-to-b from-[#f59e0b] via-[#d97706] to-[#92400e]"
+          : "bg-gradient-to-b from-[#e11d48] via-[#be123c] to-[#881337]"
       }`}
     >
-      {isWinner && <ConfettiEffect trigger={true} duration={2000} />}
+      {isWinner && <ConfettiEffect trigger={true} duration={2500} />}
 
-      {/* Main Result Icon Banner */}
-      <motion.div
-        initial={{ scale: 0, rotate: -20 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 18 }}
-        className="w-28 h-28 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 shadow-2xl border-4 border-white"
-      >
-        {isWinner ? (
-          <Check className="w-16 h-16 text-white stroke-[4]" />
-        ) : isTimeUp ? (
-          <Clock className="w-16 h-16 text-white stroke-[3]" />
-        ) : (
-          <X className="w-16 h-16 text-white stroke-[4]" />
-        )}
-      </motion.div>
+      {/* Top Banner */}
+      <div className="pt-4">
+        <span className="text-xs font-black uppercase tracking-widest bg-black/25 text-white/90 px-4 py-1.5 rounded-full border border-white/20">
+          Round Finished
+        </span>
+      </div>
 
-      {/* Title */}
-      <motion.h1
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-4xl sm:text-5xl font-black tracking-tight mb-2 uppercase drop-shadow-md"
-      >
-        {isWinner ? "Correct!" : isTimeUp ? "Time's Up!" : "Incorrect"}
-      </motion.h1>
-
-      {/* Points Earned */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15 }}
-        className="text-2xl sm:text-3xl font-black text-white/90 mb-6 bg-black/20 px-6 py-2 rounded-full border border-white/20 backdrop-blur-sm"
-      >
-        {isWinner ? `+${pointsEarned.toLocaleString()} pts` : "+0 pts"}
-      </motion.div>
-
-      {/* Streak Fire Banner */}
-      {streak > 1 && isWinner && (
+      {/* Center Stage: Huge Icon + Status Title + Points */}
+      <div className="my-auto flex flex-col items-center">
+        {/* Animated Badge Icon */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="flex items-center gap-2 bg-amber-400 text-slate-900 px-5 py-2.5 rounded-2xl font-black text-lg mb-6 shadow-xl"
+          initial={{ scale: 0, rotate: -30 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 350, damping: 16 }}
+          className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-5 shadow-[0_15px_40px_rgba(0,0,0,0.4)] border-4 border-white ring-8 ring-white/20"
         >
-          <Flame className="w-6 h-6 fill-slate-900" />
-          <span>Answer Streak: {streak}! 🔥</span>
+          {isWinner ? (
+            <Check className="w-16 h-16 sm:w-20 sm:h-20 text-white stroke-[4]" />
+          ) : isTimeUp ? (
+            <Clock className="w-14 h-14 sm:w-16 sm:h-16 text-white stroke-[3]" />
+          ) : (
+            <X className="w-16 h-16 sm:w-20 sm:h-20 text-white stroke-[4]" />
+          )}
         </motion.div>
-      )}
 
-      {/* Score & Rank Stats Pill */}
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl sm:text-5xl font-black tracking-tight mb-2 drop-shadow-lg"
+        >
+          {isWinner ? "Correct!" : isTimeUp ? "Time's Up!" : "Incorrect"}
+        </motion.h1>
+
+        {/* Points Pill */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.15 }}
+          className="text-2xl sm:text-3xl font-black text-white mb-4 bg-black/30 px-6 py-2 rounded-full border border-white/25 backdrop-blur-sm shadow-xl flex items-center gap-1.5"
+        >
+          <Sparkles className="w-5 h-5 text-yellow-300 fill-yellow-300" />
+          <span>{isWinner ? `+${pointsEarned.toLocaleString()} pts` : "+0 pts"}</span>
+        </motion.div>
+
+        {/* Streak Badge */}
+        {streak > 1 && isWinner && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 px-5 py-2 rounded-2xl font-black text-base shadow-2xl border-2 border-white/60"
+          >
+            <Flame className="w-5 h-5 fill-red-600 text-red-600 animate-bounce" />
+            <span>Answer Streak: {streak}! 🔥</span>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Bottom Floating Stats Pill */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-        className="w-full max-w-xs bg-black/30 backdrop-blur-md rounded-3xl p-5 border border-white/20 flex items-center justify-around shadow-2xl"
+        transition={{ delay: 0.3 }}
+        className="w-full max-w-xs bg-black/35 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/20 flex items-center justify-around shadow-2xl pb-4 mb-2"
       >
         <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1 text-slate-300 text-xs font-bold uppercase tracking-wider mb-1">
-            <Award className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1 text-slate-300 text-[11px] font-bold uppercase tracking-wider mb-0.5">
+            <Award className="w-3.5 h-3.5 text-yellow-300" />
             <span>Rank</span>
           </div>
-          <span className="text-2xl font-black">
+          <span className="text-2xl sm:text-3xl font-black">
             #{currentRank}{" "}
-            <span className="text-sm font-normal text-slate-300">/ {totalPlayers}</span>
+            <span className="text-xs font-bold text-slate-300">/ {totalPlayers}</span>
           </span>
         </div>
 
         <div className="w-[1px] h-10 bg-white/20" />
 
         <div className="flex flex-col items-center">
-          <span className="text-slate-300 text-xs font-bold uppercase tracking-wider mb-1">
+          <span className="text-slate-300 text-[11px] font-bold uppercase tracking-wider mb-0.5">
             Total Score
           </span>
-          <span className="text-2xl font-black">{currentScore.toLocaleString()}</span>
+          <span className="text-2xl sm:text-3xl font-black">{currentScore.toLocaleString()}</span>
         </div>
       </motion.div>
-
-      <p className="mt-8 text-xs font-bold text-white/70 animate-pulse">
-        Waiting for host to continue...
-      </p>
     </div>
   );
 }
