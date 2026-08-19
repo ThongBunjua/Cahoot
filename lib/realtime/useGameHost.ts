@@ -64,10 +64,8 @@ export function useGameHost(pin: string, quiz: Quiz) {
   useEffect(() => {
     if (state.phase === "lobby") {
       const interval = setInterval(async () => {
-        // 1. Broadcast Lobby Sync
         syncLobby(stateRef.current.players);
 
-        // 2. Fetch any players from DB fallback
         try {
           const dbPlayers = await SyncBridge.fetchRoomPlayers(pin);
           if (dbPlayers.length > 0) {
@@ -152,8 +150,9 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
       // 2. Player Submits Answer during Question Phase
       if (payload.event === "SUBMIT_ANSWER" && currentState.phase === "question") {
-        const { playerId, answerIndex, clientTimestamp } = payload.data;
-        if (answersMapRef.current.has(playerId)) return; // prevent duplicate answer
+        const { playerId, nickname, answerIndex, clientTimestamp } = payload.data;
+        const answerKey = playerId || nickname;
+        if (answersMapRef.current.has(answerKey)) return; // prevent duplicate answer
 
         const question = currentState.quiz.questions[currentState.currentQuestionIndex];
         if (!question) return;
@@ -161,10 +160,14 @@ export function useGameHost(pin: string, quiz: Quiz) {
         // Anti-cheat verification against Host questionStartTime
         const hostNow = Date.now();
         const responseTimeMs = Math.max(0, hostNow - currentState.questionStartTime);
-        answersMapRef.current.set(playerId, { answerIndex, timestamp: hostNow });
+        answersMapRef.current.set(answerKey, { answerIndex, timestamp: hostNow });
 
         const isCorrect = answerIndex === question.correct_index;
-        const player = currentState.players.find((p) => p.id === playerId);
+        
+        // Find player by ID or Nickname for 100% reliable matching
+        const player = currentState.players.find(
+          (p) => p.id === playerId || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())
+        );
         const currentStreak = player ? player.streak : 0;
 
         const { points, newStreak } = calculateScore({
@@ -185,7 +188,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
         // Update player record
         const updatedPlayers = currentState.players.map((p) => {
-          if (p.id === playerId) {
+          if (p.id === playerId || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())) {
             return {
               ...p,
               score: p.score + points,
@@ -242,13 +245,14 @@ export function useGameHost(pin: string, quiz: Quiz) {
       players: rankedPlayers,
     }));
 
-    // Broadcast question end to all players
+    // Broadcast question end to all players with BOTH id and nickname
     broadcast("QUESTION_END", {
       questionIndex: currentState.currentQuestionIndex,
       correctIndex: currentQ.correct_index,
       answerCounts: currentState.answerCounts,
       playerResults: rankedPlayers.map((p) => ({
         id: p.id,
+        nickname: p.nickname,
         isCorrect: p.lastCorrect ?? false,
         pointsEarned: p.lastPoints,
         totalScore: p.score,
@@ -439,7 +443,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
   };
 }
 
-// Background batch persistence helper (Zero DB load during live gameplay)
+// Background batch persistence helper
 async function persistGameResults(pin: string, quizId: string, players: Player[]) {
   const supabase = getSupabaseClient();
   if (!supabase) return;

@@ -9,7 +9,7 @@ export class SyncBridge {
     if (!supabase) return null;
 
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("game_sessions")
         .upsert(
           {
@@ -32,14 +32,13 @@ export class SyncBridge {
     return null;
   }
 
-  // Player joins room in Supabase DB (Guaranteed dual-path backup)
+  // Player joins room in Supabase DB
   static async playerJoinRoom(pin: string, player: Player): Promise<void> {
     if (!isSupabaseConfigured()) return;
     const supabase = getSupabaseClient();
     if (!supabase) return;
 
     try {
-      // Find session by pin
       const { data: session } = await supabase
         .from("game_sessions")
         .select("id")
@@ -67,7 +66,7 @@ export class SyncBridge {
     }
   }
 
-  // Host polls session players as fallback backup every 2s
+  // Host polls session players as fallback backup
   static async fetchRoomPlayers(pin: string): Promise<Player[]> {
     if (!isSupabaseConfigured()) return [];
     const supabase = getSupabaseClient();
