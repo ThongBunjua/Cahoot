@@ -4,7 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { KahootShape } from "@/components/ui/KahootShapes";
-import { Check, X, ArrowRight, Sparkles, Trophy } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 
 interface HostResultsProps {
   question: Question;
@@ -12,185 +12,140 @@ interface HostResultsProps {
   onNext: () => void;
 }
 
-const BAR_STYLES = [
+const CHOICES_THEME = [
   {
-    gradient: "from-[#ff2e56] to-[#c91238]",
-    shadow: "shadow-[0_10px_30px_rgba(226,27,60,0.5)]",
-    ring: "ring-[#ff4d70]",
-    badgeBg: "bg-[#E21B3C]",
+    bgClass: "bg-[#e21b3c]",
+    borderClass: "border-[#b8142f]",
     shape: "triangle" as const,
-    label: "Red",
   },
   {
-    gradient: "from-[#2582f0] to-[#0e4e9e]",
-    shadow: "shadow-[0_10px_30px_rgba(19,104,206,0.5)]",
-    ring: "ring-[#3d94f6]",
-    badgeBg: "bg-[#1368CE]",
+    bgClass: "bg-[#1368ce]",
+    borderClass: "border-[#0e4e9e]",
     shape: "diamond" as const,
-    label: "Blue",
   },
   {
-    gradient: "from-[#f5b800] to-[#b88500]",
-    shadow: "shadow-[0_10px_30px_rgba(216,158,0,0.5)]",
-    ring: "ring-[#ffd043]",
-    badgeBg: "bg-[#D89E00]",
+    bgClass: "bg-[#d89e00]",
+    borderClass: "border-[#b28200]",
     shape: "circle" as const,
-    label: "Yellow",
   },
   {
-    gradient: "from-[#32b512] to-[#1a6607]",
-    shadow: "shadow-[0_10px_30px_rgba(38,137,12,0.5)]",
-    ring: "ring-[#43ce22]",
-    badgeBg: "bg-[#26890C]",
+    bgClass: "bg-[#26890c]",
+    borderClass: "border-[#1d6b09]",
     shape: "square" as const,
-    label: "Green",
   },
 ];
 
 export function HostResults({ question, answerCounts, onNext }: HostResultsProps) {
-  const totalVotes = answerCounts.reduce((a, b) => a + b, 0);
   const maxVote = Math.max(...answerCounts, 1);
+  const maxBarHeightPx = 240; // Max bar chart height in px
 
   return (
-    <div className="h-screen max-h-screen bg-gradient-to-b from-[#18092e] via-[#100321] to-[#0a0117] text-white flex flex-col justify-between p-3 sm:p-6 select-none overflow-hidden relative">
-      {/* Background Ambient Lights */}
-      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-purple-600/15 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Top Header: Question Title & Next Button */}
-      <header className="relative z-10 flex items-center justify-between bg-white/10 backdrop-blur-xl px-4 sm:px-6 py-3 rounded-2xl border border-white/15 shadow-xl max-w-6xl mx-auto w-full">
-        <div className="flex items-center gap-3 flex-1 min-w-0 mr-4">
-          <div className="p-2 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl shadow-md flex-shrink-0">
-            <Trophy className="w-5 h-5 text-yellow-300" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-yellow-400">
-                Answer Results
-              </span>
-              <span className="text-slate-400 text-xs">•</span>
-              <span className="text-xs font-bold text-slate-300">
-                {totalVotes} {totalVotes === 1 ? "Response" : "Responses"}
-              </span>
-            </div>
-            <h2 className="text-sm sm:text-lg md:text-xl font-black text-white truncate drop-shadow">
-              {question.question_text}
-            </h2>
-          </div>
+    <div className="h-screen w-screen bg-[#46178f] text-white flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-sans">
+      {/* Top Header: Question & Next Button */}
+      <header className="flex items-center justify-between gap-4 max-w-6xl mx-auto w-full pt-1">
+        <div className="flex-1 min-w-0 bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
+          <h2 className="text-base sm:text-xl md:text-2xl font-black text-white truncate text-center sm:text-left">
+            {question.question_text}
+          </h2>
         </div>
 
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onNext}
-          className="px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-sm sm:text-base rounded-xl shadow-[0_8px_20px_rgba(16,185,129,0.35)] flex items-center gap-2 transition-all cursor-pointer flex-shrink-0 border-b-4 border-emerald-800 active:border-b-0 active:translate-y-1"
+          className="px-6 sm:px-8 py-3.5 bg-white hover:bg-slate-100 text-[#46178f] font-black text-base sm:text-lg rounded-2xl shadow-xl flex items-center gap-2 transition-all cursor-pointer flex-shrink-0"
         >
           <span>Next</span>
-          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
+          <ArrowRight className="w-5 h-5 stroke-[3]" />
         </motion.button>
       </header>
 
-      {/* Middle 3D Bar Chart Visualizer */}
-      <main className="relative z-10 flex-1 my-3 sm:my-5 flex items-end justify-center gap-4 sm:gap-8 max-w-4xl mx-auto w-full pb-4 max-h-[360px]">
-        {question.choices.map((choice, idx) => {
-          const count = answerCounts[idx] || 0;
-          const isCorrect = idx === question.correct_index;
-          const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-          const heightPercent = totalVotes > 0 ? Math.max((count / maxVote) * 100, 14) : 14;
-          const style = BAR_STYLES[idx] || BAR_STYLES[0];
+      {/* Center Bar Chart Area (Simple, Authentic Kahoot Floor Style) */}
+      <main className="flex-1 flex flex-col items-center justify-end max-w-4xl mx-auto w-full my-4">
+        {/* The 4 Vertical Bar Columns */}
+        <div className="flex items-end justify-center gap-4 sm:gap-8 w-full px-4">
+          {question.choices.map((choice, idx) => {
+            const count = answerCounts[idx] || 0;
+            const isCorrect = idx === question.correct_index;
+            const theme = CHOICES_THEME[idx];
 
-          return (
-            <div key={idx} className="flex-1 flex flex-col items-center max-w-[130px] sm:max-w-[160px] h-full justify-end">
-              {/* Vote Count & Correct/Incorrect Indicator Top Badge */}
-              <div className="flex flex-col items-center gap-1 mb-2">
-                {isCorrect ? (
-                  <motion.div
-                    initial={{ scale: 0, rotate: -30 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                    className="p-1.5 bg-gradient-to-tr from-emerald-500 to-green-400 text-white rounded-full shadow-[0_0_20px_rgba(16,185,129,0.8)] border-2 border-white ring-4 ring-green-400/40"
-                  >
-                    <Check className="w-5 h-5 sm:w-6 sm:h-6 stroke-[4]" />
-                  </motion.div>
-                ) : (
-                  <div className="p-1 bg-white/10 text-slate-400 rounded-full border border-white/15">
-                    <X className="w-3.5 h-3.5" />
-                  </div>
-                )}
+            // Calculate height in pixels (0 votes = 6px minimum floor bar)
+            const barHeight = count > 0 ? Math.round((count / maxVote) * maxBarHeightPx) : 6;
 
-                <div className="flex items-baseline gap-1 text-center">
-                  <span className="text-2xl sm:text-3xl font-black text-white tabular-nums drop-shadow-md">
+            return (
+              <div key={idx} className="flex-1 max-w-[120px] sm:max-w-[150px] flex flex-col items-center">
+                {/* Indicator checkmark & Count Number (Above the bar) */}
+                <div className="flex flex-col items-center gap-1 mb-2 h-14 justify-end">
+                  {isCorrect && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                      className="w-7 h-7 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                    >
+                      <Check className="w-4 h-4 stroke-[4]" />
+                    </motion.div>
+                  )}
+                  <span className="text-2xl sm:text-3xl font-black text-white tabular-nums drop-shadow">
                     {count}
                   </span>
-                  {totalVotes > 0 && (
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-400">
-                      ({percentage}%)
-                    </span>
-                  )}
+                </div>
+
+                {/* The Rising Bar */}
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: `${barHeight}px` }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className={`w-full rounded-t-xl ${theme.bgClass} shadow-md ${
+                    isCorrect ? "ring-2 ring-white" : ""
+                  }`}
+                />
+
+                {/* Base Shape Floor Tile (Fixed Size - Never Distorted) */}
+                <div
+                  className={`w-full h-12 sm:h-14 ${theme.bgClass} rounded-b-xl flex items-center justify-center shadow-md border-t border-black/10`}
+                >
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 text-white flex items-center justify-center">
+                    <KahootShape shape={theme.shape} size={24} />
+                  </div>
                 </div>
               </div>
-
-              {/* Animated 3D Glossy Column Pillar */}
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: `${heightPercent}%` }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-                className={`w-full rounded-2xl sm:rounded-3xl flex flex-col items-center justify-between p-3 bg-gradient-to-t ${
-                  style.gradient
-                } ${style.shadow} border-t-4 border-white/40 relative overflow-hidden transition-all ${
-                  isCorrect
-                    ? "ring-4 ring-white shadow-[0_0_35px_rgba(255,255,255,0.4)] scale-[1.02]"
-                    : "opacity-85 hover:opacity-100"
-                }`}
-              >
-                {/* Glossy top highlight overlay */}
-                <div className="absolute top-0 inset-x-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent pointer-events-none rounded-t-2xl" />
-
-                <div className="my-auto text-white drop-shadow-md">
-                  <KahootShape shape={style.shape} size={36} />
-                </div>
-              </motion.div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </main>
 
-      {/* Bottom 4 Answers Legend Cards (2x2 Grid) */}
-      <footer className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 max-w-5xl mx-auto w-full">
+      {/* Bottom Answer Choices Grid (2x2) */}
+      <footer className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-5xl mx-auto w-full pb-2">
         {question.choices.map((choice, idx) => {
           const isCorrect = idx === question.correct_index;
-          const style = BAR_STYLES[idx] || BAR_STYLES[0];
-          const count = answerCounts[idx] || 0;
+          const theme = CHOICES_THEME[idx];
 
           return (
             <div
               key={idx}
-              className={`p-3 sm:p-3.5 rounded-2xl flex items-center gap-3 text-white font-black text-xs sm:text-sm shadow-xl transition-all border-2 ${
-                style.badgeBg
+              className={`p-3.5 sm:p-4 rounded-2xl flex items-center gap-3.5 text-white font-bold text-sm sm:text-base shadow-lg transition-all ${
+                theme.bgClass
               } ${
                 isCorrect
-                  ? "border-white ring-4 ring-green-400/50 shadow-[0_0_25px_rgba(34,197,94,0.4)] scale-[1.01]"
-                  : "border-transparent opacity-65"
+                  ? "ring-4 ring-white scale-[1.01]"
+                  : "opacity-40 grayscale-[20%]"
               }`}
             >
-              <div className="w-8 h-8 rounded-xl bg-black/25 flex items-center justify-center flex-shrink-0 shadow-inner">
-                <KahootShape shape={style.shape} size={20} />
+              {/* Shape Icon in Dark Box */}
+              <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center flex-shrink-0">
+                <KahootShape shape={theme.shape} size={20} />
               </div>
 
-              <span className="flex-1 truncate text-white">{choice.text}</span>
+              {/* Choice Text */}
+              <span className="flex-1 truncate font-black text-white">{choice.text}</span>
 
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-xs font-black bg-black/25 px-2 py-1 rounded-lg tabular-nums">
-                  {count}
-                </span>
-
-                {isCorrect && (
-                  <div className="bg-white text-emerald-700 font-black text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
-                    <Check className="w-3.5 h-3.5 stroke-[4]" />
-                    <span className="hidden sm:inline">Correct</span>
-                  </div>
-                )}
-              </div>
+              {/* Correct Checkmark Badge */}
+              {isCorrect && (
+                <div className="w-6 h-6 bg-white text-[#26890c] rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                  <Check className="w-4 h-4 stroke-[4]" />
+                </div>
+              )}
             </div>
           );
         })}
