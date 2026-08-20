@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Player } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -20,13 +20,17 @@ interface HostLeaderboardProps {
   onNext: () => void;
 }
 
-const CARD_HEIGHT_PX = 102; // Card height (86px) + Gap (16px)
+const CARD_HEIGHT_PX = 104; // Slot spacing: Card height (88px) + Gap (16px)
 
 export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderboardProps) {
-  const [isOvertakeAnimated, setIsOvertakeAnimated] = useState(false);
+  // Current live counting scores for each player
   const [displayScores, setDisplayScores] = useState<{ [id: string]: number }>({});
+  // Current dynamic slot ranks (0-indexed) for each player as scores tick up
+  const [dynamicSlots, setDynamicSlots] = useState<{ [id: string]: number }>({});
+  // State indicating counting has finished
+  const [isCountingFinished, setIsCountingFinished] = useState(false);
 
-  // 1. Initial list sorted by previous score BEFORE this question
+  // 1. Initial list sorted by starting score BEFORE this question
   const initialSorted = [...players].sort((a, b) => {
     const scoreA =
       typeof a.previousScore === "number" ? a.previousScore : Math.max(0, a.score - (a.lastPoints || 0));
@@ -38,7 +42,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   // 2. Final list sorted by current score AFTER this question
   const finalSorted = [...players].sort((a, b) => b.score - a.score);
 
-  // Take the combined Top 5 players (ensures stable unique player set)
+  // Take the stable unique set of Top 5 players
   const topPlayerIds = Array.from(
     new Set([
       ...initialSorted.slice(0, 5).map((p) => p.id),
@@ -50,78 +54,114 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     .map((id) => finalSorted.find((p) => p.id === id) || initialSorted.find((p) => p.id === id))
     .filter(Boolean) as Player[];
 
+  // Ref to track last overtakes and play sound cues
+  const lastLeaderIdRef = useRef<string>(initialSorted[0]?.id || "");
+
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // Initialize running display scores to starting score
+    // 1. Initialize starting scores & initial slot positions
     const initialScoresMap: { [id: string]: number } = {};
+    const initialSlotsMap: { [id: string]: number } = {};
+
     players.forEach((p) => {
-      initialScoresMap[p.id] =
+      const startScore =
         typeof p.previousScore === "number"
           ? p.previousScore
           : Math.max(0, p.score - (p.lastPoints || 0));
+      initialScoresMap[p.id] = startScore;
     });
+
+    topPlayers.forEach((p) => {
+      const initialRank = initialSorted.findIndex((item) => item.id === p.id);
+      initialSlotsMap[p.id] = Math.max(0, initialRank >= 0 ? initialRank : 4);
+    });
+
     setDisplayScores(initialScoresMap);
+    setDynamicSlots(initialSlotsMap);
 
-    // Step 1: Score count-up over 1.2 seconds
-    const countTimer = setTimeout(() => {
-      const duration = 1200;
-      const steps = 24; // 24 smooth steps
-      const stepDuration = duration / steps;
-      let stepCount = 0;
+    // 2. Start Live 4.0-Second Continuous Overtake Engine!
+    // As scores tick up, whenever a player's running score exceeds another player,
+    // their slot immediately swaps, causing real-time live overtaking!
+    const totalDurationMs = 4200; // 4.2 seconds of thrilling live race!
+    const startTime = Date.now() + 500; // 500ms initial suspense pause
+    let animFrameId: number;
 
-      const interval = setInterval(() => {
-        stepCount++;
-        setDisplayScores((prev) => {
-          const updated = { ...prev };
-          players.forEach((p) => {
-            const start =
-              typeof p.previousScore === "number"
-                ? p.previousScore
-                : Math.max(0, p.score - (p.lastPoints || 0));
-            const target = p.score;
-            const diff = target - start;
-            if (stepCount >= steps) {
-              updated[p.id] = target;
-            } else {
-              updated[p.id] = Math.round(start + (diff * stepCount) / steps);
-            }
-          });
-          return updated;
-        });
+    const tick = () => {
+      const now = Date.now();
+      const elapsed = now - startTime;
 
-        if (stepCount % 4 === 0) {
-          sounds.playTick(1.0 + (stepCount / steps) * 0.4);
-        }
+      if (elapsed < 0) {
+        animFrameId = requestAnimationFrame(tick);
+        return;
+      }
 
-        if (stepCount >= steps) {
-          clearInterval(interval);
-          // Step 2: 0.5s pause so everyone looks at their scores, THEN perform the dramatic 1.6s physical slide swap!
-          setTimeout(() => {
-            setIsOvertakeAnimated(true);
-            sounds.playClick();
-          }, 500);
-        }
-      }, stepDuration);
+      const rawProgress = Math.min(1, elapsed / totalDurationMs);
+      // Custom ease-out curve for natural deceleration towards the end
+      const progress = 1 - Math.pow(1 - rawProgress, 2.2);
 
-      return () => clearInterval(interval);
-    }, 400);
+      // Compute live score for all players at this millisecond
+      const currentScoresMap: { [id: string]: number } = {};
+      players.forEach((p) => {
+        const start =
+          typeof p.previousScore === "number"
+            ? p.previousScore
+            : Math.max(0, p.score - (p.lastPoints || 0));
+        const target = p.score;
+        const diff = target - start;
+        currentScoresMap[p.id] = Math.round(start + diff * progress);
+      });
+      setDisplayScores(currentScoresMap);
+
+      // Dynamically rank top players based on their LIVE current score
+      const sortedByLiveScore = [...topPlayers].sort((a, b) => {
+        const scoreA = currentScoresMap[a.id] ?? 0;
+        const scoreB = currentScoresMap[b.id] ?? 0;
+        return scoreB - scoreA;
+      });
+
+      const updatedSlots: { [id: string]: number } = {};
+      sortedByLiveScore.forEach((p, idx) => {
+        updatedSlots[p.id] = idx;
+      });
+      setDynamicSlots(updatedSlots);
+
+      // Play tick / overtake chime when #1 leader changes
+      const currentLeaderId = sortedByLiveScore[0]?.id;
+      if (currentLeaderId && currentLeaderId !== lastLeaderIdRef.current) {
+        lastLeaderIdRef.current = currentLeaderId;
+        sounds.playClick();
+      }
+
+      if (rawProgress < 1) {
+        animFrameId = requestAnimationFrame(tick);
+      } else {
+        // Counting complete!
+        setIsCountingFinished(true);
+        sounds.playClick();
+      }
+    };
+
+    animFrameId = requestAnimationFrame(tick);
 
     return () => {
-      clearTimeout(countTimer);
+      cancelAnimationFrame(animFrameId);
     };
   }, [players]);
 
   return (
     <div className="min-h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
-      {/* 1. Header: Wide Max-w-6xl for Full Desktop Balance */}
+      {/* ========================================================================= */}
+      {/* 1. HEADER: 100% Solid 3D Colors (No Glassmorphism, No Gradients) */}
+      {/* ========================================================================= */}
       <header className="w-full flex justify-between items-center max-w-6xl mx-auto pt-1 z-20">
-        <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 shadow-md">
-          <div className="p-2.5 bg-amber-400 rounded-xl text-slate-950 shadow-sm">
+        {/* Left Standings Box: Solid Deep Purple #33106B with Solid 3D Bottom Border */}
+        <div className="flex items-center gap-3.5 bg-[#33106B] px-6 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
+          <div className="p-2.5 bg-[#FFA602] border-b-2 border-[#CC8400] rounded-xl text-slate-950 shadow-sm">
             <Trophy className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
-            <span className="text-[11px] font-black uppercase tracking-widest text-yellow-300 block leading-none">
+            <span className="text-[11px] font-black uppercase tracking-widest text-[#FFA602] block leading-none">
               Standings
             </span>
             <h1 className="text-xl md:text-2xl font-black text-white leading-tight mt-0.5">
@@ -130,14 +170,16 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
           </div>
         </div>
 
+        {/* Right Actions */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <AudioControl />
 
+          {/* Next Button: 100% Solid Green #26890C with 3D Push Extrusion */}
           <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={onNext}
-            className="px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-base md:text-lg rounded-2xl shadow-xl flex items-center gap-2.5 transition-all cursor-pointer border-b-4 border-emerald-800 active:border-b-0 active:translate-y-1"
+            className="px-8 py-3.5 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-base md:text-lg rounded-2xl shadow-lg flex items-center gap-2.5 transition-all cursor-pointer border-b-[6px] border-[#1A6107] active:border-b-[2px] active:translate-y-1"
           >
             <span>{isLastQuestion ? "Final Podium 🏆" : "Next Question"}</span>
             <ArrowRight className="w-5 h-5 stroke-[3]" />
@@ -145,128 +187,125 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
         </div>
       </header>
 
-      {/* 2. Main Center Area: GPU-Accelerated Absolute Physical Slot Translation (Zero-Lag 60FPS Overtake) */}
+      {/* ========================================================================= */}
+      {/* 2. MAIN CENTER: LIVE REAL-TIME OVERTAKING RACE (100% Solid 3D White Cards) */}
+      {/* ========================================================================= */}
       <main className="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center my-auto py-4 z-10">
-        <div className="relative w-full h-[520px]">
+        <div className="relative w-full h-[530px]">
           {topPlayers.map((player) => {
             const initialRank = initialSorted.findIndex((p) => p.id === player.id) + 1;
             const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
-            const prevRank = typeof player.previousRank === "number" ? player.previousRank : initialRank;
-            const rankDelta = prevRank - finalRank; // Positive = Climbed up, Negative = Dropped down!
+            const rankDelta = initialRank - finalRank; // Positive = Climbed up, Negative = Dropped down!
 
-            // Initial slot vs Final slot (0-indexed)
-            const startSlot = Math.max(0, (initialRank > 0 ? initialRank : 5) - 1);
-            const endSlot = Math.max(0, (finalRank > 0 ? finalRank : 5) - 1);
-            const currentSlot = isOvertakeAnimated ? endSlot : startSlot;
-
+            // Current live slot index (0, 1, 2, 3, 4)
+            const currentSlot = dynamicSlots[player.id] ?? (initialRank - 1);
+            const liveRankNumber = currentSlot + 1;
             const slotY = currentSlot * CARD_HEIGHT_PX;
-            const activeRankNumber = isOvertakeAnimated ? finalRank : prevRank;
+
             const currentScoreVal = displayScores[player.id] ?? player.score;
             const pointsGained = player.lastPoints || 0;
 
-            const isClimber = isOvertakeAnimated && rankDelta > 0;
-            const isDropper = isOvertakeAnimated && rankDelta < 0;
+            const isClimber = isCountingFinished && rankDelta > 0;
+            const isDropper = isCountingFinished && rankDelta < 0;
 
             return (
               <motion.div
                 key={player.id}
-                initial={{ y: startSlot * CARD_HEIGHT_PX, opacity: 0 }}
+                initial={{ y: (initialRank - 1) * CARD_HEIGHT_PX, opacity: 0 }}
                 animate={{
                   y: slotY,
                   opacity: 1,
-                  scale: isClimber ? 1.025 : 1,
-                  zIndex: isClimber ? 30 : isDropper ? 10 : 20,
+                  zIndex: liveRankNumber === 1 ? 30 : 25 - liveRankNumber,
                 }}
                 transition={{
-                  y: { type: "spring", stiffness: 75, damping: 14, mass: 1 },
-                  scale: { duration: 0.4 },
+                  y: { type: "spring", stiffness: 65, damping: 13, mass: 1 },
                 }}
-                className={`absolute left-0 right-0 top-0 h-[88px] bg-white rounded-2xl px-6 md:px-8 border border-slate-200 border-b-[6px] border-b-slate-200 shadow-xl flex items-center justify-between transition-shadow duration-500 will-change-transform ${
-                  isClimber
-                    ? "ring-4 ring-emerald-400 shadow-[0_15px_35px_rgba(16,185,129,0.35)]"
+                className={`absolute left-0 right-0 top-0 h-[88px] bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-all will-change-transform ${
+                  liveRankNumber === 1
+                    ? "border-amber-400 border-b-[6px] border-b-amber-500"
+                    : isClimber
+                    ? "border-emerald-400 border-b-[6px] border-b-emerald-500"
                     : isDropper
-                    ? "ring-4 ring-red-400 shadow-[0_10px_25px_rgba(239,68,68,0.25)]"
+                    ? "border-rose-300 border-b-[6px] border-b-rose-400"
                     : ""
                 }`}
               >
-                {/* Left Section: 54px Rank Badge + 4xl Avatar + 2xl Nickname + Indicators */}
+                {/* Left Section: 54px Solid Rank Badge + Avatar + Nickname */}
                 <div className="flex items-center gap-4 md:gap-6 min-w-0">
-                  {/* Rank Badge: w-13 h-13 text-2xl font-black rounded-2xl */}
+                  {/* Solid 3D Rank Badge (100% Solid Colors, Extruded Bottom Border) */}
                   <div
-                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-500 ${
-                      activeRankNumber === 1
-                        ? "bg-amber-400 border-b-4 border-amber-600 text-white"
-                        : activeRankNumber === 2
-                        ? "bg-slate-400 border-b-4 border-slate-600 text-white"
-                        : activeRankNumber === 3
-                        ? "bg-amber-700 border-b-4 border-amber-900 text-white"
-                        : "bg-indigo-900 border-b-4 border-indigo-950 text-white"
+                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 ${
+                      liveRankNumber === 1
+                        ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
+                        : liveRankNumber === 2
+                        ? "bg-[#94A3B8] border-b-4 border-[#64748B] text-white"
+                        : liveRankNumber === 3
+                        ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
+                        : "bg-[#33106B] border-b-4 border-[#240B4D] text-white"
                     }`}
                   >
-                    {activeRankNumber}
+                    {liveRankNumber}
                   </div>
 
-                  {/* Avatar: text-4xl */}
+                  {/* Avatar */}
                   <div className="text-3xl md:text-4xl filter drop-shadow-sm flex-shrink-0 select-none">
                     {player.avatar}
                   </div>
 
-                  {/* Nickname & Status Badges */}
+                  {/* Nickname & Dynamic Indicators */}
                   <div className="min-w-0 flex items-center gap-2.5 md:gap-3 flex-wrap">
                     <h3 className="text-xl md:text-2xl font-black text-slate-900 truncate max-w-[140px] sm:max-w-xs md:max-w-sm tracking-tight">
                       {player.nickname}
                     </h3>
 
-                    {/* Streak Badge */}
+                    {/* Streak Badge: Solid Amber */}
                     {player.streak > 1 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] md:text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full flex-shrink-0">
-                        <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                      <span className="inline-flex items-center gap-1 text-[11px] md:text-xs font-black bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2.5 py-0.5 rounded-full flex-shrink-0">
+                        <Flame className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
                         <span>{player.streak} Streak</span>
                       </span>
                     )}
 
-                    {/* Rank Climbed Badge (Green ▲) */}
-                    {isOvertakeAnimated && rankDelta > 0 && (
+                    {/* Rank Climbed Badge (Solid Green ▲) */}
+                    {isCountingFinished && rankDelta > 0 && (
                       <motion.span
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 350 }}
-                        className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2.5 py-0.5 rounded-full text-xs shadow-sm flex-shrink-0 animate-pulse"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="inline-flex items-center gap-1 bg-[#D1FAE5] text-[#065F46] border border-[#6EE7B7] font-black px-2.5 py-0.5 rounded-full text-xs shadow-sm flex-shrink-0"
                       >
-                        <ArrowUp className="w-3.5 h-3.5 stroke-[3] text-emerald-700" />
+                        <ArrowUp className="w-3.5 h-3.5 stroke-[3] text-[#059669]" />
                         <span>+{rankDelta}</span>
                       </motion.span>
                     )}
 
-                    {/* Rank Dropped Badge (Red ▼) */}
-                    {isOvertakeAnimated && rankDelta < 0 && (
+                    {/* Rank Dropped Badge (Solid Red ▼) */}
+                    {isCountingFinished && rankDelta < 0 && (
                       <motion.span
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 350 }}
-                        className="inline-flex items-center gap-1 bg-red-100 text-red-800 border border-red-300 font-black px-2.5 py-0.5 rounded-full text-xs shadow-sm flex-shrink-0"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="inline-flex items-center gap-1 bg-[#FEE2E2] text-[#991B1B] border border-[#FCA5A5] font-black px-2.5 py-0.5 rounded-full text-xs shadow-sm flex-shrink-0"
                       >
-                        <ArrowDown className="w-3.5 h-3.5 stroke-[3] text-red-700" />
+                        <ArrowDown className="w-3.5 h-3.5 stroke-[3] text-[#DC2626]" />
                         <span>{rankDelta}</span>
                       </motion.span>
                     )}
                   </div>
                 </div>
 
-                {/* Right Section: Light Blue Points Gained Pill + Large Slate-900 Score */}
+                {/* Right Section: Solid Points Gained Pill + Total Score */}
                 <div className="flex items-center gap-3 md:gap-5 flex-shrink-0">
-                  {/* Points Gained Pill */}
+                  {/* Points Gained Pill: Solid Light Blue */}
                   {pointsGained > 0 && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-blue-50 text-blue-600 border border-blue-200 font-extrabold px-3 py-1 rounded-xl text-sm md:text-base shadow-sm"
+                      className="bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] font-black px-3 py-1 rounded-xl text-sm md:text-base shadow-sm"
                     >
                       +{pointsGained.toLocaleString()}
                     </motion.div>
                   )}
 
-                  {/* Total Score */}
+                  {/* Total Score: Solid Dark Slate-900 */}
                   <div className="text-right min-w-[85px] sm:min-w-[105px]">
                     <span className="text-2xl md:text-4xl font-black text-slate-900 tabular-nums tracking-tight block leading-none">
                       {currentScoreVal.toLocaleString()}
@@ -282,11 +321,13 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
         </div>
       </main>
 
-      {/* 3. Footer: Clean Player Count Indicator */}
+      {/* ========================================================================= */}
+      {/* 3. FOOTER: 100% Solid Player Count Indicator */}
+      {/* ========================================================================= */}
       <footer className="w-full text-center text-xs font-bold text-slate-200 pb-2 z-20">
         {players.length > 5 && (
-          <span className="bg-white/10 px-5 py-2 rounded-full border border-white/20 inline-flex items-center gap-2 shadow-sm text-sm">
-            <Users className="w-4 h-4 text-yellow-300" />
+          <span className="bg-[#33106B] px-5 py-2 rounded-full border border-[#240B4D] inline-flex items-center gap-2 shadow-sm text-sm">
+            <Users className="w-4 h-4 text-[#FFA602]" />
             <span>+ {players.length - 5} more players competing below</span>
           </span>
         )}
