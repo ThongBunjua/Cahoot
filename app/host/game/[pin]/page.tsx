@@ -5,12 +5,11 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { QuizStore, STARTER_QUIZZES } from "@/lib/store/quizStore";
 import { useGameHost } from "@/lib/realtime/useGameHost";
 import { HostLobby } from "@/components/host/HostLobby";
+import { HostQuestionIntro } from "@/components/host/HostQuestionIntro";
 import { HostQuestion } from "@/components/host/HostQuestion";
 import { HostResults } from "@/components/host/HostResults";
 import { HostLeaderboard } from "@/components/host/HostLeaderboard";
 import { HostPodium } from "@/components/host/HostPodium";
-import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import { generateGamePin } from "@/lib/utils/pinGenerator";
 
 export default function HostGamePage() {
@@ -33,6 +32,7 @@ export default function HostGamePage() {
   const {
     state,
     startGame,
+    startQuestion,
     endQuestion,
     showLeaderboard,
     nextStep,
@@ -56,30 +56,12 @@ export default function HostGamePage() {
 
     case "get_ready":
       return (
-        <div className="min-h-screen bg-kahoot-dark text-white flex flex-col items-center justify-center p-8 select-none relative overflow-hidden">
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="text-center max-w-2xl"
-          >
-            <span className="text-sm font-black uppercase tracking-widest bg-kahoot-purple text-white px-5 py-2 rounded-2xl shadow-xl mb-6 inline-block">
-              Question {state.currentQuestionIndex + 1} of {quiz.questions.length}
-            </span>
-
-            <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight mb-8">
-              {currentQuestion.question_text}
-            </h1>
-
-            <div className="w-24 h-24 mx-auto rounded-full bg-yellow-400 text-slate-950 flex items-center justify-center font-black text-4xl shadow-2xl animate-pulse">
-              !
-            </div>
-
-            <p className="mt-6 text-xl font-bold text-slate-300">
-              Get Ready!
-            </p>
-          </motion.div>
-        </div>
+        <HostQuestionIntro
+          question={currentQuestion}
+          questionIndex={state.currentQuestionIndex}
+          totalQuestions={quiz.questions.length}
+          onIntroComplete={() => startQuestion(state.currentQuestionIndex)}
+        />
       );
 
     case "question":

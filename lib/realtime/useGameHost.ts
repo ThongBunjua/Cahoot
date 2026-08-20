@@ -281,14 +281,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
     };
   }, [pin, syncLobby, broadcast, quiz.title, endQuestion]);
 
-  // Start the Game from Lobby
-  const startGame = useCallback(() => {
-    sounds.stopLobbyMusic();
-    sounds.playGetReadyPulse(3);
-    startGetReady(0);
-  }, []);
-
-  // 4-Second "Get Ready" Countdown
+  // Start Intro Phase ("Get Ready" with 3-2-1 morphing shapes, phone pop-up, 5s reading bar)
   const startGetReady = useCallback((questionIndex: number) => {
     const updatedState = {
       ...stateRef.current,
@@ -307,24 +300,22 @@ export function useGameHost(pin: string, quiz: Quiz) {
     broadcast("GET_READY", {
       questionIndex,
       totalQuestions: quiz.questions.length,
-      questionText: currentQ.question_text,
+      questionText: currentQ?.question_text,
     });
-
-    let countdown = 3;
-    const interval = setInterval(() => {
-      countdown--;
-      if (countdown > 0) {
-        sounds.playGetReadyPulse(countdown);
-      } else {
-        clearInterval(interval);
-        startQuestion(questionIndex);
-      }
-    }, 1000);
   }, [broadcast, quiz]);
 
-  // Start Question Countdown
-  const startQuestion = useCallback((questionIndex: number) => {
-    const currentQ = quiz.questions[questionIndex];
+  // Start the Game from Lobby
+  const startGame = useCallback(() => {
+    sounds.stopLobbyMusic();
+    startGetReady(0);
+  }, [startGetReady]);
+
+  // Start Question Gameplay Countdown (20s Timer with 4 answer blocks)
+  const startQuestion = useCallback((questionIndex?: number) => {
+    const qIdx = typeof questionIndex === "number" ? questionIndex : stateRef.current.currentQuestionIndex;
+    const currentQ = quiz.questions[qIdx];
+    if (!currentQ) return;
+
     const startTime = Date.now();
     const limit = currentQ.time_limit;
 
@@ -341,7 +332,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
     const updatedState = {
       ...stateRef.current,
       phase: "question" as GamePhase,
-      currentQuestionIndex: questionIndex,
+      currentQuestionIndex: qIdx,
       questionStartTime: startTime,
       timeRemaining: limit,
       players: snapshottedPlayers,
@@ -352,7 +343,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
     setState(updatedState);
 
     broadcast("QUESTION_START", {
-      questionIndex,
+      questionIndex: qIdx,
       totalQuestions: quiz.questions.length,
       questionText: currentQ.question_text,
       mediaUrl: currentQ.media_url || "",
@@ -473,6 +464,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
   return {
     state,
     startGame,
+    startQuestion,
     endQuestion,
     showLeaderboard,
     nextStep,
