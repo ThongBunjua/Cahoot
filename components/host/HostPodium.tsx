@@ -177,19 +177,20 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       {/* ========================================================================= */}
       {/* 2. MAIN SUPER-SIZED PODIUM STAGE (Commanding Presence for Top 3 Winners) */}
       {/* ========================================================================= */}
-      <main className="relative z-35 flex-1 my-2 flex flex-col items-center justify-end pb-2 w-full max-w-[96vw] mx-auto overflow-hidden">
+      <main className="relative z-35 flex-1 my-1 flex flex-col items-center justify-end pb-8 sm:pb-12 w-full max-w-[96vw] mx-auto overflow-visible">
         {!showFullScoreboard ? (
-          <div className="relative flex items-end justify-center w-full h-[580px] sm:h-[600px] max-w-6xl mx-auto">
+          <div className="relative flex items-end justify-center w-full h-[620px] sm:h-[650px] max-w-6xl mx-auto">
             {/* ========================================================================= */}
-            {/* 3RD PLACE (BRONZE) - Super-Sized */}
+            {/* 3RD PLACE (BRONZE) - Super-Sized & Elevated */}
             {/* ========================================================================= */}
             {p3Pillar && third && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.7, y: 80 }}
+                initial={{ opacity: 0, scale: 0.7, y: 120 }}
                 animate={{
                   opacity: p2Pillar ? 0.9 : 1,
                   scale: p2Pillar ? 0.95 : 1.15,
-                  x: p2Pillar ? 310 : 0, // Safe bounded translation
+                  x: p2Pillar ? 310 : 0,
+                  y: 0, // Explicit y: 0 to sit properly on stage!
                   zIndex: p2Pillar ? 15 : 35,
                 }}
                 transition={{ type: "spring", stiffness: 190, damping: 22 }}
@@ -221,10 +222,10 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                   )}
                 </div>
 
-                {/* 3rd Giant Dark Navy Solid Pillar */}
+                {/* 3rd Giant Dark Navy Solid Pillar (Tall & Elevated) */}
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: "240px" }}
+                  animate={{ height: "300px" }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                   className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative overflow-hidden"
                 >
@@ -238,17 +239,17 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </span>
                   </div>
 
-                  {/* Score & Correct Count */}
+                  {/* Score & Correct Count (Fully Elevated & Visible) */}
                   {p3Details && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="flex flex-col items-center text-center mt-1"
+                      className="flex flex-col items-center text-center mt-2"
                     >
                       <span className="text-3xl sm:text-4xl font-black text-white tabular-nums tracking-tight">
                         {third.score.toLocaleString()}
                       </span>
-                      <span className="text-xs sm:text-sm font-black uppercase text-amber-200/90 tracking-wider mt-1">
+                      <span className="text-xs sm:text-sm font-black uppercase text-amber-200 tracking-wider mt-1.5">
                         {totalQ} out of {totalQ}
                       </span>
                     </motion.div>
@@ -258,15 +259,16 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
             )}
 
             {/* ========================================================================= */}
-            {/* 2ND PLACE (SILVER) - Super-Sized */}
+            {/* 2ND PLACE (SILVER) - Super-Sized & Elevated */}
             {/* ========================================================================= */}
             {p2Pillar && second && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.7, y: 80 }}
+                initial={{ opacity: 0, scale: 0.7, y: 120 }}
                 animate={{
                   opacity: p1Pillar ? 0.9 : 1,
                   scale: p1Pillar ? 0.95 : 1.15,
-                  x: p1Pillar ? -310 : 0, // Safe bounded translation
+                  x: p1Pillar ? -310 : 0,
+                  y: 0, // Explicit y: 0 to sit properly on stage!
                   zIndex: p1Pillar ? 15 : 35,
                 }}
                 transition={{ type: "spring", stiffness: 190, damping: 22 }}
@@ -298,10 +300,10 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                   )}
                 </div>
 
-                {/* 2nd Giant Dark Navy Solid Pillar */}
+                {/* 2nd Giant Dark Navy Solid Pillar (Tall & Elevated) */}
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: "300px" }}
+                  animate={{ height: "370px" }}
                   transition={{ duration: 0.85, ease: "easeOut" }}
                   className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative overflow-hidden"
                 >
@@ -315,17 +317,17 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </span>
                   </div>
 
-                  {/* Score & Correct Count */}
+                  {/* Score & Correct Count (Fully Elevated & Visible) */}
                   {p2Details && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="flex flex-col items-center text-center mt-1"
+                      className="flex flex-col items-center text-center mt-2"
                     >
                       <span className="text-3xl sm:text-4xl font-black text-white tabular-nums tracking-tight">
                         {second.score.toLocaleString()}
                       </span>
-                      <span className="text-xs sm:text-sm font-black uppercase text-slate-300 tracking-wider mt-1">
+                      <span className="text-xs sm:text-sm font-black uppercase text-slate-300 tracking-wider mt-1.5">
                         {totalQ} out of {totalQ}
                       </span>
                     </motion.div>
@@ -335,15 +337,16 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
             )}
 
             {/* ========================================================================= */}
-            {/* 1ST PLACE (GOLD CHAMPION) - GIGANTIC CENTER STAGE COMMAND */}
+            {/* 1ST PLACE (GOLD CHAMPION) - GIGANTIC & TALL COMMANDING PRESENCE */}
             {/* ========================================================================= */}
             {p1Pillar && first && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.6, y: 100 }}
+                initial={{ opacity: 0, scale: 0.6, y: 120 }}
                 animate={{
                   opacity: 1,
                   scale: 1.3,
-                  x: 0, // Majestic Center
+                  x: 0,
+                  y: 0, // Explicit y: 0 to sit properly on stage!
                   zIndex: 40,
                 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -385,10 +388,10 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                   )}
                 </div>
 
-                {/* 1st Giant Dark Navy Solid Pillar (Tallest in Center) */}
+                {/* 1st Giant Dark Navy Solid Pillar (Tallest in Center - 450px) */}
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: "370px" }}
+                  animate={{ height: "450px" }}
                   transition={{ duration: 0.95, ease: "easeOut" }}
                   className="w-full bg-[#240B4D] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 border-2 border-[#33106B] border-b-[8px] border-b-[#1D083E] relative overflow-hidden"
                 >
@@ -402,17 +405,17 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </span>
                   </div>
 
-                  {/* Score & Correct Count */}
+                  {/* Score & Correct Count (Fully Elevated & Visible) */}
                   {p1Details && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="flex flex-col items-center text-center mt-1"
+                      className="flex flex-col items-center text-center mt-2"
                     >
                       <span className="text-4xl sm:text-5xl font-black text-yellow-300 tabular-nums tracking-tight">
                         {first.score.toLocaleString()}
                       </span>
-                      <span className="text-sm sm:text-base font-black uppercase text-yellow-400/90 tracking-wider mt-1">
+                      <span className="text-sm sm:text-base font-black uppercase text-yellow-400/90 tracking-wider mt-1.5">
                         {totalQ} out of {totalQ}
                       </span>
                     </motion.div>
