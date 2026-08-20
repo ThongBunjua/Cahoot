@@ -76,7 +76,6 @@ export function HostQuestionIntro({
         const next = prev + increment;
         if (next >= 100) {
           clearInterval(interval);
-          // Seamless morph transition to host question
           onIntroComplete();
           return 100;
         }
@@ -91,6 +90,7 @@ export function HostQuestionIntro({
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
+
       {/* 1. Header: 100% Solid Dark Surface */}
       <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
         <div className="bg-[#33106B] px-6 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
@@ -167,7 +167,7 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 2: PHONE POP-UP GRAPHIC (With Morph Logo layoutId) */}
+        {/* STEP 2: PHONE POP-UP GRAPHIC (Clean Phone Mockup) */}
         {/* ========================================================================= */}
         {stage === "phone_popup" && (
           <motion.div
@@ -176,51 +176,48 @@ export function HostQuestionIntro({
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: "spring", stiffness: 280, damping: 20 }}
-            className="flex flex-col items-center justify-center gap-4"
+            className="flex flex-col items-center justify-center"
           >
-            {/* Smartphone Mockup */}
-            <div className="w-64 sm:w-76 md:w-80 h-88 sm:h-96 md:h-[400px] bg-slate-950 rounded-[44px] p-4 border-4 border-slate-700 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-              <div className="w-24 h-4 bg-slate-800 rounded-full mx-auto mb-1 flex items-center justify-center">
+            {/* Clean Smartphone Mockup */}
+            <div className="w-72 sm:w-80 md:w-96 h-[420px] sm:h-[460px] md:h-[490px] bg-slate-950 rounded-[48px] p-4 sm:p-5 border-4 border-slate-700 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+              <div className="w-28 h-4 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center">
                 <div className="w-2.5 h-2.5 rounded-full bg-slate-950 mr-2" />
                 <div className="w-10 h-1 rounded-full bg-slate-700" />
               </div>
 
-              <div className="flex-1 bg-[#33106B] rounded-[28px] p-3 flex flex-col justify-between border-2 border-[#240B4D]">
+              {/* Inner Screen Area with Cahoot! Logo & 4 Buttons */}
+              <div className="flex-1 bg-[#33106B] rounded-[32px] p-4 flex flex-col justify-between border-2 border-[#240B4D]">
                 <div className="flex items-center justify-between px-2 py-1">
-                  <span className="text-xs font-black text-[#FFA602] uppercase tracking-wider">
+                  <motion.span
+                    layoutId="morph-cahoot-logo"
+                    className="text-lg font-black text-[#FFA602] uppercase tracking-wider"
+                  >
                     Cahoot!
-                  </span>
-                  <div className="w-6 h-6 rounded-full bg-[#FFA602] text-xs font-black text-slate-950 flex items-center justify-center shadow">
+                  </motion.span>
+                  <div className="w-8 h-8 rounded-full bg-[#FFA602] text-sm font-black text-slate-950 flex items-center justify-center shadow">
                     🦊
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 my-auto">
-                  <div className="h-16 rounded-xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
-                    <span className="text-2xl text-white select-none">▲</span>
+                {/* 4 Colored Buttons Grid */}
+                <div className="grid grid-cols-2 gap-3 my-auto">
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">▲</span>
                   </div>
-                  <div className="h-16 rounded-xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
-                    <span className="text-2xl text-white select-none">◆</span>
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">◆</span>
                   </div>
-                  <div className="h-16 rounded-xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
-                    <span className="text-2xl text-white select-none">●</span>
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">●</span>
                   </div>
-                  <div className="h-16 rounded-xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
-                    <span className="text-2xl text-white select-none">■</span>
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">■</span>
                   </div>
                 </div>
               </div>
 
-              <div className="w-24 h-1.5 bg-slate-600 rounded-full mx-auto mt-2" />
+              <div className="w-28 h-1.5 bg-slate-600 rounded-full mx-auto mt-2" />
             </div>
-
-            {/* Morphing Cahoot! Logo */}
-            <motion.h2
-              layoutId="morph-cahoot-logo"
-              className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tighter flex items-center justify-center drop-shadow-md"
-            >
-              Cahoot<span className="text-[#FFA602]">!</span>
-            </motion.h2>
           </motion.div>
         )}
 

@@ -24,15 +24,23 @@ interface HostPodiumProps {
 }
 
 export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
-  // Cinema Stages:
-  // 1: "reveal_3rd" (0.5s - 4.5s) -> 3rd place giant in center
-  // 2: "reveal_2nd" (4.5s - 9.0s) -> 3rd glides to right, 2nd giant in center
-  // 3: "spotlight_1st" (9.0s - 11.2s) -> 2nd glides to left, screen blackout & spotlight center
-  // 4: "celebrate_all" (11.2s+) -> 1st champion giant in center, lights up, fanfare & confetti!
-  const [stage, setStage] = useState<
-    "intro" | "reveal_3rd" | "reveal_2nd" | "spotlight_1st" | "celebrate_all"
-  >("intro");
+  // Cinema Stages with Delayed Pillar -> Avatar/Name Reveal for Maximum Suspense:
+  // 1: 3rd Pillar Rises -> 3rd Avatar/Name Pops (0.5s - 4.5s)
+  // 2: 2nd Pillar Rises -> 2nd Avatar/Name Pops (4.8s - 9.0s)
+  // 3: 1st Blackout & Spotlight -> 1st Pillar Rises -> 1st Champion Pops (9.0s - 12.5s)
+  // 4: Grand Finale Celebration (12.5s+)
 
+  const [p3Pillar, setP3Pillar] = useState(false);
+  const [p3Details, setP3Details] = useState(false);
+
+  const [p2Pillar, setP2Pillar] = useState(false);
+  const [p2Details, setP2Details] = useState(false);
+
+  const [spotlight, setSpotlight] = useState(false);
+  const [p1Pillar, setP1Pillar] = useState(false);
+  const [p1Details, setP1Details] = useState(false);
+
+  const [celebrateAll, setCelebrateAll] = useState(false);
   const [showFullScoreboard, setShowFullScoreboard] = useState(false);
   const [triggerConfetti, setTriggerConfetti] = useState(false);
 
@@ -40,37 +48,61 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
   const second = players[1];
   const third = players[2];
 
-  // Automatic Cinema-Grade Sequence Engine with Suspense Chimes & Fanfare
+  // Automatic Cinema-Grade Choreography Engine
   useEffect(() => {
-    // 0.8s: Stage 1 - 3rd Place giant in center
-    const t3rd = setTimeout(() => {
-      setStage("reveal_3rd");
+    // ----------------------------------------------------
+    // STEP 1: 3RD PLACE (Bronze)
+    // ----------------------------------------------------
+    const t3Pillar = setTimeout(() => {
+      setP3Pillar(true);
       sounds.playClick();
-    }, 800);
+    }, 600);
 
-    // 4.8s: Stage 2 - 3rd glides to right, 2nd takes center
-    const t2nd = setTimeout(() => {
-      setStage("reveal_2nd");
+    const t3Details = setTimeout(() => {
+      setP3Details(true);
+      sounds.playTick(1.2);
+    }, 2000); // 1.4s suspense delay after pillar rises!
+
+    // ----------------------------------------------------
+    // STEP 2: 2ND PLACE (Silver)
+    // ----------------------------------------------------
+    const t2Pillar = setTimeout(() => {
+      setP2Pillar(true);
       sounds.playClick();
-    }, 4800);
+    }, 5000);
 
-    // 9.0s: Stage 3 - 2nd glides to left, screen blackout & spotlight
-    const tSpotlight = setTimeout(() => {
-      setStage("spotlight_1st");
-    }, 9000);
+    const t2Details = setTimeout(() => {
+      setP2Details(true);
+      sounds.playTick(1.4);
+    }, 6600); // 1.6s suspense delay after pillar rises!
 
-    // 11.2s: Stage 4 - 1st champion rises in center, fanfare & confetti cascade
-    const tFinale = setTimeout(() => {
-      setStage("celebrate_all");
+    // ----------------------------------------------------
+    // STEP 3: 1ST PLACE CHAMPION (Gold Suspense)
+    // ----------------------------------------------------
+    const tSpot = setTimeout(() => {
+      setSpotlight(true);
+    }, 9400);
+
+    const t1Pillar = setTimeout(() => {
+      setP1Pillar(true);
+    }, 10200);
+
+    const t1Details = setTimeout(() => {
+      setP1Details(true);
+      setSpotlight(false);
+      setCelebrateAll(true);
       setTriggerConfetti(true);
       sounds.playPodiumFanfare();
-    }, 11200);
+    }, 12400); // Grand suspense reveal!
 
     return () => {
-      clearTimeout(t3rd);
-      clearTimeout(t2nd);
-      clearTimeout(tSpotlight);
-      clearTimeout(tFinale);
+      clearTimeout(t3Pillar);
+      clearTimeout(t3Details);
+      clearTimeout(t2Pillar);
+      clearTimeout(t2Details);
+      clearTimeout(tSpot);
+      clearTimeout(t1Pillar);
+      clearTimeout(t1Details);
     };
   }, []);
 
@@ -78,14 +110,15 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
+
       {/* Confetti Cascade on Champion Finale */}
-      <ConfettiEffect trigger={triggerConfetti} duration={12000} />
+      <ConfettiEffect trigger={triggerConfetti} duration={14000} />
 
       {/* ========================================================================= */}
-      {/* CINEMATIC SPOTLIGHT OVERLAY (Stage: spotlight_1st) */}
+      {/* CINEMATIC SPOTLIGHT OVERLAY (Suspense Stage) */}
       {/* ========================================================================= */}
       <AnimatePresence>
-        {stage === "spotlight_1st" && (
+        {spotlight && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -93,7 +126,6 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
             transition={{ duration: 0.7 }}
             className="fixed inset-0 z-30 pointer-events-none flex items-center justify-center bg-black/90"
           >
-            {/* Circular Spotlight Beam on Center Podium */}
             <motion.div
               initial={{ scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -148,148 +180,190 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN 3D STEPPED CINEMATIC PODIUM (Center Shift Choreography) */}
+      {/* 2. MAIN 3D STEPPED CINEMATIC PODIUM (Pillar First -> Avatar & Name Suspense) */}
       {/* ========================================================================= */}
       <main className="relative z-35 flex-1 my-4 flex flex-col items-center justify-end pb-4 max-w-7xl mx-auto w-full">
         {!showFullScoreboard ? (
           <div className="relative flex items-end justify-center w-full h-[520px]">
             {/* ========================================================================= */}
-            {/* 3RD PLACE (BRONZE) - Stage 1 (Center) -> Stage 2+ (Right Side) */}
+            {/* 3RD PLACE (BRONZE) - Pillar Rises First -> Then Details Reveal */}
             {/* ========================================================================= */}
-            {stage !== "intro" && third && (
+            {p3Pillar && third && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.6, y: 100 }}
                 animate={{
-                  opacity: stage === "reveal_3rd" ? 1 : 0.85,
-                  scale: stage === "reveal_3rd" ? 1.25 : 0.95,
-                  x: stage === "reveal_3rd" ? 0 : 280, // Center in Stage 1, shifts to Right in Stage 2+
-                  zIndex: stage === "reveal_3rd" ? 35 : 15,
+                  opacity: p2Pillar ? 0.85 : 1,
+                  scale: p2Pillar ? 0.95 : 1.25,
+                  x: p2Pillar ? 280 : 0, // Starts center, shifts to right when 2nd place appears
+                  zIndex: p2Pillar ? 15 : 35,
                 }}
                 transition={{ type: "spring", stiffness: 180, damping: 20 }}
                 className="absolute flex flex-col items-center w-[230px]"
               >
-                {/* Avatar + Nickname + Score */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center mb-3 text-center"
-                >
-                  <span className="text-7xl sm:text-8xl mb-1 filter drop-shadow-sm select-none">
-                    {third.avatar}
-                  </span>
-                  <p className="text-2xl sm:text-3xl font-black text-white truncate max-w-[200px]">
-                    {third.nickname}
-                  </p>
-                  <div className="bg-[#D97706] text-white font-black text-sm sm:text-base px-4 py-1 rounded-xl mt-1 shadow-md border-b-2 border-[#92400E]">
-                    {third.score.toLocaleString()} pts
+                {/* Suspense: Avatar + Nickname + Score pop up after pillar rises */}
+                {p3Details ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.3, y: 30 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 16 }}
+                    className="flex flex-col items-center mb-3 text-center"
+                  >
+                    <span className="text-7xl sm:text-8xl mb-1 filter drop-shadow-sm select-none">
+                      {third.avatar}
+                    </span>
+                    <p className="text-2xl sm:text-3xl font-black text-white truncate max-w-[200px]">
+                      {third.nickname}
+                    </p>
+                    <div className="bg-[#D97706] text-white font-black text-sm sm:text-base px-4 py-1 rounded-xl mt-1 shadow-md border-b-2 border-[#92400E]">
+                      {third.score.toLocaleString()} pts
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="h-32 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-2xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-amber-300 font-black text-3xl animate-pulse">
+                      ?
+                    </div>
                   </div>
-                </motion.div>
+                )}
 
                 {/* 3rd Solid Pillar with Bronze Pentagon Shield */}
-                <div className="w-full h-[200px] rounded-t-3xl shadow-xl flex flex-col items-center justify-start pt-4 border-t-4 bg-[#D97706] border-t-amber-300 border-b-[8px] border-b-[#92400E]">
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "200px" }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="w-full rounded-t-3xl shadow-xl flex flex-col items-center justify-start pt-4 border-t-4 bg-[#D97706] border-t-amber-300 border-b-[8px] border-b-[#92400E]"
+                >
                   <div className="w-14 h-16 bg-[#92400E] border-2 border-amber-200 rounded-b-2xl flex items-center justify-center font-black text-4xl text-white shadow-md">
                     3
                   </div>
                   <span className="text-sm font-black uppercase text-amber-200 tracking-wider mt-2">
                     3rd Place
                   </span>
-                </div>
+                </motion.div>
               </motion.div>
             )}
 
             {/* ========================================================================= */}
-            {/* 2ND PLACE (SILVER) - Stage 2 (Center) -> Stage 3+ (Left Side) */}
+            {/* 2ND PLACE (SILVER) - Pillar Rises First -> Then Details Reveal */}
             {/* ========================================================================= */}
-            {stage !== "intro" && stage !== "reveal_3rd" && second && (
+            {p2Pillar && second && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.6, y: 100 }}
                 animate={{
-                  opacity: stage === "reveal_2nd" ? 1 : 0.85,
-                  scale: stage === "reveal_2nd" ? 1.25 : 0.95,
-                  x: stage === "reveal_2nd" ? 0 : -280, // Center in Stage 2, shifts to Left in Stage 3+
-                  zIndex: stage === "reveal_2nd" ? 35 : 15,
+                  opacity: p1Pillar ? 0.85 : 1,
+                  scale: p1Pillar ? 0.95 : 1.25,
+                  x: p1Pillar ? -280 : 0, // Starts center, shifts to left when 1st place appears
+                  zIndex: p1Pillar ? 15 : 35,
                 }}
                 transition={{ type: "spring", stiffness: 180, damping: 20 }}
                 className="absolute flex flex-col items-center w-[230px]"
               >
-                {/* Avatar + Nickname + Score */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center mb-3 text-center"
-                >
-                  <span className="text-7xl sm:text-8xl mb-1 filter drop-shadow-sm select-none">
-                    {second.avatar}
-                  </span>
-                  <p className="text-2xl sm:text-3xl font-black text-white truncate max-w-[200px]">
-                    {second.nickname}
-                  </p>
-                  <div className="bg-[#E2E8F0] text-[#0F172A] font-black text-sm sm:text-base px-4 py-1 rounded-xl mt-1 shadow-md border border-slate-300">
-                    {second.score.toLocaleString()} pts
+                {/* Suspense: Avatar + Nickname + Score pop up after pillar rises */}
+                {p2Details ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.3, y: 30 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 16 }}
+                    className="flex flex-col items-center mb-3 text-center"
+                  >
+                    <span className="text-7xl sm:text-8xl mb-1 filter drop-shadow-sm select-none">
+                      {second.avatar}
+                    </span>
+                    <p className="text-2xl sm:text-3xl font-black text-white truncate max-w-[200px]">
+                      {second.nickname}
+                    </p>
+                    <div className="bg-[#E2E8F0] text-[#0F172A] font-black text-sm sm:text-base px-4 py-1 rounded-xl mt-1 shadow-md border border-slate-300">
+                      {second.score.toLocaleString()} pts
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="h-32 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-2xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-slate-300 font-black text-3xl animate-pulse">
+                      ?
+                    </div>
                   </div>
-                </motion.div>
+                )}
 
                 {/* 2nd Solid Pillar with Silver Pentagon Shield */}
-                <div className="w-full h-[260px] rounded-t-3xl shadow-xl flex flex-col items-center justify-start pt-4 border-t-4 bg-[#94A3B8] border-t-white border-b-[8px] border-b-[#64748B]">
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "260px" }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="w-full rounded-t-3xl shadow-xl flex flex-col items-center justify-start pt-4 border-t-4 bg-[#94A3B8] border-t-white border-b-[8px] border-b-[#64748B]"
+                >
                   <div className="w-14 h-16 bg-[#64748B] border-2 border-white rounded-b-2xl flex items-center justify-center font-black text-4xl text-white shadow-md">
                     2
                   </div>
                   <span className="text-sm font-black uppercase text-slate-900 tracking-wider mt-2">
                     2nd Place
                   </span>
-                </div>
+                </motion.div>
               </motion.div>
             )}
 
             {/* ========================================================================= */}
-            {/* 1ST PLACE (GOLD CHAMPION) - Stage 3 & 4 (Grand Center Stage) */}
+            {/* 1ST PLACE (GOLD CHAMPION) - Pillar in Spotlight -> Champion Crown Explosion */}
             {/* ========================================================================= */}
-            {(stage === "spotlight_1st" || stage === "celebrate_all") && first && (
+            {p1Pillar && first && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.5, y: 120 }}
                 animate={{
                   opacity: 1,
                   scale: 1.35,
-                  x: 0, // Remains commanding center stage
+                  x: 0,
                   zIndex: 40,
                 }}
                 transition={{ type: "spring", stiffness: 200, damping: 18 }}
                 className="absolute flex flex-col items-center w-[270px]"
               >
-                {/* Champion Avatar + Floating Gold Crown */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center mb-3 text-center relative"
-                >
+                {/* Suspense: Champion Avatar + Floating Gold Crown */}
+                {p1Details ? (
                   <motion.div
-                    animate={{ y: [-6, 6, -6], rotate: [-4, 4, -4] }}
-                    transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-                    className="absolute -top-12 text-[#FFA602]"
+                    initial={{ opacity: 0, scale: 0.3, y: 40 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 240, damping: 15 }}
+                    className="flex flex-col items-center mb-3 text-center relative"
                   >
-                    <Crown className="w-14 h-14 fill-[#FFA602] stroke-amber-200" />
-                  </motion.div>
+                    <motion.div
+                      animate={{ y: [-6, 6, -6], rotate: [-4, 4, -4] }}
+                      transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+                      className="absolute -top-12 text-[#FFA602]"
+                    >
+                      <Crown className="w-14 h-14 fill-[#FFA602] stroke-amber-200" />
+                    </motion.div>
 
-                  <span className="text-8xl sm:text-9xl mb-1 mt-4 filter drop-shadow-sm select-none">
-                    {first.avatar}
-                  </span>
-                  <p className="text-3xl sm:text-4xl font-black text-yellow-300 truncate max-w-[240px]">
-                    {first.nickname}
-                  </p>
-                  <div className="bg-[#FFA602] text-slate-950 font-black text-base sm:text-lg px-5 py-1.5 rounded-2xl mt-1 shadow-lg border-b-2 border-[#CC8400]">
-                    🏆 {first.score.toLocaleString()} pts
+                    <span className="text-8xl sm:text-9xl mb-1 mt-4 filter drop-shadow-sm select-none">
+                      {first.avatar}
+                    </span>
+                    <p className="text-3xl sm:text-4xl font-black text-yellow-300 truncate max-w-[240px]">
+                      {first.nickname}
+                    </p>
+                    <div className="bg-[#FFA602] text-slate-950 font-black text-base sm:text-lg px-5 py-1.5 rounded-2xl mt-1 shadow-lg border-b-2 border-[#CC8400]">
+                      🏆 {first.score.toLocaleString()} pts
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="h-36 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-2xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-yellow-400 font-black text-4xl animate-pulse">
+                      👑 ?
+                    </div>
                   </div>
-                </motion.div>
+                )}
 
                 {/* 1st Solid Pillar (Tallest) with Gold Pentagon Shield */}
-                <div className="w-full h-[330px] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-4 border-t-4 bg-[#FFA602] border-t-white border-b-[8px] border-b-[#CC8400]">
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "330px" }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
+                  className="w-full rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-4 border-t-4 bg-[#FFA602] border-t-white border-b-[8px] border-b-[#CC8400]"
+                >
                   <div className="w-16 h-18 bg-[#CC8400] border-2 border-white rounded-b-2xl flex items-center justify-center font-black text-5xl text-slate-950 shadow-md">
                     1
                   </div>
                   <span className="text-base font-black uppercase text-slate-950 tracking-widest mt-2">
                     Champion
                   </span>
-                </div>
+                </motion.div>
               </motion.div>
             )}
           </div>
@@ -341,7 +415,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       {/* 3. BOTTOM FINALE CONTROLS */}
       {/* ========================================================================= */}
       <footer className="relative z-40 flex items-center justify-center gap-4 pb-2">
-        {stage === "celebrate_all" && (
+        {celebrateAll && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

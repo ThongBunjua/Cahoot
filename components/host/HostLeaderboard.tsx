@@ -48,15 +48,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const [isSwapped, setIsSwapped] = useState(false);
   const [animProgress, setAnimProgress] = useState(0);
 
-  // The list currently displayed: starts as initialTop5, then switches to top5 for simple layout swap
-  const displayList = isSwapped ? top5 : initialTop5;
-
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // Smooth 1.4s score counting ramp
-    const durationMs = 1400;
-    const intervalMs = 35;
+    // 1. Smooth 1.6s score counting ramp
+    const durationMs = 1600;
+    const intervalMs = 40;
     const totalSteps = durationMs / intervalMs;
     let step = 0;
 
@@ -71,11 +68,11 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
       if (step >= totalSteps) {
         clearInterval(interval);
-        // Trigger layout position swap right after score count-up
+        // 2. Trigger the slow, physical, cinematic rank position slide at 1.8s!
         setTimeout(() => {
           setIsSwapped(true);
           sounds.playClick();
-        }, 250);
+        }, 300);
       }
     }, intervalMs);
 
@@ -84,10 +81,15 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     };
   }, []);
 
+  const CARD_HEIGHT_PX = 94;
+  const GAP_PX = 14;
+  const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 108px per slot
+
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
+
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: 100% Solid 3D (Standings & Next Question) */}
       {/* ========================================================================= */}
@@ -122,16 +124,21 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: FULL-SCREEN WIDE RESPONSIVE 3D CARDS (Max-w-6xl) */}
+      {/* 2. MAIN CENTER: PHYSICAL SLOW 2.0s CARD SLIDE OVERTAKE ANIMATION */}
       {/* ========================================================================= */}
       <main className="w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
-        <motion.div layout className="w-full flex flex-col gap-3.5 md:gap-4">
-          {displayList.map((player) => {
+        <div
+          className="relative w-full"
+          style={{ height: `${top5.length * SLOT_STEP}px` }}
+        >
+          {top5.map((player) => {
             const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
             const initialRank = initialSorted.findIndex((p) => p.id === player.id) + 1;
-            const initialSlotRank = initialTop5.findIndex((p) => p.id === player.id) + 1;
+            const initialSlotIndex = initialTop5.findIndex((p) => p.id === player.id);
+            const finalSlotIndex = top5.findIndex((p) => p.id === player.id);
 
-            const activeRankNumber = isSwapped ? finalRank : initialSlotRank;
+            const activeSlotIndex = isSwapped ? finalSlotIndex : initialSlotIndex;
+            const activeRankNumber = activeSlotIndex + 1;
             const rankDelta = initialRank - finalRank; // Positive = Climbed up!
 
             const startScore =
@@ -142,28 +149,37 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const pointsGained = player.lastPoints || 0;
 
             const isClimber = isSwapped && rankDelta > 0;
+            const targetY = activeSlotIndex * SLOT_STEP;
 
             return (
               <motion.div
-                layout
                 key={player.id}
-                transition={{
-                  layout: { type: "spring", stiffness: 120, damping: 18 },
+                initial={{ y: initialSlotIndex * SLOT_STEP, opacity: 0 }}
+                animate={{
+                  y: targetY, // Physically moves from initial slot coordinate to new slot coordinate
+                  opacity: 1,
                 }}
-                className={`w-full h-[90px] md:h-[96px] bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-all ${
+                transition={{
+                  y: {
+                    duration: 2.0, // Slow, clear 2.0-second glide so everyone sees the overtake!
+                    ease: [0.25, 1, 0.5, 1], // Smooth organic deceleration
+                  },
+                  opacity: { duration: 0.3 },
+                }}
+                style={{ height: `${CARD_HEIGHT_PX}px` }}
+                className={`absolute left-0 right-0 w-full bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-all ${
                   activeRankNumber === 1
-                    ? "border-amber-400 border-b-[6px] border-b-amber-500"
+                    ? "border-amber-400 border-b-[6px] border-b-amber-500 z-20"
                     : isClimber
-                    ? "border-emerald-400 border-b-[6px] border-b-emerald-500"
-                    : ""
+                    ? "border-emerald-400 border-b-[6px] border-b-emerald-500 z-15"
+                    : "z-10"
                 }`}
               >
                 {/* Left Section: 56px Rank Badge + 4xl Avatar + 2xl Nickname */}
                 <div className="flex items-center gap-4 md:gap-6 min-w-0">
                   {/* Solid 3D Rank Badge */}
                   <motion.div
-                    layout
-                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 ${
+                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-500 ${
                       activeRankNumber === 1
                         ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
                         : activeRankNumber === 2
@@ -200,6 +216,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
+                        transition={{ delay: 0.3 }}
                         className="inline-flex items-center justify-center w-7 h-7 bg-[#D1FAE5] text-[#065F46] border-2 border-[#6EE7B7] rounded-full shadow-sm flex-shrink-0"
                         title={`Climbed up ${rankDelta} spots`}
                       >
@@ -235,7 +252,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
               </motion.div>
             );
           })}
-        </motion.div>
+        </div>
       </main>
 
       {/* ========================================================================= */}

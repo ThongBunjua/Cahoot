@@ -9,17 +9,17 @@ interface GameBackgroundProps {
 
 const FLOATING_SHAPES = [
   // Red Triangles
-  { type: "triangle", color: "#E21B3C", top: "12%", left: "8%", size: 36, duration: 18, delay: 0 },
-  { type: "triangle", color: "#E21B3C", top: "72%", left: "88%", size: 44, duration: 22, delay: 3 },
+  { type: "triangle", color: "#E21B3C", top: "12%", left: "8%", size: 38, duration: 18, delay: 0 },
+  { type: "triangle", color: "#E21B3C", top: "72%", left: "88%", size: 46, duration: 22, delay: 3 },
   // Blue Diamonds
-  { type: "diamond", color: "#1368CE", top: "25%", left: "82%", size: 40, duration: 20, delay: 1 },
-  { type: "diamond", color: "#1368CE", top: "80%", left: "14%", size: 32, duration: 16, delay: 4 },
+  { type: "diamond", color: "#1368CE", top: "25%", left: "82%", size: 42, duration: 20, delay: 1 },
+  { type: "diamond", color: "#1368CE", top: "80%", left: "14%", size: 34, duration: 16, delay: 4 },
   // Yellow Circles
-  { type: "circle", color: "#FFA602", top: "65%", left: "6%", size: 38, duration: 19, delay: 2 },
-  { type: "circle", color: "#FFA602", top: "15%", left: "65%", size: 48, duration: 24, delay: 5 },
+  { type: "circle", color: "#FFA602", top: "65%", left: "6%", size: 40, duration: 19, delay: 2 },
+  { type: "circle", color: "#FFA602", top: "15%", left: "65%", size: 50, duration: 24, delay: 5 },
   // Green Squares
-  { type: "square", color: "#26890C", top: "45%", left: "92%", size: 34, duration: 17, delay: 1.5 },
-  { type: "square", color: "#26890C", top: "85%", left: "55%", size: 42, duration: 21, delay: 3.5 },
+  { type: "square", color: "#26890C", top: "45%", left: "92%", size: 36, duration: 17, delay: 1.5 },
+  { type: "square", color: "#26890C", top: "85%", left: "55%", size: 44, duration: 21, delay: 3.5 },
 ];
 
 export function GameBackground({ showFloatingShapes = true }: GameBackgroundProps) {
@@ -28,34 +28,9 @@ export function GameBackground({ showFloatingShapes = true }: GameBackgroundProp
       {/* 1. Deep Atmospheric Purple Gradient Base */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#46178F] via-[#33106B] to-[#240B4D]" />
 
-      {/* 2. Authentic Subtle Geometric Mesh / Grid Pattern */}
+      {/* 2. Smooth Deep Flowing Waves (Depth Layers) */}
       <svg
-        className="absolute inset-0 w-full h-full opacity-10"
-        xmlns="http://www.w3.org/2000/svg"
-        width="100%"
-        height="100%"
-      >
-        <defs>
-          <pattern
-            id="cahoot-pattern"
-            width="60"
-            height="60"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(25)"
-          >
-            {/* Subtle Diamond & Triangle Grid */}
-            <polygon points="30,5 55,30 30,55 5,30" fill="none" stroke="#FFFFFF" strokeWidth="1.5" />
-            <circle cx="30" cy="30" r="3" fill="#FFA602" />
-            <polygon points="0,0 12,24 24,0" fill="#E21B3C" opacity="0.4" />
-            <rect x="42" y="42" width="12" height="12" rx="3" fill="#26890C" opacity="0.4" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#cahoot-pattern)" />
-      </svg>
-
-      {/* 3. Smooth Deep Flowing Waves (Depth Layers) */}
-      <svg
-        className="absolute w-full h-full object-cover opacity-35"
+        className="absolute w-full h-full object-cover opacity-40"
         viewBox="0 0 1440 900"
         fill="none"
         preserveAspectRatio="xMidYMid slice"
@@ -71,7 +46,7 @@ export function GameBackground({ showFloatingShapes = true }: GameBackgroundProp
         />
       </svg>
 
-      {/* 4. Gentle Animated Floating Geometric Particles (▲, ◆, ●, ■) */}
+      {/* 3. Gentle Animated Floating Geometric Particles (▲, ◆, ●, ■) */}
       {showFloatingShapes && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {FLOATING_SHAPES.map((item, idx) => (
@@ -95,7 +70,7 @@ export function GameBackground({ showFloatingShapes = true }: GameBackgroundProp
                 left: item.left,
                 width: item.size,
                 height: item.size,
-                opacity: 0.22,
+                opacity: 0.25,
               }}
               className="flex items-center justify-center filter drop-shadow-md"
             >
@@ -126,8 +101,8 @@ export function GameBackground({ showFloatingShapes = true }: GameBackgroundProp
         </div>
       )}
 
-      {/* 5. Natural Vignette */}
-      <div className="absolute inset-0 bg-radial from-transparent via-[#100321]/20 to-[#090114]/50 pointer-events-none" />
+      {/* 4. Natural Vignette */}
+      <div className="absolute inset-0 bg-radial from-transparent via-[#100321]/15 to-[#090114]/40 pointer-events-none" />
     </div>
   );
 }
