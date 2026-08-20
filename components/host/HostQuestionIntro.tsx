@@ -226,18 +226,20 @@ export function HostQuestionIntro({
         {/* ========================================================================= */}
         {stage === "question_preview" && (
           <div className="w-full flex flex-col items-center text-center">
-            {/* Smartphone Mockup Morphed & Glided Above Question Box */}
+            {/* Smartphone Mockup Morphed & Glided Above Question Box (Natural 9:16 Vertical Ratio) */}
             <motion.div
               layoutId="intro-phone-badge"
               transition={{ type: "spring", stiffness: 220, damping: 22 }}
-              className="w-36 h-20 bg-slate-950 rounded-2xl p-2 border-2 border-slate-700 shadow-xl flex items-center justify-center mb-4"
+              className="w-20 sm:w-24 h-32 sm:h-38 bg-slate-950 rounded-2xl p-1.5 border-2 border-slate-700 shadow-xl flex flex-col justify-between mb-4 mx-auto"
             >
-              <div className="w-full h-full bg-[#33106B] rounded-xl p-1 grid grid-cols-2 gap-1 items-center justify-center border border-[#240B4D]">
-                <div className="h-full rounded-md bg-[#E21B3C] flex items-center justify-center text-[10px] text-white">▲</div>
-                <div className="h-full rounded-md bg-[#1368CE] flex items-center justify-center text-[10px] text-white">◆</div>
-                <div className="h-full rounded-md bg-[#FFA602] flex items-center justify-center text-[10px] text-white">●</div>
-                <div className="h-full rounded-md bg-[#26890C] flex items-center justify-center text-[10px] text-white">■</div>
+              <div className="w-8 h-1 bg-slate-800 rounded-full mx-auto" />
+              <div className="flex-1 bg-[#33106B] rounded-xl p-1 grid grid-cols-2 gap-1 items-center justify-center border border-[#240B4D] my-1">
+                <div className="h-full rounded-md bg-[#E21B3C] flex items-center justify-center text-[10px] sm:text-xs text-white">▲</div>
+                <div className="h-full rounded-md bg-[#1368CE] flex items-center justify-center text-[10px] sm:text-xs text-white">◆</div>
+                <div className="h-full rounded-md bg-[#FFA602] flex items-center justify-center text-[10px] sm:text-xs text-white">●</div>
+                <div className="h-full rounded-md bg-[#26890C] flex items-center justify-center text-[10px] sm:text-xs text-white">■</div>
               </div>
+              <div className="w-8 h-0.5 bg-slate-700 rounded-full mx-auto" />
             </motion.div>
 
             {/* Super-Sized White Solid Question Box */}

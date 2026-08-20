@@ -36,7 +36,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const initialTop5 = initialSorted.slice(0, 5);
   const finalTop5 = finalSorted.slice(0, 5);
 
-  // Union of players who were in Top 5 OR will be in Top 5 (allows falling out & climbing in)
+  // Union of players who were in Top 5 OR will be in Top 5 (allows climbers from deep ranks to fly in & droppers to fade away)
   const candidateMap = new Map<string, Player>();
   initialTop5.forEach((p) => candidateMap.set(p.id, p));
   finalTop5.forEach((p) => candidateMap.set(p.id, p));
@@ -49,9 +49,9 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 2.2s visible score count-up & rank countdown
+    // 1. Smooth 2.2s visible score count-up & rank countdown for climbers
     const durationMs = 2200;
-    const intervalMs = 40;
+    const intervalMs = 35;
     const totalSteps = durationMs / intervalMs;
     let step = 0;
 
@@ -89,7 +89,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const CARD_HEIGHT_PX = 96;
   const GAP_PX = 16;
   const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 112px per slot
-  const OFF_SCREEN_Y = 5 * SLOT_STEP + 60;
+  const OFF_SCREEN_Y = 5 * SLOT_STEP + 80;
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-10 select-none overflow-hidden font-sans relative">
@@ -130,7 +130,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: VISIBLE RANK COUNTDOWN & SLOW FADE-AWAY WIDESCREEN CARDS */}
+      {/* 2. MAIN CENTER: CLIMBERS FLY UP & COUNT DOWN / DROPPERS FADE AWAY */}
       {/* ========================================================================= */}
       <main className="w-full max-w-[96vw] mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
         <div
@@ -143,24 +143,37 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
             const initialInTop5 = initialRank <= 5;
             const finalInTop5 = finalRank <= 5;
+            const rankDelta = initialRank - finalRank; // Positive = Climbed up!
 
             const initialSlotIdx = initialInTop5 ? initialRank - 1 : 5;
             const finalSlotIdx = finalInTop5 ? finalRank - 1 : 5;
 
+            // Target Y & Opacity:
+            // - If player ends up in Top 5: slides to finalSlotIdx * SLOT_STEP (opacity: 1)
+            // - If player drops out of Top 5: slides down to OFF_SCREEN_Y and fades away (opacity: 0)
             const targetY = (isSliding || isComplete)
               ? (finalInTop5 ? finalSlotIdx * SLOT_STEP : OFF_SCREEN_Y)
               : (initialInTop5 ? initialSlotIdx * SLOT_STEP : OFF_SCREEN_Y);
 
             const targetOpacity = (isSliding || isComplete)
-              ? (finalInTop5 ? 1 : 0) // Slow fade away if dropped
+              ? (finalInTop5 ? 1 : 0) // Fade away dropped player
               : (initialInTop5 ? 1 : 0);
 
-            const rankDelta = initialRank - finalRank; // Positive = Climbed up!
-            
-            // Slow, clearly visible discrete rank countdown
-            const currentRankNumber = isComplete
-              ? finalRank
-              : Math.round(initialRank + (finalRank - initialRank) * animProgress);
+            // Displayed Rank Number:
+            // - For Climbers (rankDelta > 0): ticks down dynamically (#50 -> #30 -> #15 -> #4 -> #2)
+            // - For Droppers (rankDelta < 0 & finalRank > 5): KEPT STATIC at initialRank! (No confusing adjustments)
+            // - For Stable/Normal: shows current status
+            let displayedRankNumber = initialRank;
+            if (rankDelta > 0 && finalInTop5) {
+              // Climber counting down!
+              displayedRankNumber = isComplete
+                ? finalRank
+                : Math.round(initialRank + (finalRank - initialRank) * animProgress);
+            } else if (finalInTop5) {
+              displayedRankNumber = isComplete ? finalRank : initialRank;
+            } else {
+              displayedRankNumber = initialRank; // Droppers keep their initial rank number while fading away
+            }
 
             const startScore =
               typeof player.previousScore === "number"
@@ -188,12 +201,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     ease: [0.35, 0, 0.25, 1],
                   },
                   opacity: {
-                    duration: 1.6, // Slow 1.6s fade away so you clearly see who dropped!
+                    duration: 1.6, // Generous 1.6s fade away so everyone reads clearly
                   },
                 }}
                 style={{ height: `${CARD_HEIGHT_PX}px` }}
                 className={`absolute left-0 right-0 w-full bg-white rounded-3xl px-8 md:px-10 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-300 ${
-                  currentRankNumber === 1 && isComplete && finalInTop5
+                  displayedRankNumber === 1 && isComplete && finalInTop5
                     ? "border-amber-400 border-b-[6px] border-b-amber-500 z-20"
                     : isClimber
                     ? "border-emerald-400 border-b-[6px] border-b-emerald-500 z-15"
@@ -205,16 +218,16 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                   {/* Solid 3D Rank Badge with Counting Number */}
                   <div
                     className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-black text-2xl md:text-3xl shadow-sm flex-shrink-0 transition-colors duration-300 tabular-nums ${
-                      currentRankNumber === 1
+                      displayedRankNumber === 1
                         ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
-                        : currentRankNumber === 2
+                        : displayedRankNumber === 2
                         ? "bg-[#94A3B8] border-b-4 border-[#64748B] text-white"
-                        : currentRankNumber === 3
+                        : displayedRankNumber === 3
                         ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
                         : "bg-[#33106B] border-b-4 border-[#240B4D] text-white"
                     }`}
                   >
-                    {currentRankNumber}
+                    {displayedRankNumber}
                   </div>
 
                   {/* Avatar */}

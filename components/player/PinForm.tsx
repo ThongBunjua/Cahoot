@@ -21,8 +21,8 @@ export function PinForm({ initialPin = "", onSubmit }: PinFormProps) {
     if (isChecking) return;
 
     const cleanPin = pin.replace(/\s+/g, "").trim();
-    if (!cleanPin || cleanPin.length < 3) {
-      setError("Please enter a valid Game PIN (e.g. 6 digits)");
+    if (!cleanPin || cleanPin.length < 4) {
+      setError("Please enter a valid 4-digit Game PIN");
       sounds.playWrong();
       return;
     }
@@ -58,14 +58,14 @@ export function PinForm({ initialPin = "", onSubmit }: PinFormProps) {
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-3xl p-5 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.5)] border border-white/20 text-center flex flex-col gap-3.5 backdrop-blur-xl"
+        className="bg-white rounded-3xl p-5 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.5)] border border-white/20 text-center flex flex-col gap-3.5"
       >
         <div className="relative">
           <input
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            maxLength={8}
+            maxLength={4}
             autoFocus
             disabled={isChecking}
             placeholder="Game PIN"

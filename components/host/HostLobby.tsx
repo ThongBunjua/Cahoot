@@ -211,14 +211,14 @@ export function HostLobby({
           whileTap={players.length > 0 ? { scale: 0.96 } : {}}
           disabled={players.length === 0}
           onClick={onStartGame}
-          className={`px-12 py-4.5 rounded-2xl font-black text-2xl flex items-center gap-3 transition-all ${
+          className={`px-16 py-6 min-h-[82px] rounded-3xl font-black text-2xl sm:text-3xl flex items-center gap-4 transition-all ${
             players.length > 0
-              ? "bg-[#26890C] hover:bg-[#22790A] text-white shadow-2xl cursor-pointer border-b-[6px] border-[#1A6107] active:border-b-[2px] active:translate-y-1"
+              ? "bg-[#26890C] hover:bg-[#22790A] text-white shadow-2xl cursor-pointer border-b-[8px] border-[#165406] active:border-b-[2px] active:translate-y-1.5"
               : "bg-[#240B4D] text-slate-500 border-2 border-[#1D083E] cursor-not-allowed"
           }`}
         >
           <span>Start Game</span>
-          <Play className="w-7 h-7 fill-current" />
+          <Play className="w-8 h-8 fill-current" />
         </motion.button>
       </footer>
 
