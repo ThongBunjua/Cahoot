@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Player, Quiz } from "@/lib/realtime/types";
 import { formatPin } from "@/lib/utils/pinGenerator";
@@ -34,7 +34,6 @@ export function HostLobby({
 }: HostLobbyProps) {
   const [showQR, setShowQR] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Start lobby music
@@ -44,38 +43,6 @@ export function HostLobby({
       sounds.stopLobbyMusic();
     };
   }, []);
-
-  // Auto-scroll loop when there are many players (> 18 players)
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || players.length <= 18) return;
-
-    let scrollDirection = 1;
-    let animId: number;
-
-    const autoScroll = () => {
-      if (container) {
-        container.scrollTop += 0.8 * scrollDirection;
-
-        // Bounce back smoothly when reaching top or bottom
-        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 5) {
-          scrollDirection = -1;
-        } else if (container.scrollTop <= 5) {
-          scrollDirection = 1;
-        }
-      }
-      animId = requestAnimationFrame(autoScroll);
-    };
-
-    const timer = setTimeout(() => {
-      animId = requestAnimationFrame(autoScroll);
-    }, 2000);
-
-    return () => {
-      clearTimeout(timer);
-      cancelAnimationFrame(animId);
-    };
-  }, [players.length]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -142,7 +109,7 @@ export function HostLobby({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: FULL-SCREEN WALL OF FAME (Auto-scrolling for up to 150 Players) */}
+      {/* 2. MAIN CENTER: ORGANIC FLOATING PLAYER CLOUD (No Rigid Structure, No Scrollbar) */}
       {/* ========================================================================= */}
       <main className="relative z-10 flex-1 my-3 md:my-5 flex flex-col items-center justify-between max-w-7xl mx-auto w-full overflow-hidden">
         {/* Joined Players Count Pill */}
@@ -153,7 +120,7 @@ export function HostLobby({
           </span>
         </div>
 
-        {/* Players Grid / Full-Screen Wall of Fame */}
+        {/* Floating Player Cloud */}
         {players.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-300 max-w-md">
             <div className="w-20 h-20 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] flex items-center justify-center mx-auto mb-4 animate-bounce">
@@ -165,29 +132,50 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          <div
-            ref={scrollContainerRef}
-            className="flex-1 w-full overflow-y-auto px-2 py-2 max-h-[58vh] custom-scrollbar scroll-smooth"
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-              <AnimatePresence>
-                {players.map((player) => (
+          <div className="flex-1 w-full overflow-hidden flex flex-wrap items-center justify-center content-center gap-3 sm:gap-4 p-4">
+            <AnimatePresence>
+              {players.map((player, idx) => {
+                // Organic floating physics parameters unique to each player
+                const floatDuration = 3.8 + (idx % 5) * 0.6;
+                const floatYOffset = 8 + (idx % 4) * 4;
+                const floatXOffset = 4 + (idx % 3) * 3;
+                const floatDelay = (idx % 7) * 0.3;
+
+                return (
                   <motion.div
                     key={player.id}
-                    initial={{ scale: 0.3, opacity: 0, y: 20 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    initial={{ scale: 0, opacity: 0, y: 30 }}
+                    animate={{
+                      scale: 1,
+                      opacity: 1,
+                      y: [0, -floatYOffset, 0, floatYOffset, 0],
+                      x: [0, floatXOffset, 0, -floatXOffset, 0],
+                    }}
                     exit={{ scale: 0, opacity: 0 }}
-                    whileHover={{ scale: 1.04 }}
-                    className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-4 py-3 flex items-center justify-between shadow-md transition-all"
+                    transition={{
+                      scale: { type: "spring", stiffness: 350, damping: 22 },
+                      y: {
+                        duration: floatDuration,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: floatDelay,
+                      },
+                      x: {
+                        duration: floatDuration * 1.2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: floatDelay,
+                      },
+                    }}
+                    whileHover={{ scale: 1.1, zIndex: 50 }}
+                    className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-4 py-2.5 flex items-center gap-2.5 shadow-lg select-none cursor-default"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-2xl sm:text-3xl select-none flex-shrink-0">
-                        {player.avatar}
-                      </span>
-                      <span className="text-sm sm:text-base font-black text-white truncate tracking-tight">
-                        {player.nickname}
-                      </span>
-                    </div>
+                    <span className="text-2xl sm:text-3xl flex-shrink-0">
+                      {player.avatar}
+                    </span>
+                    <span className="text-sm sm:text-base font-black text-white truncate max-w-[120px] sm:max-w-[150px] tracking-tight">
+                      {player.nickname}
+                    </span>
 
                     <button
                       onClick={() => onKickPlayer(player.id)}
@@ -197,9 +185,9 @@ export function HostLobby({
                       <X className="w-3.5 h-3.5 stroke-[3]" />
                     </button>
                   </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )}
       </main>

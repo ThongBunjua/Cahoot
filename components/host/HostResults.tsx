@@ -9,6 +9,7 @@ import { Check, ArrowRight } from "lucide-react";
 interface HostResultsProps {
   question: Question;
   answerCounts: [number, number, number, number];
+  isLastQuestion?: boolean;
   onNext: () => void;
 }
 
@@ -35,7 +36,7 @@ const CHOICES_SOLID_THEME = [
   },
 ];
 
-export function HostResults({ question, answerCounts, onNext }: HostResultsProps) {
+export function HostResults({ question, answerCounts, isLastQuestion = false, onNext }: HostResultsProps) {
   const maxVote = Math.max(...answerCounts, 1);
   const maxBarHeightPx = 240;
 
@@ -60,7 +61,7 @@ export function HostResults({ question, answerCounts, onNext }: HostResultsProps
             onClick={onNext}
             className="px-8 py-4 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-lg rounded-2xl shadow-md flex items-center gap-2.5 transition-all cursor-pointer border-b-[6px] border-[#1B6108] active:border-b-[2px] active:translate-y-1"
           >
-            <span>Next</span>
+            <span>{isLastQuestion ? "Final Podium 🏆" : "Next"}</span>
             <ArrowRight className="w-5 h-5 stroke-[3]" />
           </motion.button>
         </div>

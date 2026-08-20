@@ -373,42 +373,6 @@ export function useGameHost(pin: string, quiz: Quiz) {
     }, 100);
   }, [broadcast, endQuestion, quiz]);
 
-  // Show Leaderboard after question results
-  const showLeaderboard = useCallback(() => {
-    sounds.playLeaderboard();
-    const sorted = [...stateRef.current.players].sort((a, b) => b.score - a.score);
-
-    const updatedState = {
-      ...stateRef.current,
-      phase: "leaderboard" as GamePhase,
-      players: sorted,
-    };
-    stateRef.current = updatedState;
-    setState(updatedState);
-
-    broadcast("SHOW_LEADERBOARD", {
-      topPlayers: sorted.slice(0, 5).map((p) => ({
-        id: p.id,
-        nickname: p.nickname,
-        avatar: p.avatar,
-        score: p.score,
-        streak: p.streak,
-        rank: p.rank,
-      })),
-      isLastQuestion: stateRef.current.currentQuestionIndex >= quiz.questions.length - 1,
-    });
-  }, [broadcast, quiz]);
-
-  // Advance to next question or final podium
-  const nextStep = useCallback(() => {
-    const currentState = stateRef.current;
-    if (currentState.currentQuestionIndex < quiz.questions.length - 1) {
-      startGetReady(currentState.currentQuestionIndex + 1);
-    } else {
-      showPodium();
-    }
-  }, [quiz, startGetReady]);
-
   // Show Final 1st/2nd/3rd Podium
   const showPodium = useCallback(() => {
     sounds.playPodiumFanfare();
@@ -443,6 +407,47 @@ export function useGameHost(pin: string, quiz: Quiz) {
       persistGameResults(pin, quiz.id, sorted).catch(console.warn);
     }
   }, [broadcast, pin, quiz]);
+
+  // Transition from question results to leaderboard (or directly to podium on last question)
+  const showLeaderboard = useCallback(() => {
+    const isLast = stateRef.current.currentQuestionIndex >= quiz.questions.length - 1;
+    if (isLast) {
+      showPodium();
+      return;
+    }
+
+    const sorted = [...stateRef.current.players].sort((a, b) => b.score - a.score);
+
+    const updatedState = {
+      ...stateRef.current,
+      phase: "leaderboard" as GamePhase,
+      players: sorted,
+    };
+    stateRef.current = updatedState;
+    setState(updatedState);
+
+    broadcast("SHOW_LEADERBOARD", {
+      topPlayers: sorted.slice(0, 5).map((p) => ({
+        id: p.id,
+        nickname: p.nickname,
+        avatar: p.avatar,
+        score: p.score,
+        streak: p.streak,
+        rank: p.rank,
+      })),
+      isLastQuestion: false,
+    });
+  }, [broadcast, quiz, showPodium]);
+
+  // Advance to next question or final podium
+  const nextStep = useCallback(() => {
+    const currentState = stateRef.current;
+    if (currentState.currentQuestionIndex < quiz.questions.length - 1) {
+      startGetReady(currentState.currentQuestionIndex + 1);
+    } else {
+      showPodium();
+    }
+  }, [quiz, startGetReady, showPodium]);
 
   // Kick a player from lobby
   const kickPlayer = useCallback((playerId: string) => {

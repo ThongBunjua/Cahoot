@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { sounds } from "@/lib/audio/soundManager";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -19,9 +19,9 @@ export function HostQuestionIntro({
   totalQuestions,
   onIntroComplete,
 }: HostQuestionIntroProps) {
-  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_popup" -> "question_preview"
+  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_popup" -> "question_preview" -> "transition_out"
   const [stage, setStage] = useState<
-    "countdown_3" | "countdown_2" | "countdown_1" | "phone_popup" | "question_preview"
+    "countdown_3" | "countdown_2" | "countdown_1" | "phone_popup" | "question_preview" | "transition_out"
   >("countdown_3");
 
   const [readingProgress, setReadingProgress] = useState(0);
@@ -43,16 +43,16 @@ export function HostQuestionIntro({
       sounds.playGetReadyPulse(1);
     }, 2000);
 
-    // 3.0s: Stage Phone Pop-up (2.0s duration)
+    // 3.0s: Stage Phone Pop-up (1.8s duration)
     const tPop = setTimeout(() => {
       setStage("phone_popup");
       sounds.playClick();
     }, 3000);
 
-    // 5.0s: Stage Question Preview & 4-second Reading Bar
+    // 4.8s: Stage Question Preview with Cahoot! Logo above
     const tPreview = setTimeout(() => {
       setStage("question_preview");
-    }, 5000);
+    }, 4800);
 
     return () => {
       clearTimeout(t2);
@@ -75,9 +75,11 @@ export function HostQuestionIntro({
         const next = prev + increment;
         if (next >= 100) {
           clearInterval(interval);
+          // Trigger smooth upward transition before completing
+          setStage("transition_out");
           setTimeout(() => {
             onIntroComplete();
-          }, 100);
+          }, 450);
           return 100;
         }
         return next;
@@ -90,7 +92,7 @@ export function HostQuestionIntro({
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* 1. Header: 100% Solid Dark Surface */}
-      <header className="flex items-center justify-between gap-4 max-w-6xl mx-auto w-full pt-1 z-20">
+      <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
         <div className="bg-[#33106B] px-6 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
           <span className="text-sm md:text-base font-black uppercase tracking-wider text-[#FFA602]">
             Question {questionIndex + 1} of {totalQuestions}
@@ -103,7 +105,7 @@ export function HostQuestionIntro({
       </header>
 
       {/* 2. Center Stage Area */}
-      <main className="flex-1 flex flex-col items-center justify-center max-w-6xl mx-auto w-full my-auto px-4 z-10 relative">
+      <main className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full my-auto px-4 z-10 relative">
         {/* ========================================================================= */}
         {/* STEP 1: COUNTDOWN 3-2-1 WITH SOLID GEOMETRIC SHAPES */}
         {/* ========================================================================= */}
@@ -115,7 +117,6 @@ export function HostQuestionIntro({
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
             className="flex flex-col items-center justify-center"
           >
-            {/* Solid Red Triangle Shape */}
             <div className="relative w-72 h-72 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center">
               <svg viewBox="0 0 100 100" className="w-full h-full text-[#E21B3C] fill-current">
                 <polygon points="50,6 96,94 4,94" />
@@ -135,7 +136,6 @@ export function HostQuestionIntro({
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
             className="flex flex-col items-center justify-center"
           >
-            {/* Solid Blue Diamond Shape */}
             <div className="relative w-72 h-72 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center">
               <svg viewBox="0 0 100 100" className="w-full h-full text-[#1368CE] fill-current">
                 <polygon points="50,4 96,50 50,96 4,50" />
@@ -155,7 +155,6 @@ export function HostQuestionIntro({
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
             className="flex flex-col items-center justify-center"
           >
-            {/* Solid Yellow Circle Shape */}
             <div className="relative w-72 h-72 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center rounded-full bg-[#FFA602] border-[10px] md:border-[14px] border-amber-300 shadow-xl">
               <span className="text-8xl sm:text-[140px] md:text-[170px] font-black text-slate-950">
                 1
@@ -165,7 +164,7 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 2: SOLID SMARTPHONE POP-UP */}
+        {/* STEP 2: PHONE POP-UP GRAPHIC */}
         {/* ========================================================================= */}
         {stage === "phone_popup" && (
           <motion.div
@@ -175,17 +174,14 @@ export function HostQuestionIntro({
             transition={{ type: "spring", stiffness: 280, damping: 20 }}
             className="flex flex-col items-center justify-center gap-4"
           >
-            {/* Solid Smartphone Mockup */}
+            {/* Smartphone Mockup */}
             <div className="w-64 sm:w-76 md:w-80 h-88 sm:h-96 md:h-[400px] bg-slate-950 rounded-[44px] p-4 border-4 border-slate-700 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-              {/* Speaker Notch */}
               <div className="w-24 h-4 bg-slate-800 rounded-full mx-auto mb-1 flex items-center justify-center">
                 <div className="w-2.5 h-2.5 rounded-full bg-slate-950 mr-2" />
                 <div className="w-10 h-1 rounded-full bg-slate-700" />
               </div>
 
-              {/* Inner Screen Area: Solid Deep Purple */}
               <div className="flex-1 bg-[#33106B] rounded-[28px] p-3 flex flex-col justify-between border-2 border-[#240B4D]">
-                {/* Phone Header */}
                 <div className="flex items-center justify-between px-2 py-1">
                   <span className="text-xs font-black text-[#FFA602] uppercase tracking-wider">
                     Cahoot!
@@ -195,35 +191,25 @@ export function HostQuestionIntro({
                   </div>
                 </div>
 
-                {/* 4 Solid Colored Answer Buttons Grid */}
                 <div className="grid grid-cols-2 gap-2.5 my-auto">
-                  {/* Red Triangle */}
                   <div className="h-16 rounded-xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
                     <span className="text-2xl text-white select-none">▲</span>
                   </div>
-
-                  {/* Blue Diamond */}
                   <div className="h-16 rounded-xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
                     <span className="text-2xl text-white select-none">◆</span>
                   </div>
-
-                  {/* Yellow Circle */}
                   <div className="h-16 rounded-xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
                     <span className="text-2xl text-white select-none">●</span>
                   </div>
-
-                  {/* Green Square */}
                   <div className="h-16 rounded-xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
                     <span className="text-2xl text-white select-none">■</span>
                   </div>
                 </div>
               </div>
 
-              {/* Phone Bottom Home Bar */}
               <div className="w-24 h-1.5 bg-slate-600 rounded-full mx-auto mt-2" />
             </div>
 
-            {/* Bold Cahoot! Text Under Phone */}
             <motion.h2
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -236,16 +222,36 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 3: SOLID QUESTION PREVIEW CARD */}
+        {/* STEP 3 & 4: QUESTION PREVIEW WITH CAHOOT! LOGO SLIDED ABOVE & SMOOTH OUTRO */}
         {/* ========================================================================= */}
-        {stage === "question_preview" && (
+        {(stage === "question_preview" || stage === "transition_out") && (
           <motion.div
             key="question-card"
-            initial={{ scale: 0.85, y: 50, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 280, damping: 22 }}
+            initial={{ scale: 0.9, y: 40, opacity: 0 }}
+            animate={{
+              scale: stage === "transition_out" ? 0.95 : 1,
+              y: stage === "transition_out" ? -120 : 0,
+              opacity: stage === "transition_out" ? 0.4 : 1,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: stage === "transition_out" ? 200 : 280,
+              damping: 22,
+            }}
             className="w-full flex flex-col items-center text-center"
           >
+            {/* Cahoot! Logo Slid to Top (Image 1 Requirement) */}
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="mb-4 flex items-center justify-center"
+            >
+              <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter drop-shadow-md">
+                Cahoot<span className="text-[#FFA602]">!</span>
+              </h2>
+            </motion.div>
+
             {/* Super-Sized White Solid Question Box */}
             <div className="bg-white rounded-3xl py-8 sm:py-12 px-8 sm:px-14 border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-xl w-full max-w-4xl mb-6">
               <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
@@ -269,7 +275,7 @@ export function HostQuestionIntro({
       </main>
 
       {/* ========================================================================= */}
-      {/* STEP 4: BOTTOM SOLID 4-SECOND READING BAR */}
+      {/* 4. BOTTOM 4-SECOND READING BAR */}
       {/* ========================================================================= */}
       <footer className="w-full max-w-5xl mx-auto pb-6 px-4 z-20">
         {stage === "question_preview" ? (

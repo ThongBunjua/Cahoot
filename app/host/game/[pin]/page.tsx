@@ -82,6 +82,7 @@ export default function HostGamePage() {
         <HostResults
           question={currentQuestion}
           answerCounts={state.answerCounts}
+          isLastQuestion={state.currentQuestionIndex >= quiz.questions.length - 1}
           onNext={showLeaderboard}
         />
       );

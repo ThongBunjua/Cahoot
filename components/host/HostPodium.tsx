@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Player, Quiz } from "@/lib/realtime/types";
 import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -13,8 +13,6 @@ import {
   ListOrdered,
   Sparkles,
   Home,
-  ArrowRight,
-  Medal,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,8 +23,15 @@ interface HostPodiumProps {
 }
 
 export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
-  // Step 0: None revealed -> Step 1: 3rd Place -> Step 2: 2nd Place -> Step 3: 1st Place Champion
-  const [revealStep, setRevealStep] = useState<number>(0);
+  // Cinema Stages:
+  // 1: "reveal_3rd" (0.5s - 4.5s)
+  // 2: "reveal_2nd" (4.5s - 9.0s)
+  // 3: "spotlight_1st" (9.0s - 11.0s)
+  // 4: "celebrate_all" (11.0s+)
+  const [stage, setStage] = useState<
+    "intro" | "reveal_3rd" | "reveal_2nd" | "spotlight_1st" | "celebrate_all"
+  >("intro");
+
   const [showFullScoreboard, setShowFullScoreboard] = useState(false);
   const [triggerConfetti, setTriggerConfetti] = useState(false);
 
@@ -34,29 +39,76 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
   const second = players[1];
   const third = players[2];
 
-  const handleNextReveal = () => {
-    if (revealStep === 0) {
-      setRevealStep(1);
+  // Automatic Cinema-Grade Sequence Engine
+  useEffect(() => {
+    // 0.8s: Reveal 3rd Place (Image 2)
+    const t3rd = setTimeout(() => {
+      setStage("reveal_3rd");
       sounds.playClick();
-    } else if (revealStep === 1) {
-      setRevealStep(2);
+    }, 800);
+
+    // 4.8s: Reveal 2nd Place (Image 3 - 3rd place moves back)
+    const t2nd = setTimeout(() => {
+      setStage("reveal_2nd");
       sounds.playClick();
-    } else if (revealStep === 2) {
-      setRevealStep(3);
+    }, 4800);
+
+    // 9.0s: Cinematic Blackout & Circular Spotlight Suspense (Image 4)
+    const tSpotlight = setTimeout(() => {
+      setStage("spotlight_1st");
+    }, 9000);
+
+    // 11.2s: Grand 1st Place Champion Victory & Confetti Explosion
+    const tFinale = setTimeout(() => {
+      setStage("celebrate_all");
       setTriggerConfetti(true);
       sounds.playPodiumFanfare();
-    }
-  };
+    }, 11200);
+
+    return () => {
+      clearTimeout(t3rd);
+      clearTimeout(t2nd);
+      clearTimeout(tSpotlight);
+      clearTimeout(tFinale);
+    };
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
-      {/* Confetti Explosion on Grand Finale */}
-      <ConfettiEffect trigger={triggerConfetti} duration={9000} />
+      {/* Confetti Cascade on Champion Finale */}
+      <ConfettiEffect trigger={triggerConfetti} duration={12000} />
+
+      {/* ========================================================================= */}
+      {/* CINEMATIC SPOTLIGHT OVERLAY (Stage: spotlight_1st) */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {stage === "spotlight_1st" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-30 pointer-events-none flex items-center justify-center bg-black/85"
+          >
+            {/* Circular Spotlight Beam on Center Podium */}
+            <motion.div
+              initial={{ scale: 0.4, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1.0, ease: "easeOut" }}
+              className="w-[480px] h-[480px] sm:w-[620px] sm:h-[620px] rounded-full bg-white/20 shadow-[0_0_120px_rgba(255,255,255,0.6)] border-4 border-white/40 flex flex-col items-center justify-start pt-8"
+            >
+              <span className="text-xl sm:text-2xl font-black text-yellow-300 uppercase tracking-widest animate-pulse">
+                🏆 Champion 🏆
+              </span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: 100% Solid 3D */}
       {/* ========================================================================= */}
-      <header className="relative z-20 flex items-center justify-between bg-[#33106B] px-6 py-4 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-xl max-w-6xl mx-auto w-full">
+      <header className="relative z-40 flex items-center justify-between bg-[#33106B] px-6 py-4 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-xl max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-3.5">
           <div className="p-2.5 bg-[#FFA602] border-b-2 border-[#CC8400] rounded-xl text-slate-950 shadow-sm">
             <Trophy className="w-6 h-6 stroke-[2.5]" />
@@ -93,18 +145,27 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN 3D SOLID STEPPED PODIUM */}
+      {/* 2. MAIN 3D STEPPED CINEMATIC PODIUM (Images 2, 3, 4 Sequencing) */}
       {/* ========================================================================= */}
-      <main className="relative z-10 flex-1 my-4 flex flex-col items-center justify-end pb-4 max-w-5xl mx-auto w-full">
+      <main className="relative z-35 flex-1 my-4 flex flex-col items-center justify-end pb-4 max-w-5xl mx-auto w-full">
         {!showFullScoreboard ? (
-          <div className="flex items-end justify-center gap-6 sm:gap-8 max-w-4xl mx-auto w-full h-[480px]">
-            {/* 2ND PLACE (SILVER) */}
-            <div className="flex-1 flex flex-col items-center max-w-[220px]">
-              {revealStep >= 2 && second ? (
+          <div className="relative flex items-end justify-center gap-6 sm:gap-10 max-w-4xl mx-auto w-full h-[480px]">
+            {/* ========================================================================= */}
+            {/* 2ND PLACE (SILVER) - REVEALED IN STAGE 2 (Image 3) */}
+            {/* ========================================================================= */}
+            <motion.div
+              animate={{
+                scale: stage === "reveal_2nd" ? 1.05 : 1,
+                zIndex: stage === "reveal_2nd" ? 30 : 20,
+              }}
+              transition={{ duration: 0.6 }}
+              className="flex-1 flex flex-col items-center max-w-[220px]"
+            >
+              {stage !== "intro" && stage !== "reveal_3rd" && second ? (
                 <motion.div
-                  initial={{ opacity: 0, y: 50, scale: 0.7 }}
+                  initial={{ opacity: 0, y: 60, scale: 0.6 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 18 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 16 }}
                   className="flex flex-col items-center mb-3 text-center"
                 >
                   <span className="text-6xl sm:text-7xl mb-1 filter drop-shadow-sm select-none">
@@ -125,40 +186,55 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                 </div>
               )}
 
-              {/* 2nd Solid Pillar */}
+              {/* 2nd Solid Pillar with Silver Pentagon Shield */}
               <motion.div
                 initial={{ height: 0 }}
-                animate={{ height: revealStep >= 2 ? "230px" : "40px" }}
+                animate={{
+                  height:
+                    stage !== "intro" && stage !== "reveal_3rd" ? "240px" : "40px",
+                }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className={`w-full rounded-t-3xl shadow-xl flex flex-col items-center justify-start pt-4 border-t-4 transition-all ${
-                  revealStep >= 2
+                  stage !== "intro" && stage !== "reveal_3rd"
                     ? "bg-[#94A3B8] border-t-white border-b-[8px] border-b-[#64748B]"
                     : "bg-[#240B4D] border-t-[#1D083E] opacity-50"
                 }`}
               >
-                <span className="text-5xl font-black text-slate-900">2</span>
-                <span className="text-xs font-black uppercase text-slate-900 tracking-wider mt-1">
+                {/* Pentagon Shield Badge 2 */}
+                <div className="w-12 h-14 bg-[#64748B] border-2 border-white rounded-b-xl flex items-center justify-center font-black text-3xl text-white shadow-md">
+                  2
+                </div>
+                <span className="text-xs font-black uppercase text-slate-900 tracking-wider mt-2">
                   2nd Place
                 </span>
               </motion.div>
-            </div>
+            </motion.div>
 
-            {/* 1ST PLACE (GOLD CHAMPION) */}
-            <div className="flex-1 flex flex-col items-center max-w-[260px]">
-              {revealStep >= 3 && first ? (
+            {/* ========================================================================= */}
+            {/* 1ST PLACE (GOLD CHAMPION) - REVEALED IN STAGE 3 & 4 (Image 4) */}
+            {/* ========================================================================= */}
+            <motion.div
+              animate={{
+                scale: stage === "spotlight_1st" || stage === "celebrate_all" ? 1.08 : 1,
+                zIndex: stage === "spotlight_1st" || stage === "celebrate_all" ? 40 : 20,
+              }}
+              transition={{ duration: 0.6 }}
+              className="flex-1 flex flex-col items-center max-w-[260px]"
+            >
+              {(stage === "spotlight_1st" || stage === "celebrate_all") && first ? (
                 <motion.div
-                  initial={{ opacity: 0, y: 60, scale: 0.5 }}
+                  initial={{ opacity: 0, y: 70, scale: 0.5 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 220, damping: 16 }}
+                  transition={{ type: "spring", stiffness: 240, damping: 15 }}
                   className="flex flex-col items-center mb-3 text-center relative"
                 >
                   {/* Floating Gold Crown */}
                   <motion.div
-                    animate={{ y: [-4, 4, -4], rotate: [-4, 4, -4] }}
+                    animate={{ y: [-5, 5, -5], rotate: [-4, 4, -4] }}
                     transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
                     className="absolute -top-10 text-[#FFA602]"
                   >
-                    <Crown className="w-12 h-12 fill-[#FFA602] stroke-amber-200" />
+                    <Crown className="w-13 h-13 fill-[#FFA602] stroke-amber-200" />
                   </motion.div>
 
                   <span className="text-7xl sm:text-8xl mb-1 mt-3 filter drop-shadow-sm select-none">
@@ -179,31 +255,50 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                 </div>
               )}
 
-              {/* 1st Solid Pillar (Tallest) */}
+              {/* 1st Solid Pillar (Tallest) with Gold Pentagon Shield */}
               <motion.div
                 initial={{ height: 0 }}
-                animate={{ height: revealStep >= 3 ? "310px" : "50px" }}
+                animate={{
+                  height:
+                    stage === "spotlight_1st" || stage === "celebrate_all"
+                      ? "320px"
+                      : "50px",
+                }}
                 transition={{ duration: 0.9, ease: "easeOut" }}
-                className={`w-full rounded-t-3xl shadow-xl flex flex-col items-center justify-start pt-4 border-t-4 transition-all ${
-                  revealStep >= 3
+                className={`w-full rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-4 border-t-4 transition-all ${
+                  stage === "spotlight_1st" || stage === "celebrate_all"
                     ? "bg-[#FFA602] border-t-white border-b-[8px] border-b-[#CC8400]"
                     : "bg-[#240B4D] border-t-[#1D083E] opacity-50"
                 }`}
               >
-                <span className="text-6xl font-black text-slate-950">1</span>
-                <span className="text-sm font-black uppercase text-slate-950 tracking-widest mt-1">
+                {/* Gold Pentagon Shield Badge 1 */}
+                <div className="w-14 h-16 bg-[#CC8400] border-2 border-white rounded-b-xl flex items-center justify-center font-black text-4xl text-slate-950 shadow-md">
+                  1
+                </div>
+                <span className="text-sm font-black uppercase text-slate-950 tracking-widest mt-2">
                   Champion
                 </span>
               </motion.div>
-            </div>
+            </motion.div>
 
-            {/* 3RD PLACE (BRONZE) */}
-            <div className="flex-1 flex flex-col items-center max-w-[220px]">
-              {revealStep >= 1 && third ? (
+            {/* ========================================================================= */}
+            {/* 3RD PLACE (BRONZE) - REVEALED IN STAGE 1 (Image 2) */}
+            {/* ========================================================================= */}
+            <motion.div
+              animate={{
+                scale: stage === "reveal_3rd" ? 1.05 : stage === "reveal_2nd" ? 0.9 : 1,
+                x: stage === "reveal_2nd" ? 15 : 0,
+                opacity: stage === "reveal_2nd" ? 0.8 : 1,
+                zIndex: stage === "reveal_3rd" ? 30 : 10,
+              }}
+              transition={{ duration: 0.6 }}
+              className="flex-1 flex flex-col items-center max-w-[220px]"
+            >
+              {stage !== "intro" && third ? (
                 <motion.div
-                  initial={{ opacity: 0, y: 50, scale: 0.7 }}
+                  initial={{ opacity: 0, y: 60, scale: 0.6 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 18 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 16 }}
                   className="flex flex-col items-center mb-3 text-center"
                 >
                   <span className="text-6xl sm:text-7xl mb-1 filter drop-shadow-sm select-none">
@@ -224,23 +319,26 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                 </div>
               )}
 
-              {/* 3rd Solid Pillar */}
+              {/* 3rd Solid Pillar with Bronze Pentagon Shield */}
               <motion.div
                 initial={{ height: 0 }}
-                animate={{ height: revealStep >= 1 ? "180px" : "30px" }}
+                animate={{ height: stage !== "intro" ? "180px" : "30px" }}
                 transition={{ duration: 0.7, ease: "easeOut" }}
                 className={`w-full rounded-t-3xl shadow-xl flex flex-col items-center justify-start pt-4 border-t-4 transition-all ${
-                  revealStep >= 1
+                  stage !== "intro"
                     ? "bg-[#D97706] border-t-amber-300 border-b-[8px] border-b-[#92400E]"
                     : "bg-[#240B4D] border-t-[#1D083E] opacity-50"
                 }`}
               >
-                <span className="text-5xl font-black text-white">3</span>
-                <span className="text-xs font-black uppercase text-amber-200 tracking-wider mt-1">
+                {/* Pentagon Shield Badge 3 */}
+                <div className="w-12 h-14 bg-[#92400E] border-2 border-amber-200 rounded-b-xl flex items-center justify-center font-black text-3xl text-white shadow-md">
+                  3
+                </div>
+                <span className="text-xs font-black uppercase text-amber-200 tracking-wider mt-2">
                   3rd Place
                 </span>
               </motion.div>
-            </div>
+            </motion.div>
           </div>
         ) : (
           /* Solid Complete Results Table View */
@@ -287,40 +385,16 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM SOLID ACTION CONTROLS */}
+      {/* 3. BOTTOM FINALE CONTROLS (Appears after automatic sequence completes) */}
       {/* ========================================================================= */}
-      <footer className="relative z-20 flex items-center justify-center gap-4 pb-2">
-        {revealStep < 3 ? (
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={handleNextReveal}
-            className="px-10 py-4 bg-[#FFA602] hover:bg-[#E59500] text-slate-950 font-black text-lg md:text-xl rounded-2xl shadow-xl flex items-center gap-3 transition-all cursor-pointer border-b-[6px] border-[#CC8400] active:border-b-[2px] active:translate-y-1"
+      <footer className="relative z-40 flex items-center justify-center gap-4 pb-2">
+        {stage === "celebrate_all" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-4"
           >
-            {revealStep === 0 && (
-              <>
-                <Medal className="w-6 h-6 text-slate-950 stroke-[2.5]" />
-                <span>Reveal 3rd Place (🥉)</span>
-                <ArrowRight className="w-6 h-6 stroke-[3]" />
-              </>
-            )}
-            {revealStep === 1 && (
-              <>
-                <Medal className="w-6 h-6 text-slate-950 stroke-[2.5]" />
-                <span>Reveal 2nd Place (🥈)</span>
-                <ArrowRight className="w-6 h-6 stroke-[3]" />
-              </>
-            )}
-            {revealStep === 2 && (
-              <>
-                <Crown className="w-7 h-7 text-slate-950 fill-slate-950" />
-                <span>👑 Reveal 1st Place Champion! 🏆</span>
-                <Sparkles className="w-6 h-6" />
-              </>
-            )}
-          </motion.button>
-        ) : (
-          <div className="flex items-center gap-4">
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
@@ -330,7 +404,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
               <RotateCcw className="w-5 h-5" />
               <span>Play Again</span>
             </motion.button>
-          </div>
+          </motion.div>
         )}
       </footer>
     </div>
