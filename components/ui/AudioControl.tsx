@@ -1,75 +1,65 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Volume2, VolumeX, Music } from "lucide-react";
 import { sounds } from "@/lib/audio/soundManager";
-import { motion } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface AudioControlProps {
-  className?: string;
   autoPlayLobby?: boolean;
+  className?: string;
 }
 
-export function AudioControl({ className = "", autoPlayLobby = false }: AudioControlProps) {
-  const [isMuted, setIsMuted] = useState<boolean>(sounds.getMuted());
+export function AudioControl({ autoPlayLobby = false, className = "" }: AudioControlProps) {
+  const [isMuted, setIsMuted] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Subscribe to sound state changes
-    const unsubscribe = sounds.subscribe((muted) => {
-      setIsMuted(muted);
-    });
+    setMounted(true);
+    setIsMuted(sounds.getMuted());
 
-    // Start lobby music if autoPlay is requested and not muted
-    if (autoPlayLobby && !sounds.getMuted()) {
-      sounds.startLobbyMusic();
-    }
-
-    return () => {
-      unsubscribe();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "KeyM" && (e.target as HTMLElement).tagName !== "INPUT") {
+        const nextMute = sounds.toggleMute();
+        setIsMuted(nextMute);
+      }
     };
-  }, [autoPlayLobby]);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleToggle = () => {
-    const nextMuted = sounds.toggleMute();
-    setIsMuted(nextMuted);
-    if (!nextMuted && autoPlayLobby) {
-      sounds.startLobbyMusic();
-    }
+    const nextMute = sounds.toggleMute();
+    setIsMuted(nextMute);
   };
 
+  if (!mounted) return null;
+
   return (
-    <motion.button
-      whileHover={{ scale: 1.06 }}
-      whileTap={{ scale: 0.94 }}
+    <button
       onClick={handleToggle}
-      title={isMuted ? "Unmute Music & Sounds" : "Mute Music & Sounds"}
-      className={`relative z-50 flex items-center gap-2 px-3.5 py-2 rounded-2xl backdrop-blur-md transition-all shadow-lg cursor-pointer border ${
+      className={`relative z-50 flex items-center gap-2 px-3.5 py-2 rounded-2xl transition-all shadow-md cursor-pointer border-2 ${
         isMuted
-          ? "bg-slate-900/80 hover:bg-slate-900 text-slate-400 border-white/10"
-          : "bg-emerald-500/90 hover:bg-emerald-500 text-white border-emerald-400/50 shadow-[0_0_20px_rgba(16,185,129,0.35)]"
-      } ${className}`}
+          ? "bg-[#E21B3C] hover:bg-[#B0142D] text-white border-[#B0142D] border-b-4"
+          : "bg-[#240B4D] hover:bg-[#1D083E] text-white border-[#1D083E] border-b-4"
+      } active:border-b-2 active:translate-y-0.5 ${className}`}
+      title={isMuted ? "Unmute Audio (Press M)" : "Mute Audio (Press M)"}
     >
       {isMuted ? (
         <>
-          <VolumeX className="w-4 h-4 text-red-400" />
-          <span className="text-xs font-black uppercase tracking-wider hidden sm:inline text-slate-300">
-            Music Off
+          <VolumeX className="w-4 h-4 text-white" />
+          <span className="text-xs font-black uppercase tracking-wider text-white">
+            Muted
           </span>
         </>
       ) : (
         <>
-          <Volume2 className="w-4 h-4 text-white animate-pulse" />
-          <span className="text-xs font-black uppercase tracking-wider hidden sm:inline">
-            Music On
+          <Volume2 className="w-4 h-4 text-[#FFA602]" />
+          <span className="text-xs font-black uppercase tracking-wider text-white">
+            Audio On
           </span>
-          {/* Animated sound wave bars */}
-          <div className="flex items-end gap-0.5 h-3 ml-0.5">
-            <span className="w-0.5 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <span className="w-0.5 h-3 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <span className="w-0.5 h-1.5 bg-white rounded-full animate-bounce" />
-          </div>
         </>
       )}
-    </motion.button>
+    </button>
   );
 }

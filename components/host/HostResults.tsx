@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
-import { KahootShape } from "@/components/ui/KahootShapes";
 import { AudioControl } from "@/components/ui/AudioControl";
 import { Check, ArrowRight } from "lucide-react";
 
@@ -13,26 +12,26 @@ interface HostResultsProps {
   onNext: () => void;
 }
 
-const CHOICES_THEME = [
+const CHOICES_SOLID_THEME = [
   {
-    bgClass: "bg-[#e21b3c]",
-    borderClass: "border-[#b8142f]",
-    shape: "triangle" as const,
+    bgClass: "bg-[#E21B3C]",
+    borderBottomClass: "border-b-[#B0142D]",
+    shapeSymbol: "▲",
   },
   {
-    bgClass: "bg-[#1368ce]",
-    borderClass: "border-[#0e4e9e]",
-    shape: "diamond" as const,
+    bgClass: "bg-[#1368CE]",
+    borderBottomClass: "border-b-[#0E4C96]",
+    shapeSymbol: "◆",
   },
   {
-    bgClass: "bg-[#d89e00]",
-    borderClass: "border-[#b28200]",
-    shape: "circle" as const,
+    bgClass: "bg-[#D89E00]",
+    borderBottomClass: "border-b-[#9E7300]",
+    shapeSymbol: "●",
   },
   {
-    bgClass: "bg-[#26890c]",
-    borderClass: "border-[#1d6b09]",
-    shape: "square" as const,
+    bgClass: "bg-[#26890C]",
+    borderBottomClass: "border-b-[#1B6108]",
+    shapeSymbol: "■",
   },
 ];
 
@@ -41,11 +40,13 @@ export function HostResults({ question, answerCounts, onNext }: HostResultsProps
   const maxBarHeightPx = 240;
 
   return (
-    <div className="h-screen w-screen bg-[#46178f] text-white flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-sans">
-      {/* Top Header: Question, Audio Control & Next Button */}
-      <header className="flex items-center justify-between gap-4 max-w-6xl mx-auto w-full pt-1">
-        <div className="flex-1 min-w-0 bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20">
-          <h2 className="text-base sm:text-xl md:text-2xl font-black text-white truncate text-center sm:text-left">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER: Solid White Question Box + Solid Actions */}
+      {/* ========================================================================= */}
+      <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
+        <div className="flex-1 min-w-0 bg-white text-slate-900 px-6 py-4 rounded-3xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md">
+          <h2 className="text-xl md:text-3xl font-black text-slate-900 truncate text-center sm:text-left tracking-tight">
             {question.question_text}
           </h2>
         </div>
@@ -54,10 +55,10 @@ export function HostResults({ question, answerCounts, onNext }: HostResultsProps
           <AudioControl />
 
           <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={onNext}
-            className="px-6 sm:px-8 py-3.5 bg-white hover:bg-slate-100 text-[#46178f] font-black text-base sm:text-lg rounded-2xl shadow-xl flex items-center gap-2 transition-all cursor-pointer"
+            className="px-8 py-4 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-lg rounded-2xl shadow-md flex items-center gap-2.5 transition-all cursor-pointer border-b-[6px] border-[#1B6108] active:border-b-[2px] active:translate-y-1"
           >
             <span>Next</span>
             <ArrowRight className="w-5 h-5 stroke-[3]" />
@@ -65,51 +66,53 @@ export function HostResults({ question, answerCounts, onNext }: HostResultsProps
         </div>
       </header>
 
-      {/* Center Bar Chart Area */}
-      <main className="flex-1 flex flex-col items-center justify-end max-w-4xl mx-auto w-full my-4">
-        <div className="flex items-end justify-center gap-4 sm:gap-8 w-full px-4">
+      {/* ========================================================================= */}
+      {/* 2. MAIN CENTER: 3D SOLID RISING BAR CHART */}
+      {/* ========================================================================= */}
+      <main className="flex-1 flex flex-col items-center justify-end max-w-4xl mx-auto w-full my-4 z-10">
+        <div className="flex items-end justify-center gap-6 sm:gap-10 w-full px-4">
           {question.choices.map((choice, idx) => {
             const count = answerCounts[idx] || 0;
             const isCorrect = idx === question.correct_index;
-            const theme = CHOICES_THEME[idx];
-            const barHeight = count > 0 ? Math.round((count / maxVote) * maxBarHeightPx) : 6;
+            const theme = CHOICES_SOLID_THEME[idx];
+            const barHeight = count > 0 ? Math.round((count / maxVote) * maxBarHeightPx) : 8;
 
             return (
-              <div key={idx} className="flex-1 max-w-[120px] sm:max-w-[150px] flex flex-col items-center">
-                {/* Indicator checkmark & Count Number */}
-                <div className="flex flex-col items-center gap-1 mb-2 h-14 justify-end">
+              <div key={idx} className="flex-1 max-w-[130px] sm:max-w-[160px] flex flex-col items-center">
+                {/* Indicator Checkmark & Count Number */}
+                <div className="flex flex-col items-center gap-1.5 mb-2 h-16 justify-end">
                   {isCorrect && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                      className="w-7 h-7 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                      className="w-8 h-8 bg-[#26890C] border-2 border-white text-white rounded-full flex items-center justify-center shadow-md"
                     >
-                      <Check className="w-4 h-4 stroke-[4]" />
+                      <Check className="w-5 h-5 stroke-[4]" />
                     </motion.div>
                   )}
-                  <span className="text-2xl sm:text-3xl font-black text-white tabular-nums drop-shadow">
+                  <span className="text-3xl sm:text-4xl font-black text-white tabular-nums">
                     {count}
                   </span>
                 </div>
 
-                {/* The Rising Bar */}
+                {/* The Solid Rising Bar */}
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: `${barHeight}px` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className={`w-full rounded-t-xl ${theme.bgClass} shadow-md ${
-                    isCorrect ? "ring-2 ring-white" : ""
+                  transition={{ duration: 0.7, ease: "easeOut" }}
+                  className={`w-full rounded-t-2xl ${theme.bgClass} shadow-md border-t-2 border-x-2 border-white/40 ${
+                    isCorrect ? "border-t-4 border-white" : ""
                   }`}
                 />
 
-                {/* Base Shape Floor Tile */}
+                {/* Base Shape Solid Floor Tile */}
                 <div
-                  className={`w-full h-12 sm:h-14 ${theme.bgClass} rounded-b-xl flex items-center justify-center shadow-md border-t border-black/10`}
+                  className={`w-full h-14 sm:h-16 ${theme.bgClass} rounded-b-2xl flex items-center justify-center shadow-md border-b-[6px] ${theme.borderBottomClass}`}
                 >
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 text-white flex items-center justify-center">
-                    <KahootShape shape={theme.shape} size={24} />
-                  </div>
+                  <span className="text-2xl sm:text-3xl text-white select-none">
+                    {theme.shapeSymbol}
+                  </span>
                 </div>
               </div>
             );
@@ -117,32 +120,36 @@ export function HostResults({ question, answerCounts, onNext }: HostResultsProps
         </div>
       </main>
 
-      {/* Bottom Answer Choices Grid (2x2) */}
-      <footer className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-5xl mx-auto w-full pb-2">
+      {/* ========================================================================= */}
+      {/* 3. BOTTOM SOLID 2X2 ANSWER GRID */}
+      {/* ========================================================================= */}
+      <footer className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-7xl mx-auto w-full pb-2 z-20">
         {question.choices.map((choice, idx) => {
           const isCorrect = idx === question.correct_index;
-          const theme = CHOICES_THEME[idx];
+          const theme = CHOICES_SOLID_THEME[idx];
 
           return (
             <div
               key={idx}
-              className={`p-3.5 sm:p-4 rounded-2xl flex items-center gap-3.5 text-white font-bold text-sm sm:text-base shadow-lg transition-all ${
-                theme.bgClass
-              } ${
+              className={`h-20 sm:h-22 rounded-2xl md:rounded-3xl flex items-center px-6 border-b-[6px] ${
+                theme.borderBottomClass
+              } ${theme.bgClass} ${
                 isCorrect
-                  ? "ring-4 ring-white scale-[1.01]"
-                  : "opacity-40 grayscale-[20%]"
+                  ? "border-4 border-white shadow-xl"
+                  : "opacity-45"
               }`}
             >
-              <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center flex-shrink-0">
-                <KahootShape shape={theme.shape} size={20} />
-              </div>
+              <span className="text-3xl sm:text-4xl mr-5 text-white select-none">
+                {theme.shapeSymbol}
+              </span>
 
-              <span className="flex-1 truncate font-black text-white">{choice.text}</span>
+              <span className="flex-1 truncate font-black text-xl sm:text-2xl text-white tracking-tight">
+                {choice.text}
+              </span>
 
               {isCorrect && (
-                <div className="w-6 h-6 bg-white text-[#26890c] rounded-full flex items-center justify-center shadow-md flex-shrink-0">
-                  <Check className="w-4 h-4 stroke-[4]" />
+                <div className="w-8 h-8 bg-white text-[#26890C] rounded-full flex items-center justify-center shadow-md flex-shrink-0 ml-2">
+                  <Check className="w-5 h-5 stroke-[4]" />
                 </div>
               )}
             </div>

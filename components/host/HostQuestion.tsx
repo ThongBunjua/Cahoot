@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
 import { sounds } from "@/lib/audio/soundManager";
-import { FastForward, Sparkles } from "lucide-react";
+import { FastForward } from "lucide-react";
 
 interface HostQuestionProps {
   question: Question;
@@ -19,11 +19,11 @@ interface HostQuestionProps {
 
 const CHOICE_CONFIGS = [
   {
-    bgClass: "bg-[#E21B3C] border-b-[#A31027]",
+    bgClass: "bg-[#E21B3C] border-b-[#B0142D]",
     shapeSymbol: "▲",
   },
   {
-    bgClass: "bg-[#1368CE] border-b-[#0C4A96]",
+    bgClass: "bg-[#1368CE] border-b-[#0E4C96]",
     shapeSymbol: "◆",
   },
   {
@@ -31,7 +31,7 @@ const CHOICE_CONFIGS = [
     shapeSymbol: "●",
   },
   {
-    bgClass: "bg-[#26890C] border-b-[#1A6107]",
+    bgClass: "bg-[#26890C] border-b-[#1B6108]",
     shapeSymbol: "■",
   },
 ];
@@ -56,12 +56,12 @@ export function HostQuestion({
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* ========================================================================= */}
-      {/* 1. TOP ZONE: SUPER-SIZED QUESTION BOX (Full width max-w-7xl) */}
+      {/* 1. TOP ZONE: SUPER-SIZED SOLID QUESTION BOX (Full width max-w-7xl) */}
       {/* ========================================================================= */}
-      <header className="w-full max-w-7xl mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-2xl border-b-[8px] border-slate-300 flex items-center justify-between gap-4 z-20">
+      <header className="w-full max-w-7xl mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 z-20">
         {/* Left: Question Counter Badge */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-sm md:text-base font-black uppercase tracking-wider bg-[#46178F] text-white px-4 py-2 rounded-2xl shadow-md">
+          <span className="text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-4 py-2 rounded-2xl border-2 border-[#240B4D]">
             {questionIndex + 1} / {totalQuestions}
           </span>
         </div>
@@ -76,10 +76,10 @@ export function HostQuestion({
           <AudioControl />
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={onSkip}
-            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs md:text-sm rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer border-b-4 border-black"
+            className="px-6 py-3 bg-[#33106B] hover:bg-[#240B4D] text-white font-black text-xs md:text-sm rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer border-2 border-[#240B4D] border-b-4 border-black active:border-b-2 active:translate-y-0.5"
           >
             <span>Skip</span>
             <FastForward className="w-4 h-4" />
@@ -88,11 +88,11 @@ export function HostQuestion({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MIDDLE ZONE: ENLARGED 3-PART CENTER STAGE */}
+      {/* 2. MIDDLE ZONE: ENLARGED 3-PART SOLID CENTER STAGE */}
       {/* ========================================================================= */}
       <main className="w-full max-w-7xl mx-auto flex-1 flex items-center justify-between my-3 md:my-5 px-2 md:px-4 z-10">
         {/* Left: Giant Circular Countdown Timer */}
-        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] md:border-8 border-emerald-400 bg-[#33106B] flex items-center justify-center shadow-2xl flex-shrink-0 animate-pulse-gentle">
+        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[8px] border-[#26890C] bg-[#33106B] flex items-center justify-center shadow-xl flex-shrink-0">
           <span
             className={`text-5xl md:text-7xl font-black tabular-nums ${
               timeRemaining <= 5 ? "text-red-400 animate-bounce" : "text-white"
@@ -103,7 +103,7 @@ export function HostQuestion({
         </div>
 
         {/* Center: Giant Media Display Canvas */}
-        <div className="flex-1 max-w-3xl h-60 md:h-80 lg:h-96 bg-white/10 rounded-3xl border-4 border-white/30 overflow-hidden shadow-2xl flex items-center justify-center mx-4 md:mx-8 relative">
+        <div className="flex-1 max-w-3xl h-60 md:h-80 lg:h-96 bg-[#33106B] rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-xl flex items-center justify-center mx-4 md:mx-8 relative">
           {question.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -113,10 +113,10 @@ export function HostQuestion({
             />
           ) : (
             <div className="flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-white/15 border-2 border-white/20 flex items-center justify-center text-5xl md:text-7xl shadow-xl mb-3 animate-pulse">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-[#240B4D] border-2 border-[#1D083E] flex items-center justify-center text-5xl md:text-7xl shadow-md mb-3 animate-pulse">
                 💡
               </div>
-              <p className="text-base md:text-lg font-black uppercase tracking-widest text-white/80 drop-shadow">
+              <p className="text-base md:text-lg font-black uppercase tracking-widest text-[#FFA602]">
                 Look closely at the question!
               </p>
             </div>
@@ -124,8 +124,8 @@ export function HostQuestion({
         </div>
 
         {/* Right: Giant Live Answers Counter Box */}
-        <div className="w-36 h-36 md:w-44 md:h-44 bg-[#33106B] rounded-3xl border-b-[8px] border-[#240B4D] flex flex-col items-center justify-center shadow-2xl flex-shrink-0">
-          <span className="text-6xl md:text-8xl font-black text-white leading-none tabular-nums drop-shadow">
+        <div className="w-36 h-36 md:w-44 md:h-44 bg-[#33106B] rounded-3xl border-2 border-[#240B4D] border-b-[8px] border-b-[#1D083E] flex flex-col items-center justify-center shadow-xl flex-shrink-0">
+          <span className="text-6xl md:text-8xl font-black text-white leading-none tabular-nums">
             {totalAnswersReceived}
           </span>
           <span className="text-xs md:text-base font-black uppercase tracking-widest text-slate-300 mt-2">
@@ -135,7 +135,7 @@ export function HostQuestion({
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM ZONE: GIANT 2X2 ANSWER GRID (30-35% of screen height) */}
+      {/* 3. BOTTOM ZONE: GIANT 2X2 SOLID ANSWER GRID (30-35% of screen height) */}
       {/* ========================================================================= */}
       <footer className="w-full max-w-7xl mx-auto grid grid-cols-2 gap-4 md:gap-6 pb-2 md:pb-4 z-20">
         {question.choices.map((choice, idx) => {
@@ -143,15 +143,15 @@ export function HostQuestion({
           return (
             <div
               key={idx}
-              className={`h-20 md:h-26 lg:h-28 rounded-2xl md:rounded-3xl flex items-center px-6 md:px-8 border-b-[8px] text-white shadow-2xl ${config.bgClass}`}
+              className={`h-20 md:h-26 lg:h-28 rounded-2xl md:rounded-3xl flex items-center px-6 md:px-8 border-b-[8px] text-white shadow-xl ${config.bgClass}`}
             >
               {/* Geometric Shape Icon (▲, ◆, ●, ■) */}
-              <span className="text-3xl md:text-4xl lg:text-5xl mr-5 md:mr-6 flex-shrink-0 drop-shadow-md select-none">
+              <span className="text-3xl md:text-4xl lg:text-5xl mr-5 md:mr-6 flex-shrink-0 select-none">
                 {config.shapeSymbol}
               </span>
 
               {/* Answer Text */}
-              <span className="text-xl md:text-2xl lg:text-3xl font-black truncate tracking-tight drop-shadow-sm">
+              <span className="text-xl md:text-2xl lg:text-3xl font-black truncate tracking-tight">
                 {choice.text}
               </span>
             </div>
