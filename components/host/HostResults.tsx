@@ -38,16 +38,16 @@ const CHOICES_SOLID_THEME = [
 
 export function HostResults({ question, answerCounts, isLastQuestion = false, onNext }: HostResultsProps) {
   const maxVote = Math.max(...answerCounts, 1);
-  const maxBarHeightPx = 240;
+  const maxBarHeightPx = 360; // Extra tall 360px bar chart stage
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: Solid White Question Box + Solid Actions */}
+      {/* 1. TOP HEADER: Super-Sized Solid White Question Box (Full width max-w-7xl) */}
       {/* ========================================================================= */}
       <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
-        <div className="flex-1 min-w-0 bg-white text-slate-900 px-6 py-4 rounded-3xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md">
-          <h2 className="text-xl md:text-3xl font-black text-slate-900 truncate text-center sm:text-left tracking-tight">
+        <div className="flex-1 min-w-0 bg-white text-slate-900 px-6 py-4 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-xl">
+          <h2 className="text-xl md:text-3xl lg:text-4xl font-black text-slate-900 truncate text-center sm:text-left tracking-tight">
             {question.question_text}
           </h2>
         </div>
@@ -59,59 +59,64 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={onNext}
-            className="px-8 py-4 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-lg rounded-2xl shadow-md flex items-center gap-2.5 transition-all cursor-pointer border-b-[6px] border-[#1B6108] active:border-b-[2px] active:translate-y-1"
+            className="px-8 py-4 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-lg md:text-xl rounded-2xl shadow-xl flex items-center gap-2.5 transition-all cursor-pointer border-b-[6px] border-[#1B6108] active:border-b-[2px] active:translate-y-1"
           >
             <span>{isLastQuestion ? "Final Podium 🏆" : "Next"}</span>
-            <ArrowRight className="w-5 h-5 stroke-[3]" />
+            <ArrowRight className="w-6 h-6 stroke-[3]" />
           </motion.button>
         </div>
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: 3D SOLID RISING BAR CHART */}
+      {/* 2. MAIN CENTER: EXTRA-TALL DYNAMIC 3D SOLID BAR CHART (Max-w-5xl) */}
       {/* ========================================================================= */}
-      <main className="flex-1 flex flex-col items-center justify-end max-w-4xl mx-auto w-full my-4 z-10">
-        <div className="flex items-end justify-center gap-6 sm:gap-10 w-full px-4">
+      <main className="flex-1 flex flex-col items-center justify-end max-w-5xl mx-auto w-full my-2 md:my-4 z-10 px-4">
+        <div className="flex items-end justify-center gap-6 sm:gap-12 md:gap-16 w-full h-[380px] pb-2">
           {question.choices.map((choice, idx) => {
             const count = answerCounts[idx] || 0;
             const isCorrect = idx === question.correct_index;
             const theme = CHOICES_SOLID_THEME[idx];
-            const barHeight = count > 0 ? Math.round((count / maxVote) * maxBarHeightPx) : 8;
+
+            // Dynamic steep height calculation (High vote towers high, 0 vote stays at floor)
+            const barHeight =
+              count === 0
+                ? 10
+                : Math.round(35 + (count / maxVote) * (maxBarHeightPx - 35));
 
             return (
-              <div key={idx} className="flex-1 max-w-[130px] sm:max-w-[160px] flex flex-col items-center">
-                {/* Indicator Checkmark & Count Number */}
-                <div className="flex flex-col items-center gap-1.5 mb-2 h-16 justify-end">
+              <div key={idx} className="flex-1 max-w-[140px] sm:max-w-[180px] flex flex-col items-center">
+                {/* Indicator Checkmark & Large Count Number */}
+                <div className="flex flex-col items-center gap-1.5 mb-2 h-18 justify-end">
                   {isCorrect && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                      className="w-8 h-8 bg-[#26890C] border-2 border-white text-white rounded-full flex items-center justify-center shadow-md"
+                      className="w-9 h-9 bg-[#26890C] border-2 border-white text-white rounded-full flex items-center justify-center shadow-lg"
                     >
                       <Check className="w-5 h-5 stroke-[4]" />
                     </motion.div>
                   )}
-                  <span className="text-3xl sm:text-4xl font-black text-white tabular-nums">
+                  <span className="text-3xl sm:text-5xl font-black text-white tabular-nums tracking-tight">
                     {count}
                   </span>
                 </div>
 
-                {/* The Solid Rising Bar */}
+                {/* The Tall Solid Rising Bar */}
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: `${barHeight}px` }}
-                  transition={{ duration: 0.7, ease: "easeOut" }}
-                  className={`w-full rounded-t-2xl ${theme.bgClass} shadow-md border-t-2 border-x-2 border-white/40 ${
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className={`w-full rounded-t-2xl ${theme.bgClass} shadow-xl border-t-2 border-x-2 border-white/50 ${
                     isCorrect ? "border-t-4 border-white" : ""
                   }`}
                 />
 
                 {/* Base Shape Solid Floor Tile */}
                 <div
-                  className={`w-full h-14 sm:h-16 ${theme.bgClass} rounded-b-2xl flex items-center justify-center shadow-md border-b-[6px] ${theme.borderBottomClass}`}
+                  className={`w-full h-16 sm:h-18 ${theme.bgClass} rounded-b-2xl flex items-center justify-center shadow-lg border-b-[8px] ${theme.borderBottomClass}`}
                 >
-                  <span className="text-2xl sm:text-3xl text-white select-none">
+                  <span className="text-3xl sm:text-4xl text-white select-none">
                     {theme.shapeSymbol}
                   </span>
                 </div>
@@ -122,7 +127,7 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM SOLID 2X2 ANSWER GRID */}
+      {/* 3. BOTTOM SOLID 2X2 ANSWER GRID (Full width max-w-7xl) */}
       {/* ========================================================================= */}
       <footer className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-7xl mx-auto w-full pb-2 z-20">
         {question.choices.map((choice, idx) => {
@@ -132,25 +137,25 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
           return (
             <div
               key={idx}
-              className={`h-20 sm:h-22 rounded-2xl md:rounded-3xl flex items-center px-6 border-b-[6px] ${
+              className={`h-20 sm:h-24 rounded-2xl md:rounded-3xl flex items-center px-6 md:px-8 border-b-[8px] ${
                 theme.borderBottomClass
               } ${theme.bgClass} ${
                 isCorrect
-                  ? "border-4 border-white shadow-xl"
-                  : "opacity-45"
+                  ? "border-4 border-white shadow-2xl scale-[1.01]"
+                  : "opacity-40"
               }`}
             >
-              <span className="text-3xl sm:text-4xl mr-5 text-white select-none">
+              <span className="text-3xl sm:text-4xl lg:text-5xl mr-5 text-white select-none">
                 {theme.shapeSymbol}
               </span>
 
-              <span className="flex-1 truncate font-black text-xl sm:text-2xl text-white tracking-tight">
+              <span className="flex-1 truncate font-black text-xl sm:text-2xl lg:text-3xl text-white tracking-tight">
                 {choice.text}
               </span>
 
               {isCorrect && (
-                <div className="w-8 h-8 bg-white text-[#26890C] rounded-full flex items-center justify-center shadow-md flex-shrink-0 ml-2">
-                  <Check className="w-5 h-5 stroke-[4]" />
+                <div className="w-8 h-8 md:w-9 md:h-9 bg-white text-[#26890C] rounded-full flex items-center justify-center shadow-lg flex-shrink-0 ml-2">
+                  <Check className="w-5 h-5 md:w-6 md:h-6 stroke-[4]" />
                 </div>
               )}
             </div>

@@ -10,7 +10,6 @@ import {
   Flame,
   ArrowRight,
   ArrowUp,
-  ArrowDown,
   Users,
 } from "lucide-react";
 
@@ -54,9 +53,9 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 1.5s score counting ramp
-    const durationMs = 1500;
-    const intervalMs = 40;
+    // Smooth 1.4s score counting ramp
+    const durationMs = 1400;
+    const intervalMs = 35;
     const totalSteps = durationMs / intervalMs;
     let step = 0;
 
@@ -71,11 +70,11 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
       if (step >= totalSteps) {
         clearInterval(interval);
-        // 2. Trigger the simple, clean layout position swap right after score count-up!
+        // Trigger layout position swap right after score count-up
         setTimeout(() => {
           setIsSwapped(true);
           sounds.playClick();
-        }, 300);
+        }, 250);
       }
     }, intervalMs);
 
@@ -85,11 +84,11 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   }, []);
 
   return (
-    <div className="min-h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: 100% Solid 3D (Standings & Next Question) */}
       {/* ========================================================================= */}
-      <header className="w-full flex justify-between items-center max-w-6xl mx-auto pt-1 z-20">
+      <header className="w-full flex justify-between items-center max-w-7xl mx-auto pt-1 z-20">
         <div className="flex items-center gap-3.5 bg-[#33106B] px-6 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
           <div className="p-2.5 bg-[#FFA602] border-b-2 border-[#CC8400] rounded-xl text-slate-950 shadow-sm">
             <Trophy className="w-6 h-6 stroke-[2.5]" />
@@ -120,17 +119,17 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: SIMPLE, CLEAN, BUG-FREE 60FPS POSITION SWAP */}
+      {/* 2. MAIN CENTER: FULL-SCREEN WIDE RESPONSIVE 3D CARDS (Max-w-6xl) */}
       {/* ========================================================================= */}
-      <main className="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center my-auto py-4 z-10">
-        <motion.div layout className="w-full flex flex-col gap-4">
+      <main className="w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
+        <motion.div layout className="w-full flex flex-col gap-3.5 md:gap-4">
           {displayList.map((player) => {
             const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
             const initialRank = initialSorted.findIndex((p) => p.id === player.id) + 1;
             const initialSlotRank = initialTop5.findIndex((p) => p.id === player.id) + 1;
 
             const activeRankNumber = isSwapped ? finalRank : initialSlotRank;
-            const rankDelta = initialRank - finalRank; // Positive = Climbed up, Negative = Dropped!
+            const rankDelta = initialRank - finalRank; // Positive = Climbed up!
 
             const startScore =
               typeof player.previousScore === "number"
@@ -140,7 +139,6 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const pointsGained = player.lastPoints || 0;
 
             const isClimber = isSwapped && rankDelta > 0;
-            const isDropper = isSwapped && rankDelta < 0;
 
             return (
               <motion.div
@@ -149,17 +147,15 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                 transition={{
                   layout: { type: "spring", stiffness: 120, damping: 18 },
                 }}
-                className={`w-full h-[88px] bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-all ${
+                className={`w-full h-[90px] md:h-[96px] bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-all ${
                   activeRankNumber === 1
                     ? "border-amber-400 border-b-[6px] border-b-amber-500"
                     : isClimber
                     ? "border-emerald-400 border-b-[6px] border-b-emerald-500"
-                    : isDropper
-                    ? "border-rose-300 border-b-[6px] border-b-rose-400"
                     : ""
                 }`}
               >
-                {/* Left Section: Rank Badge + Avatar + Nickname */}
+                {/* Left Section: 56px Rank Badge + 4xl Avatar + 2xl Nickname */}
                 <div className="flex items-center gap-4 md:gap-6 min-w-0">
                   {/* Solid 3D Rank Badge */}
                   <motion.div
@@ -182,13 +178,13 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     {player.avatar}
                   </div>
 
-                  {/* Nickname & Status Badges */}
+                  {/* Nickname & Dynamic Indicators */}
                   <div className="min-w-0 flex items-center gap-2.5 md:gap-3 flex-wrap">
-                    <h3 className="text-xl md:text-2xl font-black text-slate-900 truncate max-w-[140px] sm:max-w-xs md:max-w-sm tracking-tight">
+                    <h3 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 truncate max-w-[160px] sm:max-w-xs md:max-w-md tracking-tight">
                       {player.nickname}
                     </h3>
 
-                    {/* Streak Badge */}
+                    {/* Streak Badge: Solid Amber */}
                     {player.streak > 1 && (
                       <span className="inline-flex items-center gap-1 text-[11px] md:text-xs font-black bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2.5 py-0.5 rounded-full flex-shrink-0">
                         <Flame className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
@@ -196,47 +192,35 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       </span>
                     )}
 
-                    {/* Rank Climbed Badge (Solid Green ▲ +N) */}
+                    {/* Minimalist Rank Climbed Up-Arrow Only (No Number, No Down Arrow) */}
                     {isSwapped && rankDelta > 0 && (
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="inline-flex items-center gap-1 bg-[#D1FAE5] text-[#065F46] border border-[#6EE7B7] font-black px-2.5 py-0.5 rounded-full text-xs shadow-sm flex-shrink-0"
+                        className="inline-flex items-center justify-center w-7 h-7 bg-[#D1FAE5] text-[#065F46] border-2 border-[#6EE7B7] rounded-full shadow-sm flex-shrink-0"
+                        title={`Climbed up ${rankDelta} spots`}
                       >
-                        <ArrowUp className="w-3.5 h-3.5 stroke-[3] text-[#059669]" />
-                        <span>+{rankDelta}</span>
-                      </motion.span>
-                    )}
-
-                    {/* Rank Dropped Badge (Solid Red ▼ -N) */}
-                    {isSwapped && rankDelta < 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="inline-flex items-center gap-1 bg-[#FEE2E2] text-[#991B1B] border border-[#FCA5A5] font-black px-2.5 py-0.5 rounded-full text-xs shadow-sm flex-shrink-0"
-                      >
-                        <ArrowDown className="w-3.5 h-3.5 stroke-[3] text-[#DC2626]" />
-                        <span>{rankDelta}</span>
+                        <ArrowUp className="w-4 h-4 stroke-[3.5] text-[#059669]" />
                       </motion.span>
                     )}
                   </div>
                 </div>
 
                 {/* Right Section: Points Gained Pill + Total Score */}
-                <div className="flex items-center gap-3 md:gap-5 flex-shrink-0">
+                <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
                   {/* Points Gained Pill */}
                   {pointsGained > 0 && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] font-black px-3 py-1 rounded-xl text-sm md:text-base shadow-sm"
+                      className="bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] font-black px-3.5 py-1 rounded-xl text-sm md:text-base shadow-sm"
                     >
                       +{pointsGained.toLocaleString()}
                     </motion.div>
                   )}
 
                   {/* Total Score */}
-                  <div className="text-right min-w-[85px] sm:min-w-[105px]">
+                  <div className="text-right min-w-[90px] sm:min-w-[120px]">
                     <span className="text-2xl md:text-4xl font-black text-slate-900 tabular-nums tracking-tight block leading-none">
                       {currentScore.toLocaleString()}
                     </span>
