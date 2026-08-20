@@ -36,9 +36,7 @@ export function HostLobby({
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    // Start lobby music
     sounds.startLobbyMusic();
-
     return () => {
       sounds.stopLobbyMusic();
     };
@@ -53,6 +51,13 @@ export function HostLobby({
       setIsFullscreen(false);
     }
   };
+
+  // Distribute players across 3 scrolling conveyor rows moving to the right
+  const numRows = 3;
+  const rows: Player[][] = Array.from({ length: numRows }, () => []);
+  players.forEach((p, idx) => {
+    rows[idx % numRows].push(p);
+  });
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 relative overflow-hidden select-none font-sans">
@@ -109,18 +114,17 @@ export function HostLobby({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: ORGANIC FLOATING PLAYER CLOUD (No Rigid Structure, No Scrollbar) */}
+      {/* 2. MAIN CENTER: SEAMLESS INFINITE MARQUEE TO THE RIGHT (No Scrollbar) */}
       {/* ========================================================================= */}
-      <main className="relative z-10 flex-1 my-3 md:my-5 flex flex-col items-center justify-between max-w-7xl mx-auto w-full overflow-hidden">
+      <main className="relative z-10 flex-1 my-3 md:my-5 flex flex-col items-center justify-center max-w-7xl mx-auto w-full overflow-hidden">
         {/* Joined Players Count Pill */}
-        <div className="flex items-center gap-2 mb-3 bg-[#33106B] px-6 py-2.5 rounded-full border-2 border-[#240B4D] border-b-[4px] border-b-[#1D083E] shadow-lg flex-shrink-0">
+        <div className="flex items-center gap-2 mb-4 bg-[#33106B] px-6 py-2.5 rounded-full border-2 border-[#240B4D] border-b-[4px] border-b-[#1D083E] shadow-lg flex-shrink-0">
           <Users className="w-5 h-5 text-[#FFA602]" />
           <span className="text-base sm:text-lg font-black text-white">
             {players.length} {players.length === 1 ? "Player" : "Players"} Joined
           </span>
         </div>
 
-        {/* Floating Player Cloud */}
         {players.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-300 max-w-md">
             <div className="w-20 h-20 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] flex items-center justify-center mx-auto mb-4 animate-bounce">
@@ -132,62 +136,58 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          <div className="flex-1 w-full overflow-hidden flex flex-wrap items-center justify-center content-center gap-3 sm:gap-4 p-4">
-            <AnimatePresence>
-              {players.map((player, idx) => {
-                // Organic floating physics parameters unique to each player
-                const floatDuration = 3.8 + (idx % 5) * 0.6;
-                const floatYOffset = 8 + (idx % 4) * 4;
-                const floatXOffset = 4 + (idx % 3) * 3;
-                const floatDelay = (idx % 7) * 0.3;
+          /* Multi-Row Seamless Conveyor Lines Scrolling to the Right */
+          <div className="w-full flex-1 flex flex-col justify-center gap-5 overflow-hidden py-2 mask-linear-x">
+            {rows.map((rowPlayers, rowIndex) => {
+              if (rowPlayers.length === 0) return null;
 
-                return (
+              // Ensure at least 8 items per row for continuous seamless wrap
+              const multiplier = Math.max(2, Math.ceil(12 / rowPlayers.length));
+              const seamlessList = Array(multiplier).fill(rowPlayers).flat();
+
+              // Alternate speeds per row for realistic depth
+              const speedSec = 22 + rowIndex * 4;
+
+              return (
+                <div
+                  key={rowIndex}
+                  className="w-full overflow-hidden flex relative"
+                  style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}
+                >
                   <motion.div
-                    key={player.id}
-                    initial={{ scale: 0, opacity: 0, y: 30 }}
-                    animate={{
-                      scale: 1,
-                      opacity: 1,
-                      y: [0, -floatYOffset, 0, floatYOffset, 0],
-                      x: [0, floatXOffset, 0, -floatXOffset, 0],
-                    }}
-                    exit={{ scale: 0, opacity: 0 }}
+                    animate={{ x: ["-50%", "0%"] }} // Smooth continuous scroll to the right
                     transition={{
-                      scale: { type: "spring", stiffness: 350, damping: 22 },
-                      y: {
-                        duration: floatDuration,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: floatDelay,
-                      },
-                      x: {
-                        duration: floatDuration * 1.2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: floatDelay,
-                      },
+                      duration: speedSec,
+                      repeat: Infinity,
+                      ease: "linear",
                     }}
-                    whileHover={{ scale: 1.1, zIndex: 50 }}
-                    className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-4 py-2.5 flex items-center gap-2.5 shadow-lg select-none cursor-default"
+                    className="flex gap-4 items-center flex-nowrap shrink-0 pr-4"
                   >
-                    <span className="text-2xl sm:text-3xl flex-shrink-0">
-                      {player.avatar}
-                    </span>
-                    <span className="text-sm sm:text-base font-black text-white truncate max-w-[120px] sm:max-w-[150px] tracking-tight">
-                      {player.nickname}
-                    </span>
+                    {seamlessList.map((player, pIdx) => (
+                      <div
+                        key={`${player.id}-${pIdx}`}
+                        className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-5 py-3 flex items-center gap-3 shadow-xl select-none shrink-0"
+                      >
+                        <span className="text-3xl sm:text-4xl flex-shrink-0 select-none">
+                          {player.avatar}
+                        </span>
+                        <span className="text-base sm:text-lg font-black text-white truncate max-w-[140px] sm:max-w-[170px] tracking-tight">
+                          {player.nickname}
+                        </span>
 
-                    <button
-                      onClick={() => onKickPlayer(player.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 bg-[#E21B3C] hover:bg-[#B0142D] rounded-lg text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
-                      title={`Remove ${player.nickname}`}
-                    >
-                      <X className="w-3.5 h-3.5 stroke-[3]" />
-                    </button>
+                        <button
+                          onClick={() => onKickPlayer(player.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 bg-[#E21B3C] hover:bg-[#B0142D] rounded-lg text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
+                          title={`Remove ${player.nickname}`}
+                        >
+                          <X className="w-3.5 h-3.5 stroke-[3]" />
+                        </button>
+                      </div>
+                    ))}
                   </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
         )}
       </main>

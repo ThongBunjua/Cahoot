@@ -104,7 +104,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
   }, [state.phase, pin, syncLobby]);
 
   // End the question and show results
-  const endQuestion = useCallback((overridePlayers?: Player[], overrideAnswerCounts?: [number, number, number, number]) => {
+  const endQuestion = useCallback((overridePlayers?: any, overrideAnswerCounts?: any) => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -114,8 +114,9 @@ export function useGameHost(pin: string, quiz: Quiz) {
     sounds.playTimesUp();
 
     const currentQ = currentState.quiz.questions[currentState.currentQuestionIndex];
-    const sourcePlayers = overridePlayers || currentState.players;
-    const sourceAnswerCounts = overrideAnswerCounts || currentState.answerCounts;
+    // Safeguard: only use override if it is a real Array!
+    const sourcePlayers = Array.isArray(overridePlayers) ? overridePlayers : currentState.players;
+    const sourceAnswerCounts = Array.isArray(overrideAnswerCounts) ? overrideAnswerCounts : currentState.answerCounts;
 
     // Compute updated ranks with previousRank and previousScore preserved
     const sorted = [...sourcePlayers].sort((a, b) => b.score - a.score);
@@ -127,15 +128,15 @@ export function useGameHost(pin: string, quiz: Quiz) {
     }));
 
     // Synchronously update stateRef
-    stateRef.current = {
+    const updatedState = {
       ...currentState,
-      phase: "question_results",
+      phase: "question_results" as GamePhase,
       timeRemaining: 0,
       players: rankedPlayers,
-      answerCounts: sourceAnswerCounts,
+      answerCounts: sourceAnswerCounts as [number, number, number, number],
     };
-
-    setState(stateRef.current);
+    stateRef.current = updatedState;
+    setState(updatedState);
 
     // Broadcast question end to all players with full result data
     broadcast("QUESTION_END", {
@@ -354,23 +355,27 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
     if (timerRef.current) clearInterval(timerRef.current);
 
-    let remaining = limit;
     timerRef.current = setInterval(() => {
-      remaining -= 0.1;
-      const rounded = Math.max(0, Math.ceil(remaining));
+      const elapsedSec = (Date.now() - startTime) / 1000;
+      const rem = Math.max(0, Math.ceil(limit - elapsedSec));
 
-      if (remaining <= 5 && remaining > 0 && Math.abs(remaining - Math.round(remaining)) < 0.15) {
-        sounds.playTick(1.0 + (5 - remaining) * 0.1);
+      if (rem <= 5 && rem > 0) {
+        sounds.playTick(1.0 + (5 - rem) * 0.1);
       }
 
-      if (remaining <= 0) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      if (elapsedSec >= limit) {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
         endQuestion();
       } else {
-        setState((prev) => ({ ...prev, timeRemaining: rounded }));
+        setState((prev) => {
+          if (prev.phase !== "question") return prev;
+          return { ...prev, timeRemaining: rem };
+        });
       }
-    }, 100);
+    }, 200);
   }, [broadcast, endQuestion, quiz]);
 
   // Show Final 1st/2nd/3rd Podium

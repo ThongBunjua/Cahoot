@@ -19,9 +19,9 @@ export function HostQuestionIntro({
   totalQuestions,
   onIntroComplete,
 }: HostQuestionIntroProps) {
-  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_popup" -> "question_preview" -> "transition_out"
+  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_popup" -> "question_preview"
   const [stage, setStage] = useState<
-    "countdown_3" | "countdown_2" | "countdown_1" | "phone_popup" | "question_preview" | "transition_out"
+    "countdown_3" | "countdown_2" | "countdown_1" | "phone_popup" | "question_preview"
   >("countdown_3");
 
   const [readingProgress, setReadingProgress] = useState(0);
@@ -43,16 +43,16 @@ export function HostQuestionIntro({
       sounds.playGetReadyPulse(1);
     }, 2000);
 
-    // 3.0s: Stage Phone Pop-up (1.8s duration)
+    // 3.0s: Stage Phone Pop-up (1.6s duration)
     const tPop = setTimeout(() => {
       setStage("phone_popup");
       sounds.playClick();
     }, 3000);
 
-    // 4.8s: Stage Question Preview with Cahoot! Logo above
+    // 4.6s: Stage Question Preview with morphing Cahoot! Logo above
     const tPreview = setTimeout(() => {
       setStage("question_preview");
-    }, 4800);
+    }, 4600);
 
     return () => {
       clearTimeout(t2);
@@ -75,11 +75,8 @@ export function HostQuestionIntro({
         const next = prev + increment;
         if (next >= 100) {
           clearInterval(interval);
-          // Trigger smooth upward transition before completing
-          setStage("transition_out");
-          setTimeout(() => {
-            onIntroComplete();
-          }, 450);
+          // Seamless morph transition to host question
+          onIntroComplete();
           return 100;
         }
         return next;
@@ -114,6 +111,7 @@ export function HostQuestionIntro({
             key="count-3"
             initial={{ scale: 0.1, opacity: 0, rotate: -25 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0.2, opacity: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
             className="flex flex-col items-center justify-center"
           >
@@ -133,6 +131,7 @@ export function HostQuestionIntro({
             key="count-2"
             initial={{ scale: 0.1, opacity: 0, rotate: 25 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0.2, opacity: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
             className="flex flex-col items-center justify-center"
           >
@@ -152,6 +151,7 @@ export function HostQuestionIntro({
             key="count-1"
             initial={{ scale: 0.1, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.2, opacity: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
             className="flex flex-col items-center justify-center"
           >
@@ -164,13 +164,14 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 2: PHONE POP-UP GRAPHIC */}
+        {/* STEP 2: PHONE POP-UP GRAPHIC (With Morph Logo layoutId) */}
         {/* ========================================================================= */}
         {stage === "phone_popup" && (
           <motion.div
             key="phone-popup"
             initial={{ scale: 0.2, y: 100, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: "spring", stiffness: 280, damping: 20 }}
             className="flex flex-col items-center justify-center gap-4"
           >
@@ -210,11 +211,10 @@ export function HostQuestionIntro({
               <div className="w-24 h-1.5 bg-slate-600 rounded-full mx-auto mt-2" />
             </div>
 
+            {/* Morphing Cahoot! Logo */}
             <motion.h2
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tighter flex items-center justify-center"
+              layoutId="morph-cahoot-logo"
+              className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tighter flex items-center justify-center drop-shadow-md"
             >
               Cahoot<span className="text-[#FFA602]">!</span>
             </motion.h2>
@@ -222,55 +222,48 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 3 & 4: QUESTION PREVIEW WITH CAHOOT! LOGO SLIDED ABOVE & SMOOTH OUTRO */}
+        {/* STEP 3: QUESTION PREVIEW (Smooth Morph of Logo & Shared Question Card) */}
         {/* ========================================================================= */}
-        {(stage === "question_preview" || stage === "transition_out") && (
-          <motion.div
-            key="question-card"
-            initial={{ scale: 0.9, y: 40, opacity: 0 }}
-            animate={{
-              scale: stage === "transition_out" ? 0.95 : 1,
-              y: stage === "transition_out" ? -120 : 0,
-              opacity: stage === "transition_out" ? 0.4 : 1,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: stage === "transition_out" ? 200 : 280,
-              damping: 22,
-            }}
-            className="w-full flex flex-col items-center text-center"
-          >
-            {/* Cahoot! Logo Slid to Top (Image 1 Requirement) */}
+        {stage === "question_preview" && (
+          <div className="w-full flex flex-col items-center text-center">
+            {/* Cahoot! Logo Morphs and Slides Smoothly Above Question Box */}
             <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              layoutId="morph-cahoot-logo"
+              transition={{ type: "spring", stiffness: 220, damping: 20 }}
               className="mb-4 flex items-center justify-center"
             >
-              <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter drop-shadow-md">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter drop-shadow-lg">
                 Cahoot<span className="text-[#FFA602]">!</span>
               </h2>
             </motion.div>
 
             {/* Super-Sized White Solid Question Box */}
-            <div className="bg-white rounded-3xl py-8 sm:py-12 px-8 sm:px-14 border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-xl w-full max-w-4xl mb-6">
+            <motion.div
+              layoutId="host-question-banner"
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              className="bg-white rounded-3xl py-8 sm:py-12 px-8 sm:px-14 border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-2xl w-full max-w-5xl mb-6"
+            >
               <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
                 {question.question_text}
               </h1>
-            </div>
+            </motion.div>
 
             {/* Optional Question Media Image */}
             {question.media_url && (
-              <div className="relative h-48 sm:h-64 md:h-72 w-full max-w-2xl rounded-3xl overflow-hidden border-4 border-slate-300 shadow-xl mb-4 bg-slate-950">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative h-48 sm:h-64 md:h-72 w-full max-w-2xl rounded-3xl overflow-hidden border-4 border-slate-300 shadow-xl mb-4 bg-slate-950"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={question.media_url}
                   alt="Question visual"
                   className="w-full h-full object-cover"
                 />
-              </div>
+              </motion.div>
             )}
-          </motion.div>
+          </div>
         )}
       </main>
 

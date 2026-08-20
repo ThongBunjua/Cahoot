@@ -58,7 +58,11 @@ export function HostQuestion({
       {/* ========================================================================= */}
       {/* 1. TOP ZONE: SUPER-SIZED SOLID QUESTION BOX (Full width max-w-7xl) */}
       {/* ========================================================================= */}
-      <header className="w-full max-w-7xl mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 z-20">
+      <motion.header
+        layoutId="host-question-banner"
+        transition={{ type: "spring", stiffness: 220, damping: 22 }}
+        className="w-full max-w-7xl mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 z-20"
+      >
         {/* Left: Question Counter Badge */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-4 py-2 rounded-2xl border-2 border-[#240B4D]">
@@ -78,14 +82,14 @@ export function HostQuestion({
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={onSkip}
+            onClick={() => onSkip()}
             className="px-6 py-3 bg-[#33106B] hover:bg-[#240B4D] text-white font-black text-xs md:text-sm rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer border-2 border-[#240B4D] border-b-4 border-black active:border-b-2 active:translate-y-0.5"
           >
             <span>Skip</span>
             <FastForward className="w-4 h-4" />
           </motion.button>
         </div>
-      </header>
+      </motion.header>
 
       {/* ========================================================================= */}
       {/* 2. MIDDLE ZONE: ENLARGED 3-PART SOLID CENTER STAGE */}
