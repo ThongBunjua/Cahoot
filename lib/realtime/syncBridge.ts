@@ -1,5 +1,7 @@
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { Player } from "./types";
+import { SessionManager } from "./sessionManager";
+import { getRealtimeChannel } from "./realtimeProvider";
 
 export class SyncBridge {
   // Host registers or finds game session in Supabase DB
@@ -106,5 +108,18 @@ export class SyncBridge {
       // ignore
     }
     return [];
+  }
+
+  // Verify if a room currently exists and is active (Dual-check: Realtime + Database)
+  static async verifyRoomExists(
+    pin: string,
+    timeoutMs: number = 1500
+  ): Promise<{ exists: boolean; quizTitle?: string; status?: string }> {
+    const cleanPin = pin.trim();
+    if (!cleanPin) return { exists: false };
+
+    // Use SessionManager comprehensive multi-layer check
+    const exists = await SessionManager.checkRoomExists(cleanPin);
+    return { exists };
   }
 }
