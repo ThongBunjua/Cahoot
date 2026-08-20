@@ -35,11 +35,13 @@ export interface Player {
   nickname: string;
   avatar: string;
   score: number;
+  previousScore?: number;
   streak: number;
   lastPoints: number;
   lastCorrect: boolean | null;
   lastAnswerIndex: number | null;
   rank: number;
+  previousRank?: number;
   joinedAt: number;
 }
 
@@ -56,10 +58,10 @@ export interface GameHostState {
   quiz: Quiz;
   phase: GamePhase;
   currentQuestionIndex: number;
-  questionStartTime: number; // Timestamp when question countdown started
+  questionStartTime: number;
   timeRemaining: number;
   players: Player[];
-  answerCounts: [number, number, number, number]; // Counts for [red, blue, yellow, green]
+  answerCounts: [number, number, number, number];
   totalAnswersReceived: number;
 }
 
@@ -81,26 +83,23 @@ export interface GamePlayerState {
   timeLimit: number;
 }
 
-// REALTIME BROADCAST EVENT ENUMS & PAYLOADS
 export type RealtimeEvent =
   | "CHECK_ROOM"
   | "ROOM_EXISTS"
-  | "LOBBY_SYNC"
+  | "ROOM_NOT_FOUND"
   | "PLAYER_JOIN"
-  | "PLAYER_LEAVE"
   | "PLAYER_KICK"
-  | "GAME_START"
+  | "LOBBY_SYNC"
   | "GET_READY"
   | "QUESTION_START"
   | "SUBMIT_ANSWER"
   | "QUESTION_END"
   | "SHOW_LEADERBOARD"
-  | "NEXT_QUESTION"
   | "GAME_OVER";
 
 export interface BroadcastPayload {
   event: RealtimeEvent;
   pin: string;
   data: any;
-  timestamp: number;
+  timestamp?: number;
 }

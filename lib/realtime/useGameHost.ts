@@ -78,7 +78,11 @@ export function useGameHost(pin: string, quiz: Quiz) {
                 (p) => p.id === dp.id || p.nickname.toLowerCase() === dp.nickname.toLowerCase()
               );
               if (!exists) {
-                merged.push(dp);
+                merged.push({
+                  ...dp,
+                  previousScore: dp.score || 0,
+                  previousRank: merged.length + 1,
+                });
                 hasNew = true;
               }
             }
@@ -113,11 +117,16 @@ export function useGameHost(pin: string, quiz: Quiz) {
     const sourcePlayers = overridePlayers || currentState.players;
     const sourceAnswerCounts = overrideAnswerCounts || currentState.answerCounts;
 
-    // Compute updated ranks
+    // Compute updated ranks with previousRank and previousScore preserved
     const sorted = [...sourcePlayers].sort((a, b) => b.score - a.score);
-    const rankedPlayers = sorted.map((p, idx) => ({ ...p, rank: idx + 1 }));
+    const rankedPlayers = sorted.map((p, idx) => ({
+      ...p,
+      previousRank: p.previousRank || idx + 1,
+      previousScore: typeof p.previousScore === "number" ? p.previousScore : Math.max(0, p.score - (p.lastPoints || 0)),
+      rank: idx + 1,
+    }));
 
-    // Synchronously update stateRef to prevent stale state reads
+    // Synchronously update stateRef
     stateRef.current = {
       ...currentState,
       phase: "question_results",
@@ -178,11 +187,13 @@ export function useGameHost(pin: string, quiz: Quiz) {
             nickname,
             avatar: avatar || "🦊",
             score: 0,
+            previousScore: 0,
             streak: 0,
             lastPoints: 0,
             lastCorrect: null,
             lastAnswerIndex: null,
             rank: currentState.players.length + 1,
+            previousRank: currentState.players.length + 1,
             joinedAt: Date.now(),
           };
           const updatedPlayers = [...currentState.players, newPlayer];
@@ -258,7 +269,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
         setState(stateRef.current);
         sounds.playClick();
 
-        // If all players have answered, end question immediately with the updated players
+        // If all players have answered, end question immediately
         if (newTotalAnswers >= currentState.players.length && currentState.players.length > 0) {
           endQuestion(updatedPlayers, newAnswerCounts);
         }
@@ -317,12 +328,23 @@ export function useGameHost(pin: string, quiz: Quiz) {
     const startTime = Date.now();
     const limit = currentQ.time_limit;
 
+    // Snapshot each player's previousScore and previousRank before this question begins
+    const snapshottedPlayers = stateRef.current.players.map((p, idx) => ({
+      ...p,
+      previousScore: p.score,
+      previousRank: p.rank || idx + 1,
+      lastPoints: 0,
+      lastCorrect: null,
+      lastAnswerIndex: null,
+    }));
+
     const updatedState = {
       ...stateRef.current,
       phase: "question" as GamePhase,
       currentQuestionIndex: questionIndex,
       questionStartTime: startTime,
       timeRemaining: limit,
+      players: snapshottedPlayers,
       answerCounts: [0, 0, 0, 0] as [number, number, number, number],
       totalAnswersReceived: 0,
     };
