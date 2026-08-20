@@ -10,6 +10,7 @@ import {
   Flame,
   ArrowRight,
   ArrowUp,
+  ArrowDown,
   Users,
 } from "lucide-react";
 
@@ -52,9 +53,9 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     });
     setDisplayScores(initialScoresMap);
 
-    // Step 1: Score count-up over 1.3 seconds
+    // Step 1: Score count-up over 1.2 seconds
     const countTimer = setTimeout(() => {
-      const duration = 1300;
+      const duration = 1200;
       const steps = 30;
       const stepDuration = duration / steps;
       let stepCount = 0;
@@ -85,11 +86,11 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
         if (stepCount >= steps) {
           clearInterval(interval);
-          // Step 2: Trigger Position Swap / Overtake Layout Animation right after score finishes counting!
+          // Step 2: 0.6s pause so audience reads the scores, THEN smoothly glides the cards!
           setTimeout(() => {
             setIsOvertakeAnimated(true);
             sounds.playClick();
-          }, 300);
+          }, 600);
         }
       }, stepDuration);
 
@@ -137,13 +138,13 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       {/* 2. Main Center Area: Large 3D Solid Cards with Smooth Physical Layout Overtake Animation */}
       <main className="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center my-auto py-6 z-10">
         <motion.div layout className="w-full flex flex-col gap-4">
-          {top5.map((player, currentIdx) => {
+          {top5.map((player) => {
             const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
             const prevRank =
               typeof player.previousRank === "number"
                 ? player.previousRank
                 : initialSorted.findIndex((p) => p.id === player.id) + 1;
-            const rankDelta = prevRank - finalRank; // Positive = Climbed up!
+            const rankDelta = prevRank - finalRank; // Positive = Climbed, Negative = Dropped!
 
             const activeRank = isOvertakeAnimated ? finalRank : prevRank;
             const currentScoreVal = displayScores[player.id] ?? player.score;
@@ -152,14 +153,17 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             return (
               <motion.div
                 layout
-                layoutId={player.id}
                 key={player.id}
                 transition={{
-                  layout: { type: "spring", stiffness: 220, damping: 20 },
-                  duration: 0.8,
+                  layout: { type: "spring", stiffness: 90, damping: 16, mass: 1.1 },
+                  duration: 1.5,
                 }}
                 className={`bg-white rounded-2xl py-5 px-8 border border-slate-200 border-b-[6px] border-b-slate-200 shadow-lg flex items-center justify-between transition-all ${
-                  isOvertakeAnimated && rankDelta > 0 ? "ring-4 ring-emerald-400 shadow-emerald-400/30" : ""
+                  isOvertakeAnimated && rankDelta > 0
+                    ? "ring-4 ring-emerald-400 shadow-emerald-400/30"
+                    : isOvertakeAnimated && rankDelta < 0
+                    ? "ring-4 ring-red-400/60 shadow-red-400/20"
+                    : ""
                 }`}
               >
                 {/* Left Section: 56px Rank Badge + 4xl Avatar + 2xl Nickname + Indicators */}
@@ -167,7 +171,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                   {/* Rank Badge: w-14 h-14 text-2xl font-black rounded-2xl */}
                   <motion.div
                     layout
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 ${
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-500 ${
                       activeRank === 1
                         ? "bg-amber-400 border-b-4 border-amber-600 text-white"
                         : activeRank === 2
@@ -199,7 +203,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       </span>
                     )}
 
-                    {/* Rank Jump Badge: bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-3 py-1 rounded-full text-sm */}
+                    {/* Rank Climbed Badge (Green ▲) */}
                     {isOvertakeAnimated && rankDelta > 0 && (
                       <motion.span
                         initial={{ scale: 0 }}
@@ -208,6 +212,18 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       >
                         <ArrowUp className="w-4 h-4 stroke-[3] text-emerald-700" />
                         <span>+{rankDelta}</span>
+                      </motion.span>
+                    )}
+
+                    {/* Rank Dropped Badge (Red ▼) */}
+                    {isOvertakeAnimated && rankDelta < 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="inline-flex items-center gap-1 bg-red-100 text-red-800 border border-red-300 font-bold px-3 py-1 rounded-full text-sm shadow-sm flex-shrink-0"
+                      >
+                        <ArrowDown className="w-4 h-4 stroke-[3] text-red-700" />
+                        <span>{rankDelta}</span>
                       </motion.span>
                     )}
                   </div>

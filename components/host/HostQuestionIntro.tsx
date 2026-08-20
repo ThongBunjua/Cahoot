@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { sounds } from "@/lib/audio/soundManager";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -43,13 +43,13 @@ export function HostQuestionIntro({
       sounds.playGetReadyPulse(1);
     }, 2000);
 
-    // 3.0s: Stage Phone Pop-up (Extended to 2 full seconds so players can admire it!)
+    // 3.0s: Stage Phone Pop-up (Extended to 2 full seconds)
     const tPop = setTimeout(() => {
       setStage("phone_popup");
       sounds.playClick();
     }, 3000);
 
-    // 5.0s: Stage Question Preview & 5s Reading Bar
+    // 5.0s: Stage Question Preview & 4-second Reading Bar
     const tPreview = setTimeout(() => {
       setStage("question_preview");
     }, 5000);
@@ -62,11 +62,11 @@ export function HostQuestionIntro({
     };
   }, []);
 
-  // 5-second smooth reading progress bar (Runs from 0% to 100%)
+  // 4-second smooth reading progress bar (Runs from 0% to 100% in 4s)
   useEffect(() => {
     if (stage !== "question_preview") return;
 
-    const totalDurationMs = 5000;
+    const totalDurationMs = 4000; // Reduced to 4 seconds
     const intervalMs = 25;
     const increment = (intervalMs / totalDurationMs) * 100;
 
@@ -175,7 +175,7 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* 2. SMARTPHONE POP-UP GRAPHIC (Extended 2.0s duration & Larger Scale) */}
+        {/* 2. SMARTPHONE POP-UP GRAPHIC (2.0s duration & Clear Large Scale) */}
         {/* ========================================================================= */}
         {stage === "phone_popup" && (
           <motion.div
@@ -279,7 +279,7 @@ export function HostQuestionIntro({
       </main>
 
       {/* ========================================================================= */}
-      {/* 4. BOTTOM 5-SECOND READING PROGRESS BAR (Clean Bar Only, No Text) */}
+      {/* 4. BOTTOM 4-SECOND READING PROGRESS BAR (Clean Bar Only) */}
       {/* ========================================================================= */}
       <footer className="w-full max-w-5xl mx-auto pb-6 px-4 z-20">
         {stage === "question_preview" ? (
