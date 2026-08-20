@@ -46,36 +46,39 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
 
   useEffect(() => {
     // ----------------------------------------------------
-    // STEP 1: 3RD PLACE in CENTER
+    // STEP 1: 3RD PLACE in CENTER with Drumroll Suspense
     // ----------------------------------------------------
     const t3Pillar = setTimeout(() => {
       setP3Pillar(true);
-      sounds.playClick();
+      sounds.playDrumroll(1.4);
     }, 600);
 
     const t3Details = setTimeout(() => {
       setP3Details(true);
-      sounds.playTick(1.2);
+      sounds.playCorrect();
+      sounds.playCrowdCheer(1.8);
     }, 2000);
 
     // ----------------------------------------------------
-    // STEP 2: 3RD moves RIGHT, 2ND in CENTER
+    // STEP 2: 3RD moves RIGHT, 2ND in CENTER with Drumroll Suspense
     // ----------------------------------------------------
     const t2Pillar = setTimeout(() => {
       setP2Pillar(true);
-      sounds.playClick();
+      sounds.playDrumroll(1.5);
     }, 4600);
 
     const t2Details = setTimeout(() => {
       setP2Details(true);
-      sounds.playTick(1.4);
+      sounds.playCorrect();
+      sounds.playCrowdCheer(2.2);
     }, 6200);
 
     // ----------------------------------------------------
-    // STEP 3: 2ND moves LEFT, 1ST in CENTER with Spotlight
+    // STEP 3: 2ND moves LEFT, 1ST in CENTER with Spotlight & Grand Drumroll
     // ----------------------------------------------------
     const tSpot = setTimeout(() => {
       setSpotlight(true);
+      sounds.playDrumroll(3.1); // Intense 3-second drumroll building maximum tension!
     }, 8600);
 
     const t1Pillar = setTimeout(() => {
@@ -87,7 +90,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       setSpotlight(false);
       setCelebrateAll(true);
       setTriggerConfetti(true);
-      sounds.playPodiumFanfare();
+      sounds.playChampionReveal(); // Fanfare + Fireworks Booms + Roaring Stadium Crowd Cheers & Applause!
     }, 11800);
 
     return () => {
