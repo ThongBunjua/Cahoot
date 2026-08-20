@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Player } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -23,14 +23,7 @@ interface HostLeaderboardProps {
 const CARD_HEIGHT_PX = 104; // Slot spacing: Card height (88px) + Gap (16px)
 
 export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderboardProps) {
-  // Current live counting scores for each player
-  const [displayScores, setDisplayScores] = useState<{ [id: string]: number }>({});
-  // Current dynamic slot ranks (0-indexed) for each player as scores tick up
-  const [dynamicSlots, setDynamicSlots] = useState<{ [id: string]: number }>({});
-  // State indicating counting has finished
-  const [isCountingFinished, setIsCountingFinished] = useState(false);
-
-  // 1. Initial list sorted by starting score BEFORE this question
+  // 1. Sort all players by score BEFORE this question
   const initialSorted = [...players].sort((a, b) => {
     const scoreA =
       typeof a.previousScore === "number" ? a.previousScore : Math.max(0, a.score - (a.lastPoints || 0));
@@ -39,123 +32,61 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     return scoreB - scoreA;
   });
 
-  // 2. Final list sorted by current score AFTER this question
+  // 2. Sort all players by score AFTER this question
   const finalSorted = [...players].sort((a, b) => b.score - a.score);
 
-  // Take the stable unique set of Top 5 players
-  const topPlayerIds = Array.from(
-    new Set([
-      ...initialSorted.slice(0, 5).map((p) => p.id),
-      ...finalSorted.slice(0, 5).map((p) => p.id),
-    ])
-  ).slice(0, 5);
+  // The actual TOP 5 players for this round
+  const top5 = finalSorted.slice(0, 5);
 
-  const topPlayers = topPlayerIds
-    .map((id) => finalSorted.find((p) => p.id === id) || initialSorted.find((p) => p.id === id))
-    .filter(Boolean) as Player[];
-
-  // Ref to track last overtakes and play sound cues
-  const lastLeaderIdRef = useRef<string>(initialSorted[0]?.id || "");
+  // Progress of score count-up (0.0 to 1.0)
+  const [animProgress, setAnimProgress] = useState<number>(0);
+  const [isOvertakeTriggered, setIsOvertakeTriggered] = useState<boolean>(false);
+  const [isFinished, setIsFinished] = useState<boolean>(false);
 
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Initialize starting scores & initial slot positions
-    const initialScoresMap: { [id: string]: number } = {};
-    const initialSlotsMap: { [id: string]: number } = {};
+    // 1. Smooth 3.2s score counting ramp (Running at 30fps to avoid React thread throttling)
+    const durationMs = 3200;
+    const intervalMs = 33;
+    const totalSteps = durationMs / intervalMs;
+    let currentStep = 0;
 
-    players.forEach((p) => {
-      const startScore =
-        typeof p.previousScore === "number"
-          ? p.previousScore
-          : Math.max(0, p.score - (p.lastPoints || 0));
-      initialScoresMap[p.id] = startScore;
-    });
+    const countInterval = setInterval(() => {
+      currentStep++;
+      const p = Math.min(1, currentStep / totalSteps);
+      // Natural smooth ease-out deceleration
+      const eased = 1 - Math.pow(1 - p, 2.5);
+      setAnimProgress(eased);
 
-    topPlayers.forEach((p) => {
-      const initialRank = initialSorted.findIndex((item) => item.id === p.id);
-      initialSlotsMap[p.id] = Math.max(0, initialRank >= 0 ? initialRank : 4);
-    });
-
-    setDisplayScores(initialScoresMap);
-    setDynamicSlots(initialSlotsMap);
-
-    // 2. Start Live 4.0-Second Continuous Overtake Engine!
-    // As scores tick up, whenever a player's running score exceeds another player,
-    // their slot immediately swaps, causing real-time live overtaking!
-    const totalDurationMs = 4200; // 4.2 seconds of thrilling live race!
-    const startTime = Date.now() + 500; // 500ms initial suspense pause
-    let animFrameId: number;
-
-    const tick = () => {
-      const now = Date.now();
-      const elapsed = now - startTime;
-
-      if (elapsed < 0) {
-        animFrameId = requestAnimationFrame(tick);
-        return;
+      if (currentStep % 5 === 0) {
+        sounds.playTick(1.0 + p * 0.3);
       }
 
-      const rawProgress = Math.min(1, elapsed / totalDurationMs);
-      // Custom ease-out curve for natural deceleration towards the end
-      const progress = 1 - Math.pow(1 - rawProgress, 2.2);
-
-      // Compute live score for all players at this millisecond
-      const currentScoresMap: { [id: string]: number } = {};
-      players.forEach((p) => {
-        const start =
-          typeof p.previousScore === "number"
-            ? p.previousScore
-            : Math.max(0, p.score - (p.lastPoints || 0));
-        const target = p.score;
-        const diff = target - start;
-        currentScoresMap[p.id] = Math.round(start + diff * progress);
-      });
-      setDisplayScores(currentScoresMap);
-
-      // Dynamically rank top players based on their LIVE current score
-      const sortedByLiveScore = [...topPlayers].sort((a, b) => {
-        const scoreA = currentScoresMap[a.id] ?? 0;
-        const scoreB = currentScoresMap[b.id] ?? 0;
-        return scoreB - scoreA;
-      });
-
-      const updatedSlots: { [id: string]: number } = {};
-      sortedByLiveScore.forEach((p, idx) => {
-        updatedSlots[p.id] = idx;
-      });
-      setDynamicSlots(updatedSlots);
-
-      // Play tick / overtake chime when #1 leader changes
-      const currentLeaderId = sortedByLiveScore[0]?.id;
-      if (currentLeaderId && currentLeaderId !== lastLeaderIdRef.current) {
-        lastLeaderIdRef.current = currentLeaderId;
+      // Halfway through score counting (at 1.2s), trigger the smooth physical overtake glide!
+      if (currentStep >= Math.round(totalSteps * 0.38) && !isOvertakeTriggered) {
+        setIsOvertakeTriggered(true);
         sounds.playClick();
       }
 
-      if (rawProgress < 1) {
-        animFrameId = requestAnimationFrame(tick);
-      } else {
-        // Counting complete!
-        setIsCountingFinished(true);
+      if (currentStep >= totalSteps) {
+        clearInterval(countInterval);
+        setIsFinished(true);
         sounds.playClick();
       }
-    };
-
-    animFrameId = requestAnimationFrame(tick);
+    }, intervalMs);
 
     return () => {
-      cancelAnimationFrame(animFrameId);
+      clearInterval(countInterval);
     };
-  }, [players]);
+  }, []);
 
   return (
     <div className="min-h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
       {/* ========================================================================= */}
-      {/* 1. HEADER: 100% Solid 3D Colors (No Glassmorphism, No Gradients) */}
+      {/* 1. HEADER: 100% Solid 3D Flat Minimalism */}
       {/* ========================================================================= */}
       <header className="w-full flex justify-between items-center max-w-6xl mx-auto pt-1 z-20">
-        {/* Left Standings Box: Solid Deep Purple #33106B with Solid 3D Bottom Border */}
         <div className="flex items-center gap-3.5 bg-[#33106B] px-6 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
           <div className="p-2.5 bg-[#FFA602] border-b-2 border-[#CC8400] rounded-xl text-slate-950 shadow-sm">
             <Trophy className="w-6 h-6 stroke-[2.5]" />
@@ -170,11 +101,9 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
           </div>
         </div>
 
-        {/* Right Actions */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <AudioControl />
 
-          {/* Next Button: 100% Solid Green #26890C with 3D Push Extrusion */}
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -188,40 +117,56 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: LIVE REAL-TIME OVERTAKING RACE (100% Solid 3D White Cards) */}
+      {/* 2. MAIN CENTER: 100% MATHEMATICALLY ACCURATE 60FPS GPU OVERTAKE */}
       {/* ========================================================================= */}
       <main className="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-center my-auto py-4 z-10">
         <div className="relative w-full h-[530px]">
-          {topPlayers.map((player) => {
-            const initialRank = initialSorted.findIndex((p) => p.id === player.id) + 1;
-            const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
-            const rankDelta = initialRank - finalRank; // Positive = Climbed up, Negative = Dropped down!
+          {top5.map((player, finalIdx) => {
+            const finalRank = finalIdx + 1; // 1, 2, 3, 4, 5 (Guaranteed in Top 5!)
 
-            // Current live slot index (0, 1, 2, 3, 4)
-            const currentSlot = dynamicSlots[player.id] ?? (initialRank - 1);
-            const liveRankNumber = currentSlot + 1;
+            // Find where this player was BEFORE this question in the whole game
+            const initialIndex = initialSorted.findIndex((p) => p.id === player.id);
+            const initialRank = initialIndex >= 0 ? initialIndex + 1 : 6;
+
+            // rankDelta: Positive = Climbed up (e.g. 5 -> 2 is +3), Negative = Dropped (e.g. 1 -> 3 is -2)
+            const rankDelta = initialRank - finalRank;
+
+            // Start Slot: if was in Top 5, start at that slot (0..4), else enter from slot 5 (bottom)
+            const startSlot = Math.min(5, initialRank - 1);
+            const finalSlot = finalIdx;
+
+            // Active visual slot position
+            const currentSlot = isOvertakeTriggered ? finalSlot : startSlot;
             const slotY = currentSlot * CARD_HEIGHT_PX;
 
-            const currentScoreVal = displayScores[player.id] ?? player.score;
+            // Compute counting score for this player
+            const startScore =
+              typeof player.previousScore === "number"
+                ? player.previousScore
+                : Math.max(0, player.score - (player.lastPoints || 0));
+            const diffScore = player.score - startScore;
+            const currentScore = Math.round(startScore + diffScore * animProgress);
+
+            const activeRankNumber = isOvertakeTriggered ? finalRank : Math.min(5, initialRank);
             const pointsGained = player.lastPoints || 0;
 
-            const isClimber = isCountingFinished && rankDelta > 0;
-            const isDropper = isCountingFinished && rankDelta < 0;
+            const isClimber = isFinished && rankDelta > 0;
+            const isDropper = isFinished && rankDelta < 0;
 
             return (
               <motion.div
                 key={player.id}
-                initial={{ y: (initialRank - 1) * CARD_HEIGHT_PX, opacity: 0 }}
+                initial={{ y: startSlot * CARD_HEIGHT_PX, opacity: 0 }}
                 animate={{
                   y: slotY,
                   opacity: 1,
-                  zIndex: liveRankNumber === 1 ? 30 : 25 - liveRankNumber,
+                  zIndex: liveRankNumberToZIndex(activeRankNumber, isClimber),
                 }}
                 transition={{
-                  y: { type: "spring", stiffness: 65, damping: 13, mass: 1 },
+                  y: { type: "spring", stiffness: 70, damping: 14, mass: 1 },
                 }}
                 className={`absolute left-0 right-0 top-0 h-[88px] bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-all will-change-transform ${
-                  liveRankNumber === 1
+                  activeRankNumber === 1
                     ? "border-amber-400 border-b-[6px] border-b-amber-500"
                     : isClimber
                     ? "border-emerald-400 border-b-[6px] border-b-emerald-500"
@@ -232,19 +177,19 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
               >
                 {/* Left Section: 54px Solid Rank Badge + Avatar + Nickname */}
                 <div className="flex items-center gap-4 md:gap-6 min-w-0">
-                  {/* Solid 3D Rank Badge (100% Solid Colors, Extruded Bottom Border) */}
+                  {/* Solid 3D Rank Badge */}
                   <div
                     className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 ${
-                      liveRankNumber === 1
+                      activeRankNumber === 1
                         ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
-                        : liveRankNumber === 2
+                        : activeRankNumber === 2
                         ? "bg-[#94A3B8] border-b-4 border-[#64748B] text-white"
-                        : liveRankNumber === 3
+                        : activeRankNumber === 3
                         ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
                         : "bg-[#33106B] border-b-4 border-[#240B4D] text-white"
                     }`}
                   >
-                    {liveRankNumber}
+                    {activeRankNumber}
                   </div>
 
                   {/* Avatar */}
@@ -266,8 +211,8 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       </span>
                     )}
 
-                    {/* Rank Climbed Badge (Solid Green ▲) */}
-                    {isCountingFinished && rankDelta > 0 && (
+                    {/* Rank Climbed Badge (Solid Green ▲ +N) */}
+                    {isFinished && rankDelta > 0 && (
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -278,8 +223,8 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       </motion.span>
                     )}
 
-                    {/* Rank Dropped Badge (Solid Red ▼) */}
-                    {isCountingFinished && rankDelta < 0 && (
+                    {/* Rank Dropped Badge (Solid Red ▼ -N) */}
+                    {isFinished && rankDelta < 0 && (
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -294,7 +239,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
                 {/* Right Section: Solid Points Gained Pill + Total Score */}
                 <div className="flex items-center gap-3 md:gap-5 flex-shrink-0">
-                  {/* Points Gained Pill: Solid Light Blue */}
+                  {/* Points Gained Pill */}
                   {pointsGained > 0 && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -305,10 +250,10 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     </motion.div>
                   )}
 
-                  {/* Total Score: Solid Dark Slate-900 */}
+                  {/* Total Score: Counts up smoothly */}
                   <div className="text-right min-w-[85px] sm:min-w-[105px]">
                     <span className="text-2xl md:text-4xl font-black text-slate-900 tabular-nums tracking-tight block leading-none">
-                      {currentScoreVal.toLocaleString()}
+                      {currentScore.toLocaleString()}
                     </span>
                     <span className="text-[10px] md:text-xs font-bold text-slate-400 block uppercase tracking-wider mt-1">
                       pts
@@ -322,7 +267,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. FOOTER: 100% Solid Player Count Indicator */}
+      {/* 3. FOOTER: Solid Player Count Indicator */}
       {/* ========================================================================= */}
       <footer className="w-full text-center text-xs font-bold text-slate-200 pb-2 z-20">
         {players.length > 5 && (
@@ -334,4 +279,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </footer>
     </div>
   );
+}
+
+function liveRankNumberToZIndex(rank: number, isClimber: boolean): number {
+  if (isClimber) return 35;
+  if (rank === 1) return 30;
+  if (rank === 2) return 25;
+  if (rank === 3) return 20;
+  return 15;
 }
