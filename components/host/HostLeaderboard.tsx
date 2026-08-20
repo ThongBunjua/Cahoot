@@ -45,34 +45,42 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     return scoreB - scoreA;
   });
 
-  const [isSwapped, setIsSwapped] = useState(false);
-  const [animProgress, setAnimProgress] = useState(0);
+  // Animation Stage Machine: "counting" (0-1.4s) -> "sliding" (1.4s-2.8s) -> "complete" (2.8s+)
+  const [animStage, setAnimStage] = useState<"counting" | "sliding" | "complete">("counting");
+  const [scoreProgress, setScoreProgress] = useState(0);
 
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 1.6s score counting ramp
-    const durationMs = 1600;
-    const intervalMs = 40;
+    // 1. Smooth 1.2s score counting
+    const durationMs = 1200;
+    const intervalMs = 30;
     const totalSteps = durationMs / intervalMs;
     let step = 0;
 
     const interval = setInterval(() => {
       step++;
       const p = Math.min(1, step / totalSteps);
-      setAnimProgress(p);
+      setScoreProgress(p);
 
-      if (step % 4 === 0) {
+      if (step % 5 === 0) {
         sounds.playTick(1.0 + p * 0.3);
       }
 
       if (step >= totalSteps) {
         clearInterval(interval);
-        // 2. Trigger the slow, physical, cinematic rank position slide at 1.8s!
+        setScoreProgress(1);
+
+        // 2. Trigger smooth natural slide at 1.4s
         setTimeout(() => {
-          setIsSwapped(true);
+          setAnimStage("sliding");
           sounds.playClick();
-        }, 300);
+
+          // 3. Mark complete at 2.8s
+          setTimeout(() => {
+            setAnimStage("complete");
+          }, 1400);
+        }, 200);
       }
     }, intervalMs);
 
@@ -81,9 +89,9 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     };
   }, []);
 
-  const CARD_HEIGHT_PX = 94;
+  const CARD_HEIGHT_PX = 92;
   const GAP_PX = 14;
-  const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 108px per slot
+  const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 106px per slot
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
@@ -124,7 +132,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: PHYSICAL SLOW 2.0s CARD SLIDE OVERTAKE ANIMATION */}
+      {/* 2. MAIN CENTER: SMOOTH NATURAL CARD OVERTAKE ANIMATION */}
       {/* ========================================================================= */}
       <main className="w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
         <div
@@ -137,60 +145,60 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const initialSlotIndex = initialTop5.findIndex((p) => p.id === player.id);
             const finalSlotIndex = top5.findIndex((p) => p.id === player.id);
 
-            const activeSlotIndex = isSwapped ? finalSlotIndex : initialSlotIndex;
-            const activeRankNumber = activeSlotIndex + 1;
+            const isSlidingOrDone = animStage === "sliding" || animStage === "complete";
+            const currentSlotIndex = isSlidingOrDone ? finalSlotIndex : initialSlotIndex;
+            const rankNumber = animStage === "complete" ? finalRank : initialRank;
             const rankDelta = initialRank - finalRank; // Positive = Climbed up!
 
             const startScore =
               typeof player.previousScore === "number"
                 ? player.previousScore
                 : Math.max(0, player.score - (player.lastPoints || 0));
-            const currentScore = Math.round(startScore + (player.score - startScore) * animProgress);
+            const currentScore =
+              animStage === "counting"
+                ? Math.round(startScore + (player.score - startScore) * scoreProgress)
+                : player.score;
             const pointsGained = player.lastPoints || 0;
 
-            const isClimber = isSwapped && rankDelta > 0;
-            const targetY = activeSlotIndex * SLOT_STEP;
+            const isClimber = animStage === "complete" && rankDelta > 0;
+            const targetY = currentSlotIndex * SLOT_STEP;
 
             return (
               <motion.div
                 key={player.id}
-                initial={{ y: initialSlotIndex * SLOT_STEP, opacity: 0 }}
-                animate={{
-                  y: targetY, // Physically moves from initial slot coordinate to new slot coordinate
-                  opacity: 1,
-                }}
+                initial={false}
+                animate={{ y: targetY }}
                 transition={{
                   y: {
-                    duration: 2.0, // Slow, clear 2.0-second glide so everyone sees the overtake!
-                    ease: [0.25, 1, 0.5, 1], // Smooth organic deceleration
+                    duration: 1.2,
+                    ease: [0.35, 0, 0.25, 1], // Natural, constant, buttery-smooth ease
                   },
-                  opacity: { duration: 0.3 },
                 }}
                 style={{ height: `${CARD_HEIGHT_PX}px` }}
-                className={`absolute left-0 right-0 w-full bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-all ${
-                  activeRankNumber === 1
+                className={`absolute left-0 right-0 w-full bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-300 ${
+                  rankNumber === 1 && animStage === "complete"
                     ? "border-amber-400 border-b-[6px] border-b-amber-500 z-20"
                     : isClimber
                     ? "border-emerald-400 border-b-[6px] border-b-emerald-500 z-15"
                     : "z-10"
                 }`}
               >
-                {/* Left Section: 56px Rank Badge + 4xl Avatar + 2xl Nickname */}
+                {/* Left Section: Rank Badge + Avatar + Nickname */}
                 <div className="flex items-center gap-4 md:gap-6 min-w-0">
                   {/* Solid 3D Rank Badge */}
-                  <motion.div
-                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-500 ${
-                      activeRankNumber === 1
+                  <div
+                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 ${
+                      rankNumber === 1
                         ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
-                        : activeRankNumber === 2
+                        : rankNumber === 2
                         ? "bg-[#94A3B8] border-b-4 border-[#64748B] text-white"
-                        : activeRankNumber === 3
+                        : rankNumber === 3
                         ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
                         : "bg-[#33106B] border-b-4 border-[#240B4D] text-white"
                     }`}
                   >
-                    {activeRankNumber}
-                  </motion.div>
+                    {rankNumber}
+                  </div>
 
                   {/* Avatar */}
                   <div className="text-3xl md:text-4xl filter drop-shadow-sm flex-shrink-0 select-none">
@@ -203,7 +211,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       {player.nickname}
                     </h3>
 
-                    {/* Streak Badge: Solid Amber */}
+                    {/* Streak Badge */}
                     {player.streak > 1 && (
                       <span className="inline-flex items-center gap-1 text-[11px] md:text-xs font-black bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2.5 py-0.5 rounded-full flex-shrink-0">
                         <Flame className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
@@ -211,12 +219,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       </span>
                     )}
 
-                    {/* Minimalist Rank Climbed Up-Arrow Only (No Number, No Down Arrow) */}
-                    {isSwapped && rankDelta > 0 && (
+                    {/* Minimalist Rank Climbed Up-Arrow Only */}
+                    {animStage === "complete" && rankDelta > 0 && (
                       <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.3 }}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 18 }}
                         className="inline-flex items-center justify-center w-7 h-7 bg-[#D1FAE5] text-[#065F46] border-2 border-[#6EE7B7] rounded-full shadow-sm flex-shrink-0"
                         title={`Climbed up ${rankDelta} spots`}
                       >

@@ -50,7 +50,7 @@ export function HostQuestionIntro({
       sounds.playClick();
     }, 3000);
 
-    // 4.6s: Stage Question Preview with morphing Cahoot! Logo above
+    // 4.6s: Stage Question Preview
     const tPreview = setTimeout(() => {
       setStage("question_preview");
     }, 4600);
@@ -167,7 +167,7 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 2: PHONE POP-UP GRAPHIC (Clean Phone Mockup) */}
+        {/* STEP 2: PHONE POP-UP GRAPHIC (Clean Phone Mockup Only - No Text) */}
         {/* ========================================================================= */}
         {stage === "phone_popup" && (
           <motion.div
@@ -185,33 +185,20 @@ export function HostQuestionIntro({
                 <div className="w-10 h-1 rounded-full bg-slate-700" />
               </div>
 
-              {/* Inner Screen Area with Cahoot! Logo & 4 Buttons */}
-              <div className="flex-1 bg-[#33106B] rounded-[32px] p-4 flex flex-col justify-between border-2 border-[#240B4D]">
-                <div className="flex items-center justify-between px-2 py-1">
-                  <motion.span
-                    layoutId="morph-cahoot-logo"
-                    className="text-lg font-black text-[#FFA602] uppercase tracking-wider"
-                  >
-                    Cahoot!
-                  </motion.span>
-                  <div className="w-8 h-8 rounded-full bg-[#FFA602] text-sm font-black text-slate-950 flex items-center justify-center shadow">
-                    🦊
+              {/* Inner Screen Area with 4 Colored Answer Buttons */}
+              <div className="flex-1 bg-[#33106B] rounded-[32px] p-4 flex flex-col justify-center border-2 border-[#240B4D]">
+                <div className="grid grid-cols-2 gap-3.5 my-auto">
+                  <div className="h-24 sm:h-28 rounded-2xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
+                    <span className="text-4xl text-white select-none">▲</span>
                   </div>
-                </div>
-
-                {/* 4 Colored Buttons Grid */}
-                <div className="grid grid-cols-2 gap-3 my-auto">
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">▲</span>
+                  <div className="h-24 sm:h-28 rounded-2xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
+                    <span className="text-4xl text-white select-none">◆</span>
                   </div>
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">◆</span>
+                  <div className="h-24 sm:h-28 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
+                    <span className="text-4xl text-white select-none">●</span>
                   </div>
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">●</span>
-                  </div>
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">■</span>
+                  <div className="h-24 sm:h-28 rounded-2xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
+                    <span className="text-4xl text-white select-none">■</span>
                   </div>
                 </div>
               </div>
@@ -222,21 +209,10 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 3: QUESTION PREVIEW (Smooth Morph of Logo & Shared Question Card) */}
+        {/* STEP 3: QUESTION PREVIEW (White Question Box + Media Image Only) */}
         {/* ========================================================================= */}
         {stage === "question_preview" && (
           <div className="w-full flex flex-col items-center text-center">
-            {/* Cahoot! Logo Morphs and Slides Smoothly Above Question Box */}
-            <motion.div
-              layoutId="morph-cahoot-logo"
-              transition={{ type: "spring", stiffness: 220, damping: 20 }}
-              className="mb-4 flex items-center justify-center"
-            >
-              <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter drop-shadow-lg">
-                Cahoot<span className="text-[#FFA602]">!</span>
-              </h2>
-            </motion.div>
-
             {/* Super-Sized White Solid Question Box */}
             <motion.div
               layoutId="host-question-banner"
