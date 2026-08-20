@@ -118,8 +118,11 @@ export function useGameHost(pin: string, quiz: Quiz) {
     const sourcePlayers = Array.isArray(overridePlayers) ? overridePlayers : currentState.players;
     const sourceAnswerCounts = Array.isArray(overrideAnswerCounts) ? overrideAnswerCounts : currentState.answerCounts;
 
-    // Compute updated ranks with previousRank and previousScore preserved
-    const sorted = [...sourcePlayers].sort((a, b) => b.score - a.score);
+    // Compute updated ranks with deterministic tie-breaker
+    const sorted = [...sourcePlayers].sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.id.localeCompare(b.id);
+    });
     const rankedPlayers = sorted.map((p, idx) => ({
       ...p,
       previousRank: p.previousRank || idx + 1,
@@ -320,15 +323,23 @@ export function useGameHost(pin: string, quiz: Quiz) {
     const startTime = Date.now();
     const limit = currentQ.time_limit;
 
-    // Snapshot each player's previousScore and previousRank before this question begins
-    const snapshottedPlayers = stateRef.current.players.map((p, idx) => ({
-      ...p,
-      previousScore: p.score,
-      previousRank: p.rank || idx + 1,
-      lastPoints: 0,
-      lastCorrect: null,
-      lastAnswerIndex: null,
-    }));
+    // Snapshot each player's true previousScore and previousRank before this question begins
+    const sortedBefore = [...stateRef.current.players].sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.id.localeCompare(b.id);
+    });
+
+    const snapshottedPlayers = stateRef.current.players.map((p) => {
+      const currentRank = sortedBefore.findIndex((sp) => sp.id === p.id) + 1;
+      return {
+        ...p,
+        previousScore: p.score,
+        previousRank: currentRank,
+        lastPoints: 0,
+        lastCorrect: null,
+        lastAnswerIndex: null,
+      };
+    });
 
     const updatedState = {
       ...stateRef.current,

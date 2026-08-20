@@ -21,17 +21,21 @@ interface HostLeaderboardProps {
 }
 
 export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderboardProps) {
-  // 1. Initial sorted list by score BEFORE this question
+  // 1. Initial sorted list by score BEFORE this question (with deterministic tie-breaker)
   const initialSorted = [...players].sort((a, b) => {
     const scoreA =
       typeof a.previousScore === "number" ? a.previousScore : Math.max(0, a.score - (a.lastPoints || 0));
     const scoreB =
       typeof b.previousScore === "number" ? b.previousScore : Math.max(0, b.score - (b.lastPoints || 0));
-    return scoreB - scoreA;
+    if (scoreB !== scoreA) return scoreB - scoreA;
+    return a.id.localeCompare(b.id);
   });
 
-  // 2. Final sorted list by score AFTER this question
-  const finalSorted = [...players].sort((a, b) => b.score - a.score);
+  // 2. Final sorted list by score AFTER this question (with deterministic tie-breaker)
+  const finalSorted = [...players].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.id.localeCompare(b.id);
+  });
 
   const initialTop5 = initialSorted.slice(0, 5);
   const finalTop5 = finalSorted.slice(0, 5);
