@@ -3,12 +3,9 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
-import { KahootShape } from "@/components/ui/KahootShapes";
-import { CircularTimer } from "@/components/ui/CircularTimer";
 import { AudioControl } from "@/components/ui/AudioControl";
 import { sounds } from "@/lib/audio/soundManager";
-import { Users, FastForward } from "lucide-react";
-import Image from "next/image";
+import { FastForward, Sparkles } from "lucide-react";
 
 interface HostQuestionProps {
   question: Question;
@@ -20,22 +17,22 @@ interface HostQuestionProps {
   onSkip: () => void;
 }
 
-const CHOICE_STYLES = [
+const CHOICE_CONFIGS = [
   {
-    bgClass: "bg-[#e21b3c]",
-    shape: "triangle" as const,
+    bgClass: "bg-[#E21B3C] border-b-[#A31027]",
+    shapeSymbol: "▲",
   },
   {
-    bgClass: "bg-[#1368ce]",
-    shape: "diamond" as const,
+    bgClass: "bg-[#1368CE] border-b-[#0C4A96]",
+    shapeSymbol: "◆",
   },
   {
-    bgClass: "bg-[#d89e00]",
-    shape: "circle" as const,
+    bgClass: "bg-[#FFA602] border-b-[#CC8400]",
+    shapeSymbol: "●",
   },
   {
-    bgClass: "bg-[#26890c]",
-    shape: "square" as const,
+    bgClass: "bg-[#26890C] border-b-[#1A6107]",
+    shapeSymbol: "■",
   },
 ];
 
@@ -57,26 +54,32 @@ export function HostQuestion({
   }, []);
 
   return (
-    <div className="h-screen w-screen bg-[#46178f] text-white flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-sans">
-      {/* Top Bar: Question Index, Timer, Audio Control, Skip Button */}
-      <header className="flex items-center justify-between gap-4 bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15 shadow-xl max-w-6xl mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <span className="text-xs sm:text-sm font-black uppercase tracking-widest bg-white text-[#46178f] px-3.5 py-1.5 rounded-xl shadow-md">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+      {/* ========================================================================= */}
+      {/* 1. TOP ZONE: SUPER-SIZED QUESTION BOX (Full width max-w-7xl) */}
+      {/* ========================================================================= */}
+      <header className="w-full max-w-7xl mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-2xl border-b-[8px] border-slate-300 flex items-center justify-between gap-4 z-20">
+        {/* Left: Question Counter Badge */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-sm md:text-base font-black uppercase tracking-wider bg-[#46178F] text-white px-4 py-2 rounded-2xl shadow-md">
             {questionIndex + 1} / {totalQuestions}
-          </span>
-          <span className="text-xs sm:text-sm font-bold text-slate-200">
-            {question.time_limit}s Time Limit
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Center: Giant Question Text */}
+        <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 leading-tight tracking-tight text-center flex-1 px-4 truncate-2-lines">
+          {question.question_text}
+        </h1>
+
+        {/* Right: Audio Control & Skip Button */}
+        <div className="flex items-center gap-3 flex-shrink-0">
           <AudioControl />
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onSkip}
-            className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-bold text-xs sm:text-sm rounded-xl border border-white/20 flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs md:text-sm rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer border-b-4 border-black"
           >
             <span>Skip</span>
             <FastForward className="w-4 h-4" />
@@ -84,70 +87,73 @@ export function HostQuestion({
         </div>
       </header>
 
-      {/* Middle Center Canvas: Large Question Text + Media + Circular Countdown + Answer Count */}
-      <main className="flex-1 my-3 flex flex-col items-center justify-center max-w-5xl mx-auto w-full px-4 text-center">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md mb-4"
-        >
-          {question.question_text}
-        </motion.h1>
+      {/* ========================================================================= */}
+      {/* 2. MIDDLE ZONE: ENLARGED 3-PART CENTER STAGE */}
+      {/* ========================================================================= */}
+      <main className="w-full max-w-7xl mx-auto flex-1 flex items-center justify-between my-3 md:my-5 px-2 md:px-4 z-10">
+        {/* Left: Giant Circular Countdown Timer */}
+        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] md:border-8 border-emerald-400 bg-[#33106B] flex items-center justify-center shadow-2xl flex-shrink-0 animate-pulse-gentle">
+          <span
+            className={`text-5xl md:text-7xl font-black tabular-nums ${
+              timeRemaining <= 5 ? "text-red-400 animate-bounce" : "text-white"
+            }`}
+          >
+            {timeRemaining}
+          </span>
+        </div>
 
-        <div className="flex items-center justify-center gap-8 sm:gap-16 w-full max-w-2xl my-2">
-          {/* Left: Circular Countdown Timer */}
-          <div className="flex flex-col items-center">
-            <CircularTimer
-              timeRemaining={timeRemaining}
-              totalTime={question.time_limit}
-              size={110}
-              strokeWidth={10}
-            />
-          </div>
-
-          {/* Center Image if available */}
+        {/* Center: Giant Media Display Canvas */}
+        <div className="flex-1 max-w-3xl h-60 md:h-80 lg:h-96 bg-white/10 rounded-3xl border-4 border-white/30 overflow-hidden shadow-2xl flex items-center justify-center mx-4 md:mx-8 relative">
           {question.media_url ? (
-            <div className="relative w-48 h-32 sm:w-64 sm:h-40 rounded-2xl overflow-hidden border-4 border-white/20 shadow-2xl bg-black/40">
-              <Image
-                src={question.media_url}
-                alt="Question media"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={question.media_url}
+              alt="Question visual"
+              className="w-full h-full object-cover"
+            />
           ) : (
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-white/10 border-2 border-white/20 flex items-center justify-center text-4xl shadow-2xl animate-pulse">
-              💡
+            <div className="flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-white/15 border-2 border-white/20 flex items-center justify-center text-5xl md:text-7xl shadow-xl mb-3 animate-pulse">
+                💡
+              </div>
+              <p className="text-base md:text-lg font-black uppercase tracking-widest text-white/80 drop-shadow">
+                Look closely at the question!
+              </p>
             </div>
           )}
+        </div>
 
-          {/* Right: Live Answers Counter */}
-          <div className="flex flex-col items-center justify-center bg-white/10 backdrop-blur-md px-5 py-4 rounded-3xl border border-white/20 shadow-2xl min-w-[100px]">
-            <span className="text-3xl sm:text-4xl font-black text-white tabular-nums tracking-tight">
-              {totalAnswersReceived}
-            </span>
-            <div className="flex items-center gap-1 text-[11px] font-bold text-slate-300 uppercase tracking-wider mt-0.5">
-              <Users className="w-3 h-3 text-yellow-400" />
-              <span>Answers</span>
-            </div>
-          </div>
+        {/* Right: Giant Live Answers Counter Box */}
+        <div className="w-36 h-36 md:w-44 md:h-44 bg-[#33106B] rounded-3xl border-b-[8px] border-[#240B4D] flex flex-col items-center justify-center shadow-2xl flex-shrink-0">
+          <span className="text-6xl md:text-8xl font-black text-white leading-none tabular-nums drop-shadow">
+            {totalAnswersReceived}
+          </span>
+          <span className="text-xs md:text-base font-black uppercase tracking-widest text-slate-300 mt-2">
+            Answers
+          </span>
         </div>
       </main>
 
-      {/* Bottom 4 Answer Options (2x2 Grid) */}
-      <footer className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-5xl mx-auto w-full pb-2">
+      {/* ========================================================================= */}
+      {/* 3. BOTTOM ZONE: GIANT 2X2 ANSWER GRID (30-35% of screen height) */}
+      {/* ========================================================================= */}
+      <footer className="w-full max-w-7xl mx-auto grid grid-cols-2 gap-4 md:gap-6 pb-2 md:pb-4 z-20">
         {question.choices.map((choice, idx) => {
-          const style = CHOICE_STYLES[idx] || CHOICE_STYLES[0];
+          const config = CHOICE_CONFIGS[idx] || CHOICE_CONFIGS[0];
           return (
             <div
               key={idx}
-              className={`p-4 sm:p-5 rounded-2xl flex items-center gap-4 text-white font-black text-base sm:text-lg shadow-xl ${style.bgClass}`}
+              className={`h-20 md:h-26 lg:h-28 rounded-2xl md:rounded-3xl flex items-center px-6 md:px-8 border-b-[8px] text-white shadow-2xl ${config.bgClass}`}
             >
-              <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center flex-shrink-0">
-                <KahootShape shape={style.shape} size={22} />
-              </div>
-              <span className="truncate">{choice.text}</span>
+              {/* Geometric Shape Icon (▲, ◆, ●, ■) */}
+              <span className="text-3xl md:text-4xl lg:text-5xl mr-5 md:mr-6 flex-shrink-0 drop-shadow-md select-none">
+                {config.shapeSymbol}
+              </span>
+
+              {/* Answer Text */}
+              <span className="text-xl md:text-2xl lg:text-3xl font-black truncate tracking-tight drop-shadow-sm">
+                {choice.text}
+              </span>
             </div>
           );
         })}
