@@ -10,8 +10,6 @@ import {
   Flame,
   ArrowRight,
   ArrowUp,
-  Target,
-  Zap,
   Users,
 } from "lucide-react";
 
@@ -38,17 +36,6 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   // Active display list (animates and flips to finalSorted after score count-up)
   const activeList = isOvertakeAnimated ? finalSorted : initialSorted;
   const top5 = activeList.slice(0, 5);
-
-  // Spotlight: 6th place chasing 5th place
-  const rank5Player = finalSorted[4];
-  const chaserPlayer = finalSorted[5];
-  const chaserGap = rank5Player && chaserPlayer ? Math.max(0, rank5Player.score - chaserPlayer.score) : 0;
-
-  // Spotlight: Rising star with highest streak outside top 5
-  const nonTop5Players = finalSorted.slice(5);
-  const risingStar =
-    nonTop5Players.find((p) => p.streak >= 2) ||
-    nonTop5Players.sort((a, b) => (b.lastPoints || 0) - (a.lastPoints || 0))[0];
 
   useEffect(() => {
     sounds.playLeaderboard();
@@ -113,10 +100,10 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   }, [players]);
 
   return (
-    <div className="h-screen w-screen bg-[#381272] bg-gradient-to-b from-[#46178f] via-[#381272] to-[#250a52] text-white flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-sans relative">
-      {/* Top Clean Header */}
-      <header className="flex items-center justify-between gap-4 max-w-5xl mx-auto w-full pt-1">
-        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/15 shadow-md">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden font-sans relative">
+      {/* Top Header */}
+      <header className="flex items-center justify-between gap-4 max-w-4xl mx-auto w-full pt-1">
+        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/20 shadow-md">
           <div className="p-2 bg-yellow-400 rounded-xl text-slate-950 shadow-sm">
             <Trophy className="w-5 h-5 stroke-[2.5]" />
           </div>
@@ -145,9 +132,9 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
         </div>
       </header>
 
-      {/* Main Center Area: Minimal Glassmorphic Leaderboard */}
-      <main className="flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto w-full my-auto px-4 py-2">
-        <motion.div layout className="w-full flex flex-col gap-2.5 sm:gap-3">
+      {/* Main Center Area: Minimal Solid White Cards (Authentic Kahoot Style) */}
+      <main className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full my-auto px-2 py-4">
+        <motion.div layout className="w-full flex flex-col gap-3 sm:gap-3.5">
           <AnimatePresence mode="popLayout">
             {top5.map((player, currentIdx) => {
               const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
@@ -168,80 +155,75 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     layout: { type: "spring", stiffness: 320, damping: 24 },
                     duration: 0.5,
                   }}
-                  className={`flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-all ${
-                    isRank1
-                      ? "bg-white/20 border-yellow-400/80 shadow-[0_8px_30px_rgba(250,204,21,0.25)] ring-2 ring-yellow-400/50 scale-[1.01]"
-                      : isRank2
-                      ? "bg-white/15 border-slate-300/50 shadow-md"
-                      : isRank3
-                      ? "bg-white/12 border-amber-600/50 shadow-md"
-                      : "bg-white/10 border-white/15 hover:bg-white/15"
-                  }`}
+                  className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border-2 border-slate-200 border-b-[5px] border-b-slate-300 shadow-[0_8px_20px_rgba(0,0,0,0.18)] flex items-center justify-between transition-all"
                 >
-                  {/* Left: Rank Badge + Avatar + Nickname */}
+                  {/* Left Section: Solid Badge + Avatar + Nickname + Indicators */}
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    {/* Solid Rank Badge with 3D button styling */}
                     <div
-                      className={`w-9 sm:w-10 h-9 sm:h-10 rounded-xl flex items-center justify-center font-black text-sm sm:text-base shadow-sm flex-shrink-0 ${
+                      className={`w-9 sm:w-11 h-9 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-base sm:text-lg shadow-sm flex-shrink-0 ${
                         isRank1
-                          ? "bg-yellow-400 text-slate-950 ring-2 ring-yellow-200"
+                          ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
                           : isRank2
-                          ? "bg-slate-200 text-slate-950"
+                          ? "bg-[#E2E8F0] border-b-4 border-[#94A3B8] text-slate-900"
                           : isRank3
-                          ? "bg-amber-600 text-white"
-                          : "bg-black/25 text-slate-200 border border-white/10"
+                          ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
+                          : "bg-[#F1F5F9] border-b-4 border-[#CBD5E1] text-slate-700"
                       }`}
                     >
                       {isOvertakeAnimated ? finalRank : currentIdx + 1}
                     </div>
 
+                    {/* Avatar */}
                     <div className="text-2xl sm:text-3xl filter drop-shadow-sm flex-shrink-0">
                       {player.avatar}
                     </div>
 
-                    <div className="min-w-0">
-                      <h3 className="text-sm sm:text-lg font-black text-white flex items-center gap-2 truncate">
-                        <span className="truncate max-w-[130px] sm:max-w-xs">{player.nickname}</span>
-
-                        {/* Streak Badge */}
-                        {player.streak > 1 && (
-                          <span className="flex items-center gap-1 text-[10px] font-black bg-amber-500/30 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded-full flex-shrink-0">
-                            <Flame className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            <span>{player.streak} Streak</span>
-                          </span>
-                        )}
-
-                        {/* Rank Jump Badge */}
-                        {isOvertakeAnimated && rankDelta > 0 && (
-                          <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="flex items-center gap-0.5 text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm"
-                          >
-                            <ArrowUp className="w-3 h-3 stroke-[3]" />
-                            <span>+{rankDelta}</span>
-                          </motion.span>
-                        )}
+                    {/* Nickname and Status Badges */}
+                    <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base sm:text-xl font-black text-slate-900 truncate max-w-[140px] sm:max-w-xs">
+                        {player.nickname}
                       </h3>
+
+                      {/* Streak Pill */}
+                      {player.streak > 1 && (
+                        <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full flex-shrink-0">
+                          <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          <span>{player.streak} Streak</span>
+                        </span>
+                      )}
+
+                      {/* Rank Jump Badge */}
+                      {isOvertakeAnimated && rankDelta > 0 && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="inline-flex items-center gap-0.5 text-[11px] sm:text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full shadow-sm flex-shrink-0"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5 stroke-[3] text-emerald-600" />
+                          <span>+{rankDelta}</span>
+                        </motion.span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Right: Gained Points Badge + Running Score */}
-                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  {/* Right Section: Solid Points Gained Pill + Final Score */}
+                  <div className="flex items-center gap-2.5 sm:gap-4 flex-shrink-0">
                     {pointsGained > 0 && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-emerald-500/25 border border-emerald-400/50 text-emerald-300 font-black text-xs px-2 py-0.5 rounded-full"
+                        className="bg-emerald-50 border border-emerald-300 text-emerald-700 font-black text-xs sm:text-sm px-2.5 sm:px-3 py-1 rounded-xl shadow-sm"
                       >
                         +{pointsGained.toLocaleString()}
                       </motion.div>
                     )}
 
-                    <div className="text-right min-w-[70px]">
-                      <span className="text-lg sm:text-2xl font-black text-white tabular-nums tracking-tight">
+                    <div className="text-right min-w-[75px] sm:min-w-[90px]">
+                      <span className="text-xl sm:text-3xl font-black text-[#46178F] tabular-nums tracking-tight block leading-none">
                         {currentScoreVal.toLocaleString()}
                       </span>
-                      <span className="text-[9px] font-bold text-slate-400 block uppercase tracking-wider leading-none">
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-500 block uppercase tracking-wider mt-1">
                         pts
                       </span>
                     </div>
@@ -251,49 +233,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             })}
           </AnimatePresence>
         </motion.div>
-
-        {/* Minimal Bottom Spotlight Banner (Chaser & Rising Star) */}
-        {(chaserPlayer || risingStar) && (
-          <div className="w-full mt-3.5 flex flex-col sm:flex-row items-center justify-center gap-2.5 max-w-3xl">
-            {chaserPlayer && (
-              <div className="flex-1 w-full bg-white/10 border border-white/15 rounded-xl px-3.5 py-2 flex items-center justify-between gap-2 text-xs backdrop-blur-md">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Target className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                  <span className="text-slate-300 font-bold">Chasing Top 5:</span>
-                  <span className="font-black text-white truncate">
-                    {chaserPlayer.avatar} {chaserPlayer.nickname} (#6)
-                  </span>
-                </div>
-                <span className="font-black text-amber-300 flex-shrink-0">
-                  -{chaserGap.toLocaleString()} pts behind #5
-                </span>
-              </div>
-            )}
-
-            {risingStar && (
-              <div className="flex-1 w-full bg-white/10 border border-white/15 rounded-xl px-3.5 py-2 flex items-center justify-between gap-2 text-xs backdrop-blur-md">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Zap className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" />
-                  <span className="text-slate-300 font-bold">Rising Star:</span>
-                  <span className="font-black text-white truncate">
-                    {risingStar.avatar} {risingStar.nickname}
-                  </span>
-                </div>
-                <span className="font-black text-yellow-300 flex-shrink-0">
-                  {risingStar.streak >= 2
-                    ? `🔥 ${risingStar.streak} in a row!`
-                    : `+${risingStar.lastPoints.toLocaleString()} pts`}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
       </main>
 
       {/* Footer Player Count Pill */}
-      <footer className="text-center text-xs font-bold text-slate-300 pb-1">
+      <footer className="text-center text-xs font-bold text-slate-200 pb-1">
         {players.length > 5 && (
-          <span className="bg-white/10 px-4 py-1.5 rounded-full border border-white/15 inline-flex items-center gap-1.5 shadow-sm">
+          <span className="bg-white/10 px-4 py-1.5 rounded-full border border-white/20 inline-flex items-center gap-1.5 shadow-sm">
             <Users className="w-3.5 h-3.5 text-yellow-300" />
             <span>+ {players.length - 5} more players competing below</span>
           </span>
