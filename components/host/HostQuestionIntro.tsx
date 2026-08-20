@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { sounds } from "@/lib/audio/soundManager";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -50,7 +50,7 @@ export function HostQuestionIntro({
       sounds.playClick();
     }, 3000);
 
-    // 4.6s: Stage Question Preview
+    // 4.6s: Stage Question Preview with morphing phone above
     const tPreview = setTimeout(() => {
       setStage("question_preview");
     }, 4600);
@@ -167,7 +167,7 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 2: PHONE POP-UP GRAPHIC (Clean Phone Mockup Only - No Text) */}
+        {/* STEP 2: PHONE POP-UP GRAPHIC WITH ICONIC CAHOOT! TITLE */}
         {/* ========================================================================= */}
         {stage === "phone_popup" && (
           <motion.div
@@ -178,41 +178,68 @@ export function HostQuestionIntro({
             transition={{ type: "spring", stiffness: 280, damping: 20 }}
             className="flex flex-col items-center justify-center"
           >
-            {/* Clean Smartphone Mockup */}
-            <div className="w-72 sm:w-80 md:w-96 h-[420px] sm:h-[460px] md:h-[490px] bg-slate-950 rounded-[48px] p-4 sm:p-5 border-4 border-slate-700 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+            {/* Morphing Smartphone Mockup */}
+            <motion.div
+              layoutId="intro-phone-badge"
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              className="w-72 sm:w-80 md:w-96 h-[380px] sm:h-[420px] md:h-[450px] bg-slate-950 rounded-[48px] p-4 sm:p-5 border-4 border-slate-700 shadow-2xl flex flex-col justify-between relative overflow-hidden"
+            >
               <div className="w-28 h-4 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center">
                 <div className="w-2.5 h-2.5 rounded-full bg-slate-950 mr-2" />
                 <div className="w-10 h-1 rounded-full bg-slate-700" />
               </div>
 
-              {/* Inner Screen Area with 4 Colored Answer Buttons */}
+              {/* Inner Screen Area with 4 Colored Buttons */}
               <div className="flex-1 bg-[#33106B] rounded-[32px] p-4 flex flex-col justify-center border-2 border-[#240B4D]">
                 <div className="grid grid-cols-2 gap-3.5 my-auto">
-                  <div className="h-24 sm:h-28 rounded-2xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
-                    <span className="text-4xl text-white select-none">▲</span>
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">▲</span>
                   </div>
-                  <div className="h-24 sm:h-28 rounded-2xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
-                    <span className="text-4xl text-white select-none">◆</span>
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">◆</span>
                   </div>
-                  <div className="h-24 sm:h-28 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
-                    <span className="text-4xl text-white select-none">●</span>
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">●</span>
                   </div>
-                  <div className="h-24 sm:h-28 rounded-2xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
-                    <span className="text-4xl text-white select-none">■</span>
+                  <div className="h-20 sm:h-24 rounded-2xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
+                    <span className="text-3xl sm:text-4xl text-white select-none">■</span>
                   </div>
                 </div>
               </div>
 
               <div className="w-28 h-1.5 bg-slate-600 rounded-full mx-auto mt-2" />
-            </div>
+            </motion.div>
+
+            {/* Iconic Cahoot! Title */}
+            <motion.h2
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tighter flex items-center justify-center mt-3 drop-shadow-lg"
+            >
+              Cahoot<span className="text-[#FFA602]">!</span>
+            </motion.h2>
           </motion.div>
         )}
 
         {/* ========================================================================= */}
-        {/* STEP 3: QUESTION PREVIEW (White Question Box + Media Image Only) */}
+        {/* STEP 3: QUESTION PREVIEW (Phone Mockup Morphed Above Question Box) */}
         {/* ========================================================================= */}
         {stage === "question_preview" && (
           <div className="w-full flex flex-col items-center text-center">
+            {/* Smartphone Mockup Morphed & Glided Above Question Box */}
+            <motion.div
+              layoutId="intro-phone-badge"
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              className="w-36 h-20 bg-slate-950 rounded-2xl p-2 border-2 border-slate-700 shadow-xl flex items-center justify-center mb-4"
+            >
+              <div className="w-full h-full bg-[#33106B] rounded-xl p-1 grid grid-cols-2 gap-1 items-center justify-center border border-[#240B4D]">
+                <div className="h-full rounded-md bg-[#E21B3C] flex items-center justify-center text-[10px] text-white">▲</div>
+                <div className="h-full rounded-md bg-[#1368CE] flex items-center justify-center text-[10px] text-white">◆</div>
+                <div className="h-full rounded-md bg-[#FFA602] flex items-center justify-center text-[10px] text-white">●</div>
+                <div className="h-full rounded-md bg-[#26890C] flex items-center justify-center text-[10px] text-white">■</div>
+              </div>
+            </motion.div>
+
             {/* Super-Sized White Solid Question Box */}
             <motion.div
               layoutId="host-question-banner"

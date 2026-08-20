@@ -45,42 +45,43 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     return scoreB - scoreA;
   });
 
-  // Animation Stage Machine: "counting" (0-1.4s) -> "sliding" (1.4s-2.8s) -> "complete" (2.8s+)
-  const [animStage, setAnimStage] = useState<"counting" | "sliding" | "complete">("counting");
-  const [scoreProgress, setScoreProgress] = useState(0);
+  // Animation progress: from 0.0 to 1.0 (controlling score count-up AND rank number countdown)
+  const [animProgress, setAnimProgress] = useState(0);
+  const [isSliding, setIsSliding] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 1.2s score counting
-    const durationMs = 1200;
-    const intervalMs = 30;
+    // 1. Smooth 1.4s score count-up & rank number countdown
+    const durationMs = 1400;
+    const intervalMs = 35;
     const totalSteps = durationMs / intervalMs;
     let step = 0;
 
     const interval = setInterval(() => {
       step++;
       const p = Math.min(1, step / totalSteps);
-      setScoreProgress(p);
+      setAnimProgress(p);
 
-      if (step % 5 === 0) {
+      if (step % 4 === 0) {
         sounds.playTick(1.0 + p * 0.3);
       }
 
       if (step >= totalSteps) {
         clearInterval(interval);
-        setScoreProgress(1);
+        setAnimProgress(1);
 
-        // 2. Trigger smooth natural slide at 1.4s
+        // 2. Trigger the smooth card slide
         setTimeout(() => {
-          setAnimStage("sliding");
+          setIsSliding(true);
           sounds.playClick();
 
-          // 3. Mark complete at 2.8s
+          // 3. Mark complete
           setTimeout(() => {
-            setAnimStage("complete");
-          }, 1400);
-        }, 200);
+            setIsComplete(true);
+          }, 1200);
+        }, 150);
       }
     }, intervalMs);
 
@@ -132,7 +133,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: SMOOTH NATURAL CARD OVERTAKE ANIMATION */}
+      {/* 2. MAIN CENTER: RANK COUNTDOWN & SMOOTH SLIDE OVERTAKE ANIMATION */}
       {/* ========================================================================= */}
       <main className="w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
         <div
@@ -145,22 +146,23 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const initialSlotIndex = initialTop5.findIndex((p) => p.id === player.id);
             const finalSlotIndex = top5.findIndex((p) => p.id === player.id);
 
-            const isSlidingOrDone = animStage === "sliding" || animStage === "complete";
-            const currentSlotIndex = isSlidingOrDone ? finalSlotIndex : initialSlotIndex;
-            const rankNumber = animStage === "complete" ? finalRank : initialRank;
+            const currentSlotIndex = isSliding || isComplete ? finalSlotIndex : initialSlotIndex;
             const rankDelta = initialRank - finalRank; // Positive = Climbed up!
+
+            // Dynamic Counting of the Rank Number: ticks down (e.g. 4 -> 3 -> 2 -> 1)
+            const currentRankNumber =
+              isComplete
+                ? finalRank
+                : Math.round(initialRank + (finalRank - initialRank) * animProgress);
 
             const startScore =
               typeof player.previousScore === "number"
                 ? player.previousScore
                 : Math.max(0, player.score - (player.lastPoints || 0));
-            const currentScore =
-              animStage === "counting"
-                ? Math.round(startScore + (player.score - startScore) * scoreProgress)
-                : player.score;
+            const currentScore = Math.round(startScore + (player.score - startScore) * animProgress);
             const pointsGained = player.lastPoints || 0;
 
-            const isClimber = animStage === "complete" && rankDelta > 0;
+            const isClimber = isComplete && rankDelta > 0;
             const targetY = currentSlotIndex * SLOT_STEP;
 
             return (
@@ -171,12 +173,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                 transition={{
                   y: {
                     duration: 1.2,
-                    ease: [0.35, 0, 0.25, 1], // Natural, constant, buttery-smooth ease
+                    ease: [0.35, 0, 0.25, 1], // Buttery-smooth natural glide
                   },
                 }}
                 style={{ height: `${CARD_HEIGHT_PX}px` }}
                 className={`absolute left-0 right-0 w-full bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-300 ${
-                  rankNumber === 1 && animStage === "complete"
+                  currentRankNumber === 1 && isComplete
                     ? "border-amber-400 border-b-[6px] border-b-amber-500 z-20"
                     : isClimber
                     ? "border-emerald-400 border-b-[6px] border-b-emerald-500 z-15"
@@ -185,19 +187,19 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
               >
                 {/* Left Section: Rank Badge + Avatar + Nickname */}
                 <div className="flex items-center gap-4 md:gap-6 min-w-0">
-                  {/* Solid 3D Rank Badge */}
+                  {/* Solid 3D Rank Badge with Counting Number */}
                   <div
-                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 ${
-                      rankNumber === 1
+                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 tabular-nums ${
+                      currentRankNumber === 1
                         ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
-                        : rankNumber === 2
+                        : currentRankNumber === 2
                         ? "bg-[#94A3B8] border-b-4 border-[#64748B] text-white"
-                        : rankNumber === 3
+                        : currentRankNumber === 3
                         ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
                         : "bg-[#33106B] border-b-4 border-[#240B4D] text-white"
                     }`}
                   >
-                    {rankNumber}
+                    {currentRankNumber}
                   </div>
 
                   {/* Avatar */}
@@ -220,7 +222,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     )}
 
                     {/* Minimalist Rank Climbed Up-Arrow Only */}
-                    {animStage === "complete" && rankDelta > 0 && (
+                    {isComplete && rankDelta > 0 && (
                       <motion.span
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
