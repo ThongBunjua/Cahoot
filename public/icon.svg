@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5a1dae"/>
+      <stop offset="100%" stop-color="#33106B"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded App Icon Background -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="#FFA602" stroke-width="12" opacity="0.8"/>
+  
+  <!-- Giant Exclamation Mark with 3D Shadow -->
+  <path d="M 256 90 L 295 90 L 280 310 L 232 310 L 217 90 Z" fill="#FFA602"/>
+  <path d="M 256 90 L 295 90 L 280 310 L 256 310 Z" fill="#CC8400"/>
+  
+  <!-- Exclamation Dot -->
+  <circle cx="256" cy="390" r="42" fill="#FFA602"/>
+  <circle cx="266" cy="390" r="32" fill="#CC8400" opacity="0.4"/>
+</svg>

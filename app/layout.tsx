@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Join a game of Cahoot! Enter game PIN to play engaging trivia with friends and colleagues.",
   keywords: ["Kahoot clone", "quiz game", "trivia", "realtime multiplayer", "education"],
   authors: [{ name: "Cahoot Team" }],
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {

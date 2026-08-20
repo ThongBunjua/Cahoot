@@ -33,19 +33,15 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   // 2. Final sorted list by score AFTER this question
   const finalSorted = [...players].sort((a, b) => b.score - a.score);
 
-  // The actual 5 players in the final Top 5
-  const top5 = finalSorted.slice(0, 5);
+  const initialTop5 = initialSorted.slice(0, 5);
+  const finalTop5 = finalSorted.slice(0, 5);
 
-  // Top 5 players sorted in their INITIAL order
-  const initialTop5 = [...top5].sort((a, b) => {
-    const scoreA =
-      typeof a.previousScore === "number" ? a.previousScore : Math.max(0, a.score - (a.lastPoints || 0));
-    const scoreB =
-      typeof b.previousScore === "number" ? b.previousScore : Math.max(0, b.score - (b.lastPoints || 0));
-    return scoreB - scoreA;
-  });
+  // Union of players who were in Top 5 OR will be in Top 5 (allows falling out & climbing in)
+  const candidateMap = new Map<string, Player>();
+  initialTop5.forEach((p) => candidateMap.set(p.id, p));
+  finalTop5.forEach((p) => candidateMap.set(p.id, p));
+  const candidatePlayers = Array.from(candidateMap.values());
 
-  // Animation progress: from 0.0 to 1.0 (controlling score count-up AND rank number countdown)
   const [animProgress, setAnimProgress] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -53,7 +49,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 1.4s score count-up & rank number countdown
+    // 1. Smooth 1.4s score count-up & rank countdown
     const durationMs = 1400;
     const intervalMs = 35;
     const totalSteps = durationMs / intervalMs;
@@ -72,12 +68,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
         clearInterval(interval);
         setAnimProgress(1);
 
-        // 2. Trigger the smooth card slide
+        // 2. Trigger slide transition
         setTimeout(() => {
           setIsSliding(true);
           sounds.playClick();
 
-          // 3. Mark complete
+          // 3. Complete
           setTimeout(() => {
             setIsComplete(true);
           }, 1200);
@@ -93,6 +89,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const CARD_HEIGHT_PX = 92;
   const GAP_PX = 14;
   const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 106px per slot
+  const OFF_SCREEN_Y = 5 * SLOT_STEP + 40; // 570px
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
@@ -133,27 +130,37 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: RANK COUNTDOWN & SMOOTH SLIDE OVERTAKE ANIMATION */}
+      {/* 2. MAIN CENTER: PHYSICAL SLIDE WITH DROP-OUT FADE AWAY */}
       {/* ========================================================================= */}
       <main className="w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
         <div
           className="relative w-full"
-          style={{ height: `${top5.length * SLOT_STEP}px` }}
+          style={{ height: `${5 * SLOT_STEP}px` }}
         >
-          {top5.map((player) => {
-            const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
+          {candidatePlayers.map((player) => {
             const initialRank = initialSorted.findIndex((p) => p.id === player.id) + 1;
-            const initialSlotIndex = initialTop5.findIndex((p) => p.id === player.id);
-            const finalSlotIndex = top5.findIndex((p) => p.id === player.id);
+            const finalRank = finalSorted.findIndex((p) => p.id === player.id) + 1;
 
-            const currentSlotIndex = isSliding || isComplete ? finalSlotIndex : initialSlotIndex;
+            const initialInTop5 = initialRank <= 5;
+            const finalInTop5 = finalRank <= 5;
+
+            const initialSlotIdx = initialInTop5 ? initialRank - 1 : 5;
+            const finalSlotIdx = finalInTop5 ? finalRank - 1 : 5;
+
+            // Target Y & Opacity:
+            // When sliding/complete: if player dropped out of top 5, target Y is off-screen and opacity is 0!
+            const targetY = (isSliding || isComplete)
+              ? (finalInTop5 ? finalSlotIdx * SLOT_STEP : OFF_SCREEN_Y)
+              : (initialInTop5 ? initialSlotIdx * SLOT_STEP : OFF_SCREEN_Y);
+
+            const targetOpacity = (isSliding || isComplete)
+              ? (finalInTop5 ? 1 : 0) // Fade away if dropped!
+              : (initialInTop5 ? 1 : 0);
+
             const rankDelta = initialRank - finalRank; // Positive = Climbed up!
-
-            // Dynamic Counting of the Rank Number: ticks down (e.g. 4 -> 3 -> 2 -> 1)
-            const currentRankNumber =
-              isComplete
-                ? finalRank
-                : Math.round(initialRank + (finalRank - initialRank) * animProgress);
+            const currentRankNumber = isComplete
+              ? finalRank
+              : Math.round(initialRank + (finalRank - initialRank) * animProgress);
 
             const startScore =
               typeof player.previousScore === "number"
@@ -162,23 +169,31 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const currentScore = Math.round(startScore + (player.score - startScore) * animProgress);
             const pointsGained = player.lastPoints || 0;
 
-            const isClimber = isComplete && rankDelta > 0;
-            const targetY = currentSlotIndex * SLOT_STEP;
+            const isClimber = isComplete && rankDelta > 0 && finalInTop5;
 
             return (
               <motion.div
                 key={player.id}
-                initial={false}
-                animate={{ y: targetY }}
+                initial={{
+                  y: initialInTop5 ? initialSlotIdx * SLOT_STEP : OFF_SCREEN_Y,
+                  opacity: initialInTop5 ? 1 : 0,
+                }}
+                animate={{
+                  y: targetY,
+                  opacity: targetOpacity,
+                }}
                 transition={{
                   y: {
                     duration: 1.2,
-                    ease: [0.35, 0, 0.25, 1], // Buttery-smooth natural glide
+                    ease: [0.35, 0, 0.25, 1],
+                  },
+                  opacity: {
+                    duration: 0.8,
                   },
                 }}
                 style={{ height: `${CARD_HEIGHT_PX}px` }}
                 className={`absolute left-0 right-0 w-full bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-300 ${
-                  currentRankNumber === 1 && isComplete
+                  currentRankNumber === 1 && isComplete && finalInTop5
                     ? "border-amber-400 border-b-[6px] border-b-amber-500 z-20"
                     : isClimber
                     ? "border-emerald-400 border-b-[6px] border-b-emerald-500 z-15"
@@ -222,7 +237,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     )}
 
                     {/* Minimalist Rank Climbed Up-Arrow Only */}
-                    {isComplete && rankDelta > 0 && (
+                    {isComplete && rankDelta > 0 && finalInTop5 && (
                       <motion.span
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
