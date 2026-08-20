@@ -36,7 +36,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const initialTop5 = initialSorted.slice(0, 5);
   const finalTop5 = finalSorted.slice(0, 5);
 
-  // Union of players who were in Top 5 OR will be in Top 5 (allows climbers from deep ranks to fly in & droppers to fade away)
+  // Union of players who were in Top 5 OR will be in Top 5
   const candidateMap = new Map<string, Player>();
   initialTop5.forEach((p) => candidateMap.set(p.id, p));
   finalTop5.forEach((p) => candidateMap.set(p.id, p));
@@ -49,7 +49,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 2.2s visible score count-up & rank countdown for climbers
+    // 1. Smooth 2.2s visible score count-up & rank countdown/countup for top 5
     const durationMs = 2200;
     const intervalMs = 35;
     const totalSteps = durationMs / intervalMs;
@@ -130,7 +130,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: CLIMBERS FLY UP & COUNT DOWN / DROPPERS FADE AWAY */}
+      {/* 2. MAIN CENTER: BOUNCY RANK RUNNER (Climbers count down & Droppers count up in Top 5) */}
       {/* ========================================================================= */}
       <main className="w-full max-w-[96vw] mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
         <div
@@ -143,36 +143,32 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
             const initialInTop5 = initialRank <= 5;
             const finalInTop5 = finalRank <= 5;
-            const rankDelta = initialRank - finalRank; // Positive = Climbed up!
+            const rankDelta = initialRank - finalRank; // Positive = Climbed up, Negative = Dropped down
 
             const initialSlotIdx = initialInTop5 ? initialRank - 1 : 5;
             const finalSlotIdx = finalInTop5 ? finalRank - 1 : 5;
 
-            // Target Y & Opacity:
-            // - If player ends up in Top 5: slides to finalSlotIdx * SLOT_STEP (opacity: 1)
-            // - If player drops out of Top 5: slides down to OFF_SCREEN_Y and fades away (opacity: 0)
             const targetY = (isSliding || isComplete)
               ? (finalInTop5 ? finalSlotIdx * SLOT_STEP : OFF_SCREEN_Y)
               : (initialInTop5 ? initialSlotIdx * SLOT_STEP : OFF_SCREEN_Y);
 
             const targetOpacity = (isSliding || isComplete)
-              ? (finalInTop5 ? 1 : 0) // Fade away dropped player
+              ? (finalInTop5 ? 1 : 0)
               : (initialInTop5 ? 1 : 0);
 
-            // Displayed Rank Number:
-            // - For Climbers (rankDelta > 0): ticks down dynamically (#50 -> #30 -> #15 -> #4 -> #2)
-            // - For Droppers (rankDelta < 0 & finalRank > 5): KEPT STATIC at initialRank! (No confusing adjustments)
-            // - For Stable/Normal: shows current status
+            // Dynamic Rank Number Running:
+            // - If in Top 5 (either climbed or dropped): numbers actively run with bouncy effect!
+            //   e.g. 4 -> 3 -> 2 -> 1 (Climber) or 1 -> 2 -> 3 (Dropper within Top 5)
+            // - If dropped OUT of Top 5: keeps initialRank while fading away
             let displayedRankNumber = initialRank;
-            if (rankDelta > 0 && finalInTop5) {
-              // Climber counting down!
+            if (finalInTop5 && initialRank !== finalRank) {
               displayedRankNumber = isComplete
                 ? finalRank
                 : Math.round(initialRank + (finalRank - initialRank) * animProgress);
             } else if (finalInTop5) {
-              displayedRankNumber = isComplete ? finalRank : initialRank;
+              displayedRankNumber = finalRank;
             } else {
-              displayedRankNumber = initialRank; // Droppers keep their initial rank number while fading away
+              displayedRankNumber = initialRank;
             }
 
             const startScore =
@@ -183,6 +179,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const pointsGained = player.lastPoints || 0;
 
             const isClimber = isComplete && rankDelta > 0 && finalInTop5;
+            const isRankChanging = animProgress > 0 && animProgress < 1 && initialRank !== finalRank && finalInTop5;
 
             return (
               <motion.div
@@ -201,7 +198,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     ease: [0.35, 0, 0.25, 1],
                   },
                   opacity: {
-                    duration: 1.6, // Generous 1.6s fade away so everyone reads clearly
+                    duration: 1.6,
                   },
                 }}
                 style={{ height: `${CARD_HEIGHT_PX}px` }}
@@ -213,10 +210,20 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     : "z-10"
                 }`}
               >
-                {/* Left Section: Rank Badge + Avatar + Nickname */}
+                {/* Left Section: Bouncy 3D Rank Badge + Avatar + Nickname */}
                 <div className="flex items-center gap-6 md:gap-8 min-w-0">
-                  {/* Solid 3D Rank Badge with Counting Number */}
-                  <div
+                  {/* Energetic Bouncing 3D Rank Badge */}
+                  <motion.div
+                    animate={
+                      isRankChanging
+                        ? { scale: [1, 1.18, 1], rotate: [-3, 3, 0] }
+                        : { scale: 1, rotate: 0 }
+                    }
+                    transition={{
+                      repeat: isRankChanging ? Infinity : 0,
+                      duration: 0.28,
+                      ease: "easeInOut",
+                    }}
                     className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-black text-2xl md:text-3xl shadow-sm flex-shrink-0 transition-colors duration-300 tabular-nums ${
                       displayedRankNumber === 1
                         ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
@@ -228,7 +235,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     }`}
                   >
                     {displayedRankNumber}
-                  </div>
+                  </motion.div>
 
                   {/* Avatar */}
                   <div className="text-4xl md:text-5xl filter drop-shadow-sm flex-shrink-0 select-none">
@@ -277,7 +284,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     </motion.div>
                   )}
 
-                  {/* Total Score */}
+                  {/* Total Score with energetic counter */}
                   <div className="text-right min-w-[100px] sm:min-w-[140px]">
                     <span className="text-3xl md:text-5xl font-black text-slate-900 tabular-nums tracking-tight block leading-none">
                       {currentScore.toLocaleString()}

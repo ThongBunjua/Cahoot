@@ -15,7 +15,8 @@ interface NicknameFormProps {
 const FUN_NAMES = [
   "QuizMaster", "Brainiac", "PixelHero", "SpeedyFox",
   "CosmicStar", "SuperCoder", "NinjaTrivia", "ThunderBolt",
-  "LuckyCharm", "CaptainQuiz", "NeonRider", "GoldenHawk"
+  "LuckyCharm", "CaptainQuiz", "NeonRider", "GoldenHawk",
+  "AlphaWolf", "StarGazer", "CyberKnight", "ApexPanda"
 ];
 
 export function NicknameForm({ pin, onSubmit, onBack }: NicknameFormProps) {
@@ -52,29 +53,31 @@ export function NicknameForm({ pin, onSubmit, onBack }: NicknameFormProps) {
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="w-full max-w-sm"
+      className="w-full max-w-sm font-sans"
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100 flex flex-col gap-4"
+        className="bg-white rounded-3xl p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.5)] border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex flex-col gap-4 text-slate-900"
       >
         <div className="flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-            PIN: {pin}
+          <span className="text-xs font-black uppercase tracking-widest text-[#46178F] bg-purple-50 border border-purple-200 px-3.5 py-1 rounded-full">
+            Game PIN: {pin}
           </span>
           <button
             type="button"
             onClick={onBack}
-            className="text-xs font-bold text-slate-600 hover:text-slate-900 underline"
+            className="text-xs font-bold text-slate-500 hover:text-slate-900 underline cursor-pointer"
           >
             Change PIN
           </button>
         </div>
 
+        {/* Selected Avatar & Input Row */}
         <div className="flex items-center gap-3">
-          <div className="text-4xl p-2 bg-slate-100 rounded-2xl border border-slate-200 shadow-inner flex items-center justify-center">
+          <div className="w-16 h-16 bg-[#33106B] rounded-2xl border-2 border-[#240B4D] border-b-4 border-[#1D083E] shadow-sm flex items-center justify-center text-3xl sm:text-4xl flex-shrink-0 select-none">
             {avatar}
           </div>
+
           <div className="flex-1 relative">
             <input
               type="text"
@@ -86,13 +89,13 @@ export function NicknameForm({ pin, onSubmit, onBack }: NicknameFormProps) {
                 setNickname(e.target.value);
                 setError("");
               }}
-              className="w-full text-lg sm:text-xl font-bold py-3 px-4 bg-slate-100 border-2 border-slate-300 rounded-2xl focus:border-kahoot-purple focus:bg-white focus:outline-none transition-all placeholder:text-slate-400 text-slate-900"
+              className="w-full text-lg sm:text-xl font-black py-3.5 pl-4 pr-11 bg-white border-2 border-slate-300 rounded-2xl focus:border-[#46178F] focus:ring-4 focus:ring-purple-100 focus:outline-none transition-all placeholder:text-slate-400 placeholder:font-bold text-slate-900 shadow-inner"
             />
             <button
               type="button"
               onClick={handleRandomName}
               title="Generate random nickname"
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-kahoot-purple transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#46178F] transition-colors cursor-pointer"
             >
               <Dice5 className="w-5 h-5" />
             </button>
@@ -100,19 +103,23 @@ export function NicknameForm({ pin, onSubmit, onBack }: NicknameFormProps) {
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm font-bold text-center animate-pulse">{error}</p>
+          <p className="text-red-600 text-xs font-bold text-center animate-pulse">{error}</p>
         )}
 
-        <AvatarPicker selectedAvatar={avatar} onSelect={setAvatar} />
+        {/* Curated Minimalist Avatar Grid */}
+        <AvatarPicker selectedAvatar={avatar} onSelect={(a) => {
+          setAvatar(a);
+          sounds.playClick();
+        }} />
 
         <motion.button
           type="submit"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.96 }}
-          className="w-full py-4 px-6 bg-kahoot-green hover:bg-kahoot-green-dark text-white text-lg font-black tracking-wide rounded-2xl shadow-3d-green transition-all flex items-center justify-center gap-2 mt-2"
+          className="w-full py-4 px-6 bg-[#26890C] hover:bg-[#22790A] text-white text-xl font-black tracking-wide rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer border-b-[6px] border-[#165406] active:border-b-[2px] active:translate-y-1 mt-1"
         >
           <span>OK, go!</span>
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-6 h-6 stroke-[3]" />
         </motion.button>
       </form>
     </motion.div>
