@@ -73,9 +73,9 @@ export function HostLobby({
       <GameBackground />
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: WIDESCREEN FULL-WIDTH WITH DEAD-CENTERED URL & PIN BOX */}
+      {/* 1. TOP HEADER: WIDESCREEN FULL-WIDTH WITH DEAD-CENTERED URL & PIN BOX (z-50) */}
       {/* ========================================================================= */}
-      <header className="relative z-20 flex items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto min-h-[110px]">
+      <header className="relative z-50 flex items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto min-h-[110px]">
         {/* Left: Quiz Info */}
         <div className="flex items-center gap-4 z-10">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center font-black text-3xl text-slate-950 shadow-md">
