@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Player } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -36,53 +36,67 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const initialTop5 = initialSorted.slice(0, 5);
   const finalTop5 = finalSorted.slice(0, 5);
 
-  // Union of players who were in Top 5 OR will be in Top 5
+  // Union of candidates
   const candidateMap = new Map<string, Player>();
   initialTop5.forEach((p) => candidateMap.set(p.id, p));
   finalTop5.forEach((p) => candidateMap.set(p.id, p));
   const candidatePlayers = Array.from(candidateMap.values());
 
-  const [animProgress, setAnimProgress] = useState(0);
+  const [scoreProgress, setScoreProgress] = useState(0);
+  const [slideProgress, setSlideProgress] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+
+  const prevRanksRef = useRef<{ [key: string]: number }>({});
 
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 2.2s visible score count-up & rank countdown/countup for top 5
-    const durationMs = 2200;
-    const intervalMs = 35;
-    const totalSteps = durationMs / intervalMs;
-    let step = 0;
+    // 1. Score Counting Phase (0 - 1.2s)
+    const scoreDurationMs = 1200;
+    const intervalMs = 30;
+    const scoreSteps = scoreDurationMs / intervalMs;
+    let sStep = 0;
 
-    const interval = setInterval(() => {
-      step++;
-      const p = Math.min(1, step / totalSteps);
-      setAnimProgress(p);
+    const scoreInterval = setInterval(() => {
+      sStep++;
+      const p = Math.min(1, sStep / scoreSteps);
+      setScoreProgress(p);
 
-      if (step % 5 === 0) {
+      if (sStep % 5 === 0) {
         sounds.playTick(1.0 + p * 0.3);
       }
 
-      if (step >= totalSteps) {
-        clearInterval(interval);
-        setAnimProgress(1);
+      if (sStep >= scoreSteps) {
+        clearInterval(scoreInterval);
+        setScoreProgress(1);
 
-        // 2. Trigger slide transition
+        // 2. Physical Slot Crossing Slide Phase (1.4s - 3.2s)
         setTimeout(() => {
           setIsSliding(true);
           sounds.playClick();
 
-          // 3. Complete
-          setTimeout(() => {
-            setIsComplete(true);
-          }, 1400);
+          const slideDurationMs = 1800;
+          const slideSteps = slideDurationMs / intervalMs;
+          let slStep = 0;
+
+          const slideInterval = setInterval(() => {
+            slStep++;
+            const sp = Math.min(1, slStep / slideSteps);
+            setSlideProgress(sp);
+
+            if (slStep >= slideSteps) {
+              clearInterval(slideInterval);
+              setSlideProgress(1);
+              setIsComplete(true);
+            }
+          }, intervalMs);
         }, 200);
       }
     }, intervalMs);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(scoreInterval);
     };
   }, []);
 
@@ -90,6 +104,12 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const GAP_PX = 16;
   const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 112px per slot
   const OFF_SCREEN_Y = 5 * SLOT_STEP + 80;
+
+  // Smooth easing function for realistic physical motion
+  const easeInOutCubic = (t: number) =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  const smoothSlideP = easeInOutCubic(slideProgress);
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-10 select-none overflow-hidden font-sans relative">
@@ -130,7 +150,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: BOUNCY RANK RUNNER (Climbers count down & Droppers count up in Top 5) */}
+      {/* 2. MAIN CENTER: REAL-TIME PHYSICAL SLOT CROSSING RANK RUNNER */}
       {/* ========================================================================= */}
       <main className="w-full max-w-[96vw] mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
         <div
@@ -145,96 +165,94 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const finalInTop5 = finalRank <= 5;
             const rankDelta = initialRank - finalRank; // Positive = Climbed up, Negative = Dropped down
 
-            const initialSlotIdx = initialInTop5 ? initialRank - 1 : 5;
-            const finalSlotIdx = finalInTop5 ? finalRank - 1 : 5;
+            const startY = initialInTop5 ? (initialRank - 1) * SLOT_STEP : OFF_SCREEN_Y;
+            const endY = finalInTop5 ? (finalRank - 1) * SLOT_STEP : OFF_SCREEN_Y;
 
-            const targetY = (isSliding || isComplete)
-              ? (finalInTop5 ? finalSlotIdx * SLOT_STEP : OFF_SCREEN_Y)
-              : (initialInTop5 ? initialSlotIdx * SLOT_STEP : OFF_SCREEN_Y);
+            // Continuous physical coordinate calculation during sliding
+            const currentY = isSliding
+              ? startY + (endY - startY) * smoothSlideP
+              : startY;
 
-            const targetOpacity = (isSliding || isComplete)
-              ? (finalInTop5 ? 1 : 0)
+            // Continuous opacity: droppers fade away as they slide below slot 5
+            const currentOpacity = isSliding
+              ? (finalInTop5 ? 1 : Math.max(0, 1 - smoothSlideP * 1.5))
               : (initialInTop5 ? 1 : 0);
 
-            // Dynamic Rank Number Running:
-            // - If in Top 5 (either climbed or dropped): numbers actively run with bouncy effect!
-            //   e.g. 4 -> 3 -> 2 -> 1 (Climber) or 1 -> 2 -> 3 (Dropper within Top 5)
-            // - If dropped OUT of Top 5: keeps initialRank while fading away
-            let displayedRankNumber = initialRank;
-            if (finalInTop5 && initialRank !== finalRank) {
-              displayedRankNumber = isComplete
-                ? finalRank
-                : Math.round(initialRank + (finalRank - initialRank) * animProgress);
-            } else if (finalInTop5) {
-              displayedRankNumber = finalRank;
-            } else {
-              displayedRankNumber = initialRank;
+            // =====================================================================
+            // PHYSICAL THRESHOLD RANK TICKING:
+            // As the card glides past each slot boundary, the number ticks dynamically!
+            // e.g. From Slot 4 (Rank 5) to Slot 0 (Rank 1):
+            // Passes Slot 3 -> #4, Passes Slot 2 -> #3, Passes Slot 1 -> #2, Reaches Slot 0 -> #1!
+            // =====================================================================
+            let dynamicRank = initialRank;
+            if (isComplete) {
+              dynamicRank = finalRank;
+            } else if (isSliding && finalInTop5) {
+              const currentSlotIndex = currentY / SLOT_STEP;
+              dynamicRank = Math.min(5, Math.max(1, Math.round(currentSlotIndex + 1)));
+            } else if (!finalInTop5) {
+              dynamicRank = initialRank; // Droppers keep their original rank number while fading out
             }
+
+            // Play a tick chime when passing each rank boundary
+            if (prevRanksRef.current[player.id] !== undefined && prevRanksRef.current[player.id] !== dynamicRank) {
+              sounds.playTick(1.1 + (6 - dynamicRank) * 0.1);
+            }
+            prevRanksRef.current[player.id] = dynamicRank;
 
             const startScore =
               typeof player.previousScore === "number"
                 ? player.previousScore
                 : Math.max(0, player.score - (player.lastPoints || 0));
-            const currentScore = Math.round(startScore + (player.score - startScore) * animProgress);
+            const currentScore = Math.round(startScore + (player.score - startScore) * scoreProgress);
             const pointsGained = player.lastPoints || 0;
 
             const isClimber = isComplete && rankDelta > 0 && finalInTop5;
-            const isRankChanging = animProgress > 0 && animProgress < 1 && initialRank !== finalRank && finalInTop5;
+            const isCrossing = isSliding && !isComplete && initialRank !== finalRank && finalInTop5;
 
             return (
               <motion.div
                 key={player.id}
-                initial={{
-                  y: initialInTop5 ? initialSlotIdx * SLOT_STEP : OFF_SCREEN_Y,
-                  opacity: initialInTop5 ? 1 : 0,
+                style={{
+                  transform: `translateY(${currentY}px)`,
+                  opacity: currentOpacity,
+                  height: `${CARD_HEIGHT_PX}px`,
                 }}
-                animate={{
-                  y: targetY,
-                  opacity: targetOpacity,
-                }}
-                transition={{
-                  y: {
-                    duration: 1.4,
-                    ease: [0.35, 0, 0.25, 1],
-                  },
-                  opacity: {
-                    duration: 1.6,
-                  },
-                }}
-                style={{ height: `${CARD_HEIGHT_PX}px` }}
-                className={`absolute left-0 right-0 w-full bg-white rounded-3xl px-8 md:px-10 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-300 ${
-                  displayedRankNumber === 1 && isComplete && finalInTop5
-                    ? "border-amber-400 border-b-[6px] border-b-amber-500 z-20"
+                className={`absolute left-0 right-0 w-full bg-white rounded-3xl px-8 md:px-10 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-200 ${
+                  dynamicRank === 1 && (isComplete || isSliding) && finalInTop5
+                    ? "border-amber-400 border-b-[6px] border-b-amber-500 z-25 shadow-xl"
                     : isClimber
-                    ? "border-emerald-400 border-b-[6px] border-b-emerald-500 z-15"
+                    ? "border-emerald-400 border-b-[6px] border-b-emerald-500 z-20"
+                    : isCrossing
+                    ? "z-20 shadow-lg border-purple-400"
                     : "z-10"
                 }`}
               >
-                {/* Left Section: Bouncy 3D Rank Badge + Avatar + Nickname */}
+                {/* Left Section: Energetic Bouncy 3D Rank Badge + Avatar + Nickname */}
                 <div className="flex items-center gap-6 md:gap-8 min-w-0">
-                  {/* Energetic Bouncing 3D Rank Badge */}
+                  {/* Dynamic 3D Rank Badge that pulses as it crosses each rank */}
                   <motion.div
                     animate={
-                      isRankChanging
-                        ? { scale: [1, 1.18, 1], rotate: [-3, 3, 0] }
+                      isCrossing
+                        ? { scale: [1, 1.22, 1], rotate: [-4, 4, 0] }
                         : { scale: 1, rotate: 0 }
                     }
                     transition={{
-                      repeat: isRankChanging ? Infinity : 0,
-                      duration: 0.28,
+                      repeat: isCrossing ? Infinity : 0,
+                      duration: 0.25,
                       ease: "easeInOut",
                     }}
-                    className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-black text-2xl md:text-3xl shadow-sm flex-shrink-0 transition-colors duration-300 tabular-nums ${
-                      displayedRankNumber === 1
-                        ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
-                        : displayedRankNumber === 2
+                    className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-black text-2xl md:text-3xl shadow-sm flex-shrink-0 transition-all duration-200 tabular-nums ${
+                      dynamicRank === 1
+                        ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950 scale-105"
+                        : dynamicRank === 2
                         ? "bg-[#94A3B8] border-b-4 border-[#64748B] text-white"
-                        : displayedRankNumber === 3
+                        : dynamicRank === 3
                         ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
                         : "bg-[#33106B] border-b-4 border-[#240B4D] text-white"
                     }`}
                   >
-                    {displayedRankNumber}
+                    {dynamicRank}
                   </motion.div>
 
                   {/* Avatar */}
@@ -284,7 +302,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                     </motion.div>
                   )}
 
-                  {/* Total Score with energetic counter */}
+                  {/* Total Score */}
                   <div className="text-right min-w-[100px] sm:min-w-[140px]">
                     <span className="text-3xl md:text-5xl font-black text-slate-900 tabular-nums tracking-tight block leading-none">
                       {currentScore.toLocaleString()}
