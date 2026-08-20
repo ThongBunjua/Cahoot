@@ -49,9 +49,9 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   useEffect(() => {
     sounds.playLeaderboard();
 
-    // 1. Smooth 1.4s score count-up & rank countdown
-    const durationMs = 1400;
-    const intervalMs = 35;
+    // 1. Smooth 2.2s visible score count-up & rank countdown
+    const durationMs = 2200;
+    const intervalMs = 40;
     const totalSteps = durationMs / intervalMs;
     let step = 0;
 
@@ -60,7 +60,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       const p = Math.min(1, step / totalSteps);
       setAnimProgress(p);
 
-      if (step % 4 === 0) {
+      if (step % 5 === 0) {
         sounds.playTick(1.0 + p * 0.3);
       }
 
@@ -76,8 +76,8 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
           // 3. Complete
           setTimeout(() => {
             setIsComplete(true);
-          }, 1200);
-        }, 150);
+          }, 1400);
+        }, 200);
       }
     }, intervalMs);
 
@@ -86,29 +86,29 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
     };
   }, []);
 
-  const CARD_HEIGHT_PX = 92;
-  const GAP_PX = 14;
-  const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 106px per slot
-  const OFF_SCREEN_Y = 5 * SLOT_STEP + 40; // 570px
+  const CARD_HEIGHT_PX = 96;
+  const GAP_PX = 16;
+  const SLOT_STEP = CARD_HEIGHT_PX + GAP_PX; // 112px per slot
+  const OFF_SCREEN_Y = 5 * SLOT_STEP + 60;
 
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-10 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: 100% Solid 3D (Standings & Next Question) */}
+      {/* 1. TOP HEADER: 100% Solid 3D Widescreen */}
       {/* ========================================================================= */}
-      <header className="w-full flex justify-between items-center max-w-7xl mx-auto pt-1 z-20">
-        <div className="flex items-center gap-3.5 bg-[#33106B] px-6 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
-          <div className="p-2.5 bg-[#FFA602] border-b-2 border-[#CC8400] rounded-xl text-slate-950 shadow-sm">
-            <Trophy className="w-6 h-6 stroke-[2.5]" />
+      <header className="w-full flex justify-between items-center max-w-[96vw] mx-auto pt-1 z-20">
+        <div className="flex items-center gap-4 bg-[#33106B] px-8 py-4 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-xl">
+          <div className="p-3 bg-[#FFA602] border-b-4 border-[#CC8400] rounded-2xl text-slate-950 shadow-sm">
+            <Trophy className="w-7 h-7 stroke-[2.5]" />
           </div>
           <div>
-            <span className="text-[11px] font-black uppercase tracking-widest text-[#FFA602] block leading-none">
+            <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-[#FFA602] block leading-none">
               Standings
             </span>
-            <h1 className="text-xl md:text-2xl font-black text-white leading-tight mt-0.5">
+            <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight mt-1">
               Leaderboard
             </h1>
           </div>
@@ -121,18 +121,18 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={onNext}
-            className="px-8 py-3.5 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-base md:text-lg rounded-2xl shadow-lg flex items-center gap-2.5 transition-all cursor-pointer border-b-[6px] border-[#1A6107] active:border-b-[2px] active:translate-y-1"
+            className="px-10 py-4 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-lg md:text-xl rounded-2xl shadow-xl flex items-center gap-3 transition-all cursor-pointer border-b-[6px] border-[#1A6107] active:border-b-[2px] active:translate-y-1"
           >
             <span>{isLastQuestion ? "Final Podium 🏆" : "Next Question"}</span>
-            <ArrowRight className="w-5 h-5 stroke-[3]" />
+            <ArrowRight className="w-6 h-6 stroke-[3]" />
           </motion.button>
         </div>
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: PHYSICAL SLIDE WITH DROP-OUT FADE AWAY */}
+      {/* 2. MAIN CENTER: VISIBLE RANK COUNTDOWN & SLOW FADE-AWAY WIDESCREEN CARDS */}
       {/* ========================================================================= */}
-      <main className="w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
+      <main className="w-full max-w-[96vw] mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
         <div
           className="relative w-full"
           style={{ height: `${5 * SLOT_STEP}px` }}
@@ -147,17 +147,17 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
             const initialSlotIdx = initialInTop5 ? initialRank - 1 : 5;
             const finalSlotIdx = finalInTop5 ? finalRank - 1 : 5;
 
-            // Target Y & Opacity:
-            // When sliding/complete: if player dropped out of top 5, target Y is off-screen and opacity is 0!
             const targetY = (isSliding || isComplete)
               ? (finalInTop5 ? finalSlotIdx * SLOT_STEP : OFF_SCREEN_Y)
               : (initialInTop5 ? initialSlotIdx * SLOT_STEP : OFF_SCREEN_Y);
 
             const targetOpacity = (isSliding || isComplete)
-              ? (finalInTop5 ? 1 : 0) // Fade away if dropped!
+              ? (finalInTop5 ? 1 : 0) // Slow fade away if dropped
               : (initialInTop5 ? 1 : 0);
 
             const rankDelta = initialRank - finalRank; // Positive = Climbed up!
+            
+            // Slow, clearly visible discrete rank countdown
             const currentRankNumber = isComplete
               ? finalRank
               : Math.round(initialRank + (finalRank - initialRank) * animProgress);
@@ -184,15 +184,15 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                 }}
                 transition={{
                   y: {
-                    duration: 1.2,
+                    duration: 1.4,
                     ease: [0.35, 0, 0.25, 1],
                   },
                   opacity: {
-                    duration: 0.8,
+                    duration: 1.6, // Slow 1.6s fade away so you clearly see who dropped!
                   },
                 }}
                 style={{ height: `${CARD_HEIGHT_PX}px` }}
-                className={`absolute left-0 right-0 w-full bg-white rounded-2xl px-6 md:px-8 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-300 ${
+                className={`absolute left-0 right-0 w-full bg-white rounded-3xl px-8 md:px-10 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-md flex items-center justify-between transition-colors duration-300 ${
                   currentRankNumber === 1 && isComplete && finalInTop5
                     ? "border-amber-400 border-b-[6px] border-b-amber-500 z-20"
                     : isClimber
@@ -201,10 +201,10 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                 }`}
               >
                 {/* Left Section: Rank Badge + Avatar + Nickname */}
-                <div className="flex items-center gap-4 md:gap-6 min-w-0">
+                <div className="flex items-center gap-6 md:gap-8 min-w-0">
                   {/* Solid 3D Rank Badge with Counting Number */}
                   <div
-                    className={`w-13 h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-sm flex-shrink-0 transition-colors duration-300 tabular-nums ${
+                    className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-black text-2xl md:text-3xl shadow-sm flex-shrink-0 transition-colors duration-300 tabular-nums ${
                       currentRankNumber === 1
                         ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950"
                         : currentRankNumber === 2
@@ -218,20 +218,20 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                   </div>
 
                   {/* Avatar */}
-                  <div className="text-3xl md:text-4xl filter drop-shadow-sm flex-shrink-0 select-none">
+                  <div className="text-4xl md:text-5xl filter drop-shadow-sm flex-shrink-0 select-none">
                     {player.avatar}
                   </div>
 
                   {/* Nickname & Dynamic Indicators */}
-                  <div className="min-w-0 flex items-center gap-2.5 md:gap-3 flex-wrap">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 truncate max-w-[160px] sm:max-w-xs md:max-w-md tracking-tight">
+                  <div className="min-w-0 flex items-center gap-3 md:gap-4 flex-wrap">
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 truncate max-w-[200px] sm:max-w-md md:max-w-xl tracking-tight">
                       {player.nickname}
                     </h3>
 
                     {/* Streak Badge */}
                     {player.streak > 1 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] md:text-xs font-black bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2.5 py-0.5 rounded-full flex-shrink-0">
-                        <Flame className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
+                      <span className="inline-flex items-center gap-1.5 text-xs md:text-sm font-black bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-3 py-1 rounded-full flex-shrink-0">
+                        <Flame className="w-4 h-4 fill-[#D97706] text-[#D97706]" />
                         <span>{player.streak} Streak</span>
                       </span>
                     )}
@@ -242,34 +242,34 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 350, damping: 18 }}
-                        className="inline-flex items-center justify-center w-7 h-7 bg-[#D1FAE5] text-[#065F46] border-2 border-[#6EE7B7] rounded-full shadow-sm flex-shrink-0"
+                        className="inline-flex items-center justify-center w-8 h-8 bg-[#D1FAE5] text-[#065F46] border-2 border-[#6EE7B7] rounded-full shadow-sm flex-shrink-0"
                         title={`Climbed up ${rankDelta} spots`}
                       >
-                        <ArrowUp className="w-4 h-4 stroke-[3.5] text-[#059669]" />
+                        <ArrowUp className="w-5 h-5 stroke-[3.5] text-[#059669]" />
                       </motion.span>
                     )}
                   </div>
                 </div>
 
                 {/* Right Section: Points Gained Pill + Total Score */}
-                <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+                <div className="flex items-center gap-4 md:gap-8 flex-shrink-0">
                   {/* Points Gained Pill */}
                   {pointsGained > 0 && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] font-black px-3.5 py-1 rounded-xl text-sm md:text-base shadow-sm"
+                      className="bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] font-black px-4 py-1.5 rounded-2xl text-base md:text-lg shadow-sm"
                     >
                       +{pointsGained.toLocaleString()}
                     </motion.div>
                   )}
 
                   {/* Total Score */}
-                  <div className="text-right min-w-[90px] sm:min-w-[120px]">
-                    <span className="text-2xl md:text-4xl font-black text-slate-900 tabular-nums tracking-tight block leading-none">
+                  <div className="text-right min-w-[100px] sm:min-w-[140px]">
+                    <span className="text-3xl md:text-5xl font-black text-slate-900 tabular-nums tracking-tight block leading-none">
                       {currentScore.toLocaleString()}
                     </span>
-                    <span className="text-[10px] md:text-xs font-bold text-slate-400 block uppercase tracking-wider mt-1">
+                    <span className="text-xs md:text-sm font-bold text-slate-400 block uppercase tracking-wider mt-1">
                       pts
                     </span>
                   </div>
@@ -283,10 +283,10 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       {/* ========================================================================= */}
       {/* 3. FOOTER: Solid Player Count Indicator */}
       {/* ========================================================================= */}
-      <footer className="w-full text-center text-xs font-bold text-slate-200 pb-2 z-20">
+      <footer className="w-full text-center text-sm font-bold text-slate-200 pb-2 z-20">
         {players.length > 5 && (
-          <span className="bg-[#33106B] px-5 py-2 rounded-full border border-[#240B4D] inline-flex items-center gap-2 shadow-sm text-sm">
-            <Users className="w-4 h-4 text-[#FFA602]" />
+          <span className="bg-[#33106B] px-6 py-2.5 rounded-full border border-[#240B4D] inline-flex items-center gap-2.5 shadow-sm text-base">
+            <Users className="w-5 h-5 text-[#FFA602]" />
             <span>+ {players.length - 5} more players competing below</span>
           </span>
         )}

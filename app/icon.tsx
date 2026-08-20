@@ -12,7 +12,7 @@ export default function Icon() {
     (
       <div
         style={{
-          fontSize: 44,
+          fontSize: 34,
           background: "linear-gradient(135deg, #46178F 0%, #240B4D 100%)",
           width: "100%",
           height: "100%",
@@ -23,9 +23,10 @@ export default function Icon() {
           fontWeight: 900,
           borderRadius: "16px",
           border: "3px solid #FFA602",
+          letterSpacing: "-2px",
         }}
       >
-        !
+        C!
       </div>
     ),
     {

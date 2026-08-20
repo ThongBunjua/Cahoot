@@ -46,9 +46,9 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: Super-Sized Solid White Question Box (Full width max-w-7xl) */}
+      {/* 1. TOP HEADER: Super-Sized Solid White Question Box (Widescreen max-w-[96vw]) */}
       {/* ========================================================================= */}
-      <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
+      <header className="flex items-center justify-between gap-4 max-w-[96vw] mx-auto w-full pt-1 z-20">
         <div className="flex-1 min-w-0 bg-white text-slate-900 px-6 py-4 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-xl">
           <h2 className="text-xl md:text-3xl lg:text-4xl font-black text-slate-900 truncate text-center sm:text-left tracking-tight">
             {question.question_text}
@@ -71,10 +71,10 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: EXTRA-TALL DYNAMIC 3D SOLID BAR CHART (Max-w-5xl) */}
+      {/* 2. MAIN CENTER: EXTRA-TALL DYNAMIC 3D SOLID BAR CHART (Widescreen max-w-[96vw]) */}
       {/* ========================================================================= */}
-      <main className="flex-1 flex flex-col items-center justify-end max-w-5xl mx-auto w-full my-2 md:my-4 z-10 px-4">
-        <div className="flex items-end justify-center gap-6 sm:gap-12 md:gap-16 w-full h-[380px] pb-2">
+      <main className="flex-1 flex flex-col items-center justify-end max-w-[96vw] mx-auto w-full my-2 md:my-4 z-10 px-4">
+        <div className="flex items-end justify-center gap-8 sm:gap-14 md:gap-20 w-full max-w-5xl h-[380px] pb-2">
           {question.choices.map((choice, idx) => {
             const count = answerCounts[idx] || 0;
             const isCorrect = idx === question.correct_index;
@@ -130,9 +130,9 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM SOLID 2X2 ANSWER GRID (Full width max-w-7xl) */}
+      {/* 3. BOTTOM SOLID 2X2 ANSWER GRID (Widescreen max-w-[96vw]) */}
       {/* ========================================================================= */}
-      <footer className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-7xl mx-auto w-full pb-2 z-20">
+      <footer className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[96vw] mx-auto w-full pb-2 z-20">
         {question.choices.map((choice, idx) => {
           const isCorrect = idx === question.correct_index;
           const theme = CHOICES_SOLID_THEME[idx];

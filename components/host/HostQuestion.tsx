@@ -59,12 +59,12 @@ export function HostQuestion({
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
       {/* ========================================================================= */}
-      {/* 1. TOP ZONE: SUPER-SIZED SOLID QUESTION BOX (Full width max-w-7xl) */}
+      {/* 1. TOP ZONE: SUPER-SIZED SOLID QUESTION BOX (Widescreen max-w-[96vw]) */}
       {/* ========================================================================= */}
       <motion.header
         layoutId="host-question-banner"
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
-        className="w-full max-w-7xl mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 z-20"
+        className="w-full max-w-[96vw] mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 z-20"
       >
         {/* Left: Question Counter Badge */}
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -97,7 +97,7 @@ export function HostQuestion({
       {/* ========================================================================= */}
       {/* 2. MIDDLE ZONE: ENLARGED 3-PART SOLID CENTER STAGE */}
       {/* ========================================================================= */}
-      <main className="w-full max-w-7xl mx-auto flex-1 flex items-center justify-between my-3 md:my-5 px-2 md:px-4 z-10">
+      <main className="w-full max-w-[96vw] mx-auto flex-1 flex items-center justify-between my-3 md:my-5 px-2 md:px-4 z-10">
         {/* Left: Giant Circular Countdown Timer */}
         <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[8px] border-[#26890C] bg-[#33106B] flex items-center justify-center shadow-xl flex-shrink-0">
           <span
@@ -110,7 +110,7 @@ export function HostQuestion({
         </div>
 
         {/* Center: Giant Media Display Canvas */}
-        <div className="flex-1 max-w-3xl h-60 md:h-80 lg:h-96 bg-[#33106B] rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-xl flex items-center justify-center mx-4 md:mx-8 relative">
+        <div className="flex-1 max-w-4xl h-60 md:h-80 lg:h-96 bg-[#33106B] rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-xl flex items-center justify-center mx-4 md:mx-8 relative">
           {question.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -142,9 +142,9 @@ export function HostQuestion({
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM ZONE: GIANT 2X2 SOLID ANSWER GRID (30-35% of screen height) */}
+      {/* 3. BOTTOM ZONE: GIANT 2X2 SOLID ANSWER GRID (Widescreen max-w-[96vw]) */}
       {/* ========================================================================= */}
-      <footer className="w-full max-w-7xl mx-auto grid grid-cols-2 gap-4 md:gap-6 pb-2 md:pb-4 z-20">
+      <footer className="w-full max-w-[96vw] mx-auto grid grid-cols-2 gap-4 md:gap-6 pb-2 md:pb-4 z-20">
         {question.choices.map((choice, idx) => {
           const config = CHOICE_CONFIGS[idx] || CHOICE_CONFIGS[0];
           return (

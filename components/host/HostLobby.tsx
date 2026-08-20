@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Player, Quiz } from "@/lib/realtime/types";
 import { formatPin } from "@/lib/utils/pinGenerator";
 import { QRCodeModal } from "@/components/ui/QRCodeModal";
@@ -36,32 +36,12 @@ export function HostLobby({
   const [showQR, setShowQR] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // New Player Entrance Toast
-  const [newestPlayer, setNewestPlayer] = useState<Player | null>(null);
-  const prevPlayersCountRef = useRef(players.length);
-
   useEffect(() => {
     sounds.startLobbyMusic();
     return () => {
       sounds.stopLobbyMusic();
     };
   }, []);
-
-  // Detect newly joined player and trigger dramatic pop-up
-  useEffect(() => {
-    if (players.length > prevPlayersCountRef.current) {
-      const latest = players[players.length - 1];
-      if (latest) {
-        setNewestPlayer(latest);
-        sounds.playClick();
-        const t = setTimeout(() => {
-          setNewestPlayer(null);
-        }, 1500); // Display for 1.5 seconds
-        return () => clearTimeout(t);
-      }
-    }
-    prevPlayersCountRef.current = players.length;
-  }, [players]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -73,7 +53,7 @@ export function HostLobby({
     }
   };
 
-  // Distribute players evenly across 3 lanes
+  // Organize players systematically across 3 conveyor lanes
   const numRows = 3;
   const rows: Player[][] = Array.from({ length: numRows }, () => []);
   players.forEach((p, idx) => {
@@ -81,39 +61,14 @@ export function HostLobby({
   });
 
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 relative overflow-hidden select-none font-sans">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-10 relative overflow-hidden select-none font-sans">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
       {/* ========================================================================= */}
-      {/* NEW PLAYER ENTRANCE DRAMATIC POP-UP TOAST */}
+      {/* 1. TOP HEADER: WIDESCREEN FULL-WIDTH (PIN, Quiz Info, Audio & Fullscreen) */}
       {/* ========================================================================= */}
-      <AnimatePresence>
-        {newestPlayer && (
-          <motion.div
-            initial={{ scale: 0.2, y: 50, opacity: 0 }}
-            animate={{ scale: 1.1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.8, y: -40, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="fixed top-28 z-50 pointer-events-none left-1/2 -translate-x-1/2 bg-white text-slate-950 px-8 py-4 rounded-3xl border-4 border-[#FFA602] border-b-[8px] border-b-[#CC8400] shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex items-center gap-4"
-          >
-            <span className="text-5xl select-none">{newestPlayer.avatar}</span>
-            <div>
-              <span className="text-xs font-black uppercase tracking-widest text-[#46178F] block">
-                🎉 New Player Joined!
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
-                {newestPlayer.nickname}
-              </h2>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ========================================================================= */}
-      {/* 1. TOP HEADER: 100% Solid 3D (PIN, Quiz Info, Audio & Fullscreen) */}
-      {/* ========================================================================= */}
-      <header className="relative z-20 flex flex-wrap items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl max-w-7xl mx-auto w-full">
+      <header className="relative z-20 flex flex-wrap items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto">
         {/* Left: Quiz Info */}
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center font-black text-3xl text-slate-950 shadow-md">
@@ -123,7 +78,7 @@ export function HostLobby({
             <p className="text-xs sm:text-sm font-black uppercase tracking-wider text-yellow-400">
               Host Lobby • {quiz.questions.length} Questions
             </p>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white truncate max-w-md md:max-w-lg">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white truncate max-w-lg md:max-w-xl">
               {quiz.title}
             </h1>
           </div>
@@ -163,9 +118,9 @@ export function HostLobby({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: SEAMLESS INFINITE MARQUEE TO THE RIGHT (No Scrollbar) */}
+      {/* 2. MAIN CENTER: RELAXED SEAMLESS CONVEYOR (Full Width, No Toast) */}
       {/* ========================================================================= */}
-      <main className="relative z-10 flex-1 my-3 md:my-5 flex flex-col items-center justify-center max-w-7xl mx-auto w-full overflow-hidden">
+      <main className="relative z-10 flex-1 my-3 md:my-5 flex flex-col items-center justify-center w-full max-w-[96vw] mx-auto overflow-hidden">
         {/* Joined Players Count Pill */}
         <div className="flex items-center gap-2.5 mb-4 bg-[#33106B] px-8 py-3 rounded-full border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-lg flex-shrink-0">
           <Users className="w-6 h-6 text-[#FFA602]" />
@@ -185,21 +140,21 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          /* Multi-Row Smooth Conveyor Lines Scrolling to the Right */
+          /* Multi-Row Systematic Conveyor Lines Scrolling Calmly to the Right */
           <div className="w-full flex-1 flex flex-col justify-center gap-6 overflow-hidden py-2">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
 
-              // Ensure at least 10 items per row for smooth continuous seamless wrap
+              // Ensure at least 12 items per row for smooth continuous seamless wrap
               const multiplier = Math.max(2, Math.ceil(12 / rowPlayers.length));
               const seamlessList = Array(multiplier).fill(rowPlayers).flat();
-              const speedSec = 22 + rowIndex * 5;
+              const speedSec = 38 + rowIndex * 6; // Calm and readable pace
 
               return (
                 <div
                   key={rowIndex}
                   className="w-full overflow-hidden flex relative"
-                  style={{ maskImage: "linear-gradient(to right, transparent, black 6%, black 94%, transparent)" }}
+                  style={{ maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)" }}
                 >
                   <motion.div
                     animate={{ x: ["-50%", "0%"] }} // Smooth continuous scroll to the right
@@ -211,14 +166,17 @@ export function HostLobby({
                     className="flex gap-4 items-center flex-nowrap shrink-0 pr-4"
                   >
                     {seamlessList.map((player, pIdx) => (
-                      <div
+                      <motion.div
                         key={`${player.id}-${pIdx}`}
+                        initial={{ scale: 0.2 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 18 }}
                         className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] rounded-2xl px-6 py-3.5 flex items-center gap-3.5 shadow-xl select-none shrink-0"
                       >
                         <span className="text-3xl sm:text-4xl flex-shrink-0 select-none">
                           {player.avatar}
                         </span>
-                        <span className="text-lg sm:text-xl font-black text-white truncate max-w-[160px] sm:max-w-[200px] tracking-tight">
+                        <span className="text-lg sm:text-xl font-black text-white truncate max-w-[180px] sm:max-w-[220px] tracking-tight">
                           {player.nickname}
                         </span>
 
@@ -229,7 +187,7 @@ export function HostLobby({
                         >
                           <X className="w-4 h-4 stroke-[3]" />
                         </button>
-                      </div>
+                      </motion.div>
                     ))}
                   </motion.div>
                 </div>
@@ -242,7 +200,7 @@ export function HostLobby({
       {/* ========================================================================= */}
       {/* 3. BOTTOM FLOATING BAR: 100% Solid Start Game Button */}
       {/* ========================================================================= */}
-      <footer className="relative z-20 flex items-center justify-between bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl max-w-7xl mx-auto w-full">
+      <footer className="relative z-20 flex items-center justify-between bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto">
         <div className="flex items-center gap-3 text-base text-slate-300 font-bold">
           <span>Game PIN:</span>
           <span className="text-white font-mono font-black text-2xl">{pin}</span>
