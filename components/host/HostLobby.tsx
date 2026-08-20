@@ -66,11 +66,11 @@ export function HostLobby({
       <GameBackground />
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: WIDESCREEN FULL-WIDTH (PIN, Quiz Info, Audio & Fullscreen) */}
+      {/* 1. TOP HEADER: WIDESCREEN FULL-WIDTH WITH DEAD-CENTERED PIN BOX */}
       {/* ========================================================================= */}
-      <header className="relative z-20 flex flex-wrap items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto">
+      <header className="relative z-20 flex items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto min-h-[105px]">
         {/* Left: Quiz Info */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 z-10">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center font-black text-3xl text-slate-950 shadow-md">
             !
           </div>
@@ -78,14 +78,14 @@ export function HostLobby({
             <p className="text-xs sm:text-sm font-black uppercase tracking-wider text-yellow-400">
               Host Lobby • {quiz.questions.length} Questions
             </p>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white truncate max-w-lg md:max-w-xl">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white truncate max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
               {quiz.title}
             </h1>
           </div>
         </div>
 
-        {/* Center: Super-Sized Game PIN Badge */}
-        <div className="flex items-center gap-3 bg-white text-slate-950 px-8 py-3.5 rounded-3xl shadow-xl border-2 border-slate-200 border-b-[6px] border-b-slate-300">
+        {/* DEAD-CENTER: Super-Sized Game PIN Badge (Mathematically Centered) */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3.5 bg-white text-slate-950 px-8 sm:px-10 py-3.5 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 z-20">
           <div className="text-left">
             <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-500">
               Join with Game PIN:
@@ -104,7 +104,7 @@ export function HostLobby({
         </div>
 
         {/* Right: Control Tools */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 z-10">
           <AudioControl autoPlayLobby={true} />
 
           <button
