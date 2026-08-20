@@ -35,6 +35,13 @@ export function HostLobby({
 }: HostLobbyProps) {
   const [showQR, setShowQR] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [siteUrl, setSiteUrl] = useState("cahoot.live");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSiteUrl(window.location.host);
+    }
+  }, []);
 
   useEffect(() => {
     sounds.startLobbyMusic();
@@ -66,9 +73,9 @@ export function HostLobby({
       <GameBackground />
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: WIDESCREEN FULL-WIDTH WITH DEAD-CENTERED PIN BOX */}
+      {/* 1. TOP HEADER: WIDESCREEN FULL-WIDTH WITH DEAD-CENTERED URL & PIN BOX */}
       {/* ========================================================================= */}
-      <header className="relative z-20 flex items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto min-h-[105px]">
+      <header className="relative z-20 flex items-center justify-between gap-4 bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto min-h-[110px]">
         {/* Left: Quiz Info */}
         <div className="flex items-center gap-4 z-10">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center font-black text-3xl text-slate-950 shadow-md">
@@ -84,19 +91,31 @@ export function HostLobby({
           </div>
         </div>
 
-        {/* DEAD-CENTER: Super-Sized Game PIN Badge (Mathematically Centered) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3.5 bg-white text-slate-950 px-8 sm:px-10 py-3.5 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 z-20">
-          <div className="text-left">
-            <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-500">
-              Join with Game PIN:
-            </p>
-            <p className="text-4xl sm:text-5xl md:text-6xl font-black tracking-widest font-mono text-slate-900 leading-none mt-1">
-              {formatPin(pin)}
-            </p>
+        {/* DEAD-CENTER: Super-Sized Join URL + Game PIN Badge (Mathematically Centered) */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4 bg-white text-slate-950 px-8 sm:px-10 py-3.5 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 z-20">
+          <div className="text-left flex flex-col justify-center">
+            {/* Website Join URL */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-black text-slate-500 mb-1">
+              <span className="uppercase tracking-wider">Join at</span>
+              <span className="text-[#46178F] font-black bg-purple-50 px-3 py-0.5 rounded-xl border border-purple-200 tracking-normal text-sm sm:text-base select-all">
+                {siteUrl}
+              </span>
+            </div>
+
+            {/* Game PIN */}
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-500">
+                PIN:
+              </span>
+              <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-widest font-mono text-slate-900 leading-none">
+                {formatPin(pin)}
+              </span>
+            </div>
           </div>
+
           <button
             onClick={() => setShowQR(true)}
-            className="p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-2xl transition-colors cursor-pointer border border-slate-300 ml-2"
+            className="p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-2xl transition-colors cursor-pointer border border-slate-300 ml-1 flex-shrink-0"
             title="Show QR Code"
           >
             <QrCode className="w-7 h-7" />
@@ -201,9 +220,10 @@ export function HostLobby({
       {/* 3. BOTTOM FLOATING BAR: 100% Solid Start Game Button */}
       {/* ========================================================================= */}
       <footer className="relative z-20 flex items-center justify-between bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] p-4 sm:p-6 rounded-3xl shadow-2xl w-full max-w-[96vw] mx-auto">
-        <div className="flex items-center gap-3 text-base text-slate-300 font-bold">
-          <span>Game PIN:</span>
-          <span className="text-white font-mono font-black text-2xl">{pin}</span>
+        <div className="flex items-center gap-3.5 text-base sm:text-lg text-slate-300 font-bold">
+          <span>Join at: <span className="text-yellow-400 font-black tracking-wide">{siteUrl}</span></span>
+          <span className="text-purple-400">•</span>
+          <span>PIN: <span className="text-white font-mono font-black text-2xl sm:text-3xl tracking-widest">{formatPin(pin)}</span></span>
         </div>
 
         <motion.button
