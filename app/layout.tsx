@@ -50,6 +50,9 @@ export const metadata: Metadata = {
     title: "PlayCahoot! | Play & Host Live Quizzes",
     description: "Join live trivia games with Game PIN at playcahoot.vercel.app",
   },
+  verification: {
+    google: "google9a5f5b378f85bc28",
+  },
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
