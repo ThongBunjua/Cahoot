@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
+import { GameBackground } from "@/components/ui/GameBackground";
 import { Check, ArrowRight } from "lucide-react";
 
 interface HostResultsProps {
@@ -42,6 +43,8 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+      {/* Dynamic Animated Pattern Background */}
+      <GameBackground />
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: Super-Sized Solid White Question Box (Full width max-w-7xl) */}
       {/* ========================================================================= */}

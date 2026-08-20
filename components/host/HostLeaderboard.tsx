@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Player } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
+import { GameBackground } from "@/components/ui/GameBackground";
 import { sounds } from "@/lib/audio/soundManager";
 import {
   Trophy,
@@ -85,6 +86,8 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+      {/* Dynamic Animated Pattern Background */}
+      <GameBackground />
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: 100% Solid 3D (Standings & Next Question) */}
       {/* ========================================================================= */}

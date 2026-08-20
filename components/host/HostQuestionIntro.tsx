@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { sounds } from "@/lib/audio/soundManager";
 import { AudioControl } from "@/components/ui/AudioControl";
+import { GameBackground } from "@/components/ui/GameBackground";
 
 interface HostQuestionIntroProps {
   question: Question;
@@ -88,6 +89,8 @@ export function HostQuestionIntro({
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+      {/* Dynamic Animated Pattern Background */}
+      <GameBackground />
       {/* 1. Header: 100% Solid Dark Surface */}
       <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
         <div className="bg-[#33106B] px-6 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">

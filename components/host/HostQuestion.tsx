@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
+import { GameBackground } from "@/components/ui/GameBackground";
 import { sounds } from "@/lib/audio/soundManager";
 import { FastForward } from "lucide-react";
 
@@ -55,6 +56,8 @@ export function HostQuestion({
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+      {/* Dynamic Animated Pattern Background */}
+      <GameBackground />
       {/* ========================================================================= */}
       {/* 1. TOP ZONE: SUPER-SIZED SOLID QUESTION BOX (Full width max-w-7xl) */}
       {/* ========================================================================= */}

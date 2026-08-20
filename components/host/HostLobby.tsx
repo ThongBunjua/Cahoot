@@ -6,6 +6,7 @@ import { Player, Quiz } from "@/lib/realtime/types";
 import { formatPin } from "@/lib/utils/pinGenerator";
 import { QRCodeModal } from "@/components/ui/QRCodeModal";
 import { AudioControl } from "@/components/ui/AudioControl";
+import { GameBackground } from "@/components/ui/GameBackground";
 import { sounds } from "@/lib/audio/soundManager";
 import {
   Users,
@@ -61,6 +62,8 @@ export function HostLobby({
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 relative overflow-hidden select-none font-sans">
+      {/* Dynamic Animated Pattern Background */}
+      <GameBackground />
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: 100% Solid 3D (PIN, Quiz Info, Audio & Fullscreen) */}
       {/* ========================================================================= */}
