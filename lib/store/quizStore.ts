@@ -1,14 +1,25 @@
-import { Quiz } from "@/lib/realtime/types";
+import { Quiz, Question } from "@/lib/realtime/types";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/client";
+
+export function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 export const STARTER_QUIZZES: Quiz[] = [
   {
-    id: "quiz-dev-master",
+    id: "0a0db060-60ca-4c7f-a2b2-18e7c5aec78f",
     title: "🚀 Web Dev & CS Master Challenge",
     description: "Battle your peers on React, JavaScript internals, Next.js App Router, and Cloud Architecture!",
     cover_image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80",
     is_public: true,
-    created_at: new Date().toISOString(),
+    created_at: "2026-08-19T10:00:00.000Z",
     questions: [
       {
         id: "q-dev-1",
@@ -60,7 +71,7 @@ export const STARTER_QUIZZES: Quiz[] = [
         question_text: "In JavaScript, what is the evaluation of: typeof NaN ?",
         media_url: "https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?w=800&auto=format&fit=crop&q=80",
         time_limit: 15,
-        points_multiplier: 2.0, // Double points!
+        points_multiplier: 2.0,
         order_index: 3,
         correct_index: 3,
         choices: [
@@ -88,12 +99,12 @@ export const STARTER_QUIZZES: Quiz[] = [
     ],
   },
   {
-    id: "quiz-world-geo",
+    id: "625748e5-a426-4ba0-8b26-74e4322ed845",
     title: "🌍 World Geography & Wonders",
     description: "Explore continents, global capitals, and breathtaking natural wonders around the globe.",
     cover_image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=80",
     is_public: true,
-    created_at: new Date().toISOString(),
+    created_at: "2026-08-19T10:00:00.000Z",
     questions: [
       {
         id: "q-geo-1",
@@ -143,12 +154,12 @@ export const STARTER_QUIZZES: Quiz[] = [
     ],
   },
   {
-    id: "quiz-space-cosmos",
+    id: "2bfcbe6b-07f0-4d66-95e5-f29eccce4b9e",
     title: "✨ Cosmos & Astronomy Odyssey",
     description: "Journey across the solar system, galaxies, black holes, and space missions!",
     cover_image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&auto=format&fit=crop&q=80",
     is_public: true,
-    created_at: new Date().toISOString(),
+    created_at: "2026-08-19T10:00:00.000Z",
     questions: [
       {
         id: "q-space-1",
@@ -187,6 +198,7 @@ export const STARTER_QUIZZES: Quiz[] = [
 const LOCAL_STORAGE_KEY = "cahoot_custom_quizzes";
 
 export class QuizStore {
+  // Synchronous read from localStorage or starters
   static getQuizzes(): Quiz[] {
     if (typeof window === "undefined") return STARTER_QUIZZES;
 
@@ -207,83 +219,200 @@ export class QuizStore {
     return STARTER_QUIZZES;
   }
 
+  // Asynchronous Cloud Fetch from Supabase across all devices
+  static async fetchCloudQuizzes(): Promise<Quiz[]> {
+    const localQuizzes = this.getQuizzes();
+    if (!isSupabaseConfigured()) return localQuizzes;
+
+    const supabase = getSupabaseClient();
+    if (!supabase) return localQuizzes;
+
+    try {
+      const { data: dbQuizzes, error } = await supabase
+        .from("quizzes")
+        .select("*, questions(*)")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.warn("Error fetching cloud quizzes:", error);
+        return localQuizzes;
+      }
+
+      if (dbQuizzes && dbQuizzes.length > 0) {
+        const formatted: Quiz[] = dbQuizzes.map((q) => {
+          const sortedQuestions: Question[] = (q.questions || [])
+            .sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0))
+            .map((question: any) => ({
+              id: question.id,
+              question_text: question.question_text,
+              media_url: question.media_url || "",
+              time_limit: question.time_limit || 20,
+              points_multiplier: Number(question.points_multiplier) || 1.0,
+              order_index: question.order_index || 0,
+              correct_index: question.correct_index ?? 0,
+              choices: Array.isArray(question.choices)
+                ? question.choices
+                : typeof question.choices === "string"
+                ? JSON.parse(question.choices)
+                : [],
+            }));
+
+          return {
+            id: q.id,
+            title: q.title,
+            description: q.description || "",
+            cover_image: q.cover_image || "",
+            is_public: q.is_public ?? true,
+            created_at: q.created_at,
+            questions: sortedQuestions.length > 0 ? sortedQuestions : STARTER_QUIZZES[0].questions,
+          };
+        });
+
+        // Merge with starters and save to local storage cache
+        const dbIds = new Set(formatted.map((q) => q.id));
+        const merged = [
+          ...formatted,
+          ...STARTER_QUIZZES.filter((q) => !dbIds.has(q.id)),
+        ];
+
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formatted));
+        } catch (e) {}
+
+        return merged;
+      }
+    } catch (err) {
+      console.warn("Cloud quiz sync error:", err);
+    }
+
+    return localQuizzes;
+  }
+
   static getQuizById(id: string): Quiz | null {
     const all = this.getQuizzes();
     return all.find((q) => q.id === id) || null;
   }
 
-  static saveQuiz(quiz: Quiz): Quiz {
-    if (typeof window === "undefined") return quiz;
+  // Save Quiz to both LocalStorage and Supabase Cloud Database
+  static async saveQuizAsync(quiz: Quiz): Promise<Quiz> {
+    // Ensure quiz has a valid UUID
+    const cleanQuizId = isUUID(quiz.id) ? quiz.id : generateUUID();
+    const cleanQuestions = quiz.questions.map((q, idx) => ({
+      ...q,
+      id: isUUID(q.id) ? q.id : generateUUID(),
+      order_index: idx,
+    }));
 
-    const quizzes = this.getQuizzes();
-    const existingIndex = quizzes.findIndex((q) => q.id === quiz.id);
+    const sanitizedQuiz: Quiz = {
+      ...quiz,
+      id: cleanQuizId,
+      questions: cleanQuestions,
+      created_at: quiz.created_at || new Date().toISOString(),
+    };
 
-    let updated: Quiz[];
-    if (existingIndex >= 0) {
-      updated = [...quizzes];
-      updated[existingIndex] = quiz;
-    } else {
-      updated = [quiz, ...quizzes];
+    // 1. Save to local storage
+    if (typeof window !== "undefined") {
+      const quizzes = this.getQuizzes();
+      const existingIndex = quizzes.findIndex((q) => q.id === sanitizedQuiz.id);
+
+      let updated: Quiz[];
+      if (existingIndex >= 0) {
+        updated = [...quizzes];
+        updated[existingIndex] = sanitizedQuiz;
+      } else {
+        updated = [sanitizedQuiz, ...quizzes];
+      }
+
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error("Error saving quiz to localStorage:", e);
+      }
     }
 
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error("Error saving quiz to localStorage:", e);
-    }
-
-    // If Supabase is configured, sync asynchronously in background
+    // 2. Save to Supabase Cloud Database
     if (isSupabaseConfigured()) {
-      this.syncQuizToSupabase(quiz).catch(console.warn);
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        try {
+          // Upsert quiz
+          const { error: qErr } = await supabase.from("quizzes").upsert(
+            {
+              id: sanitizedQuiz.id,
+              title: sanitizedQuiz.title,
+              description: sanitizedQuiz.description,
+              cover_image: sanitizedQuiz.cover_image,
+              is_public: true,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" }
+          );
+
+          if (qErr) {
+            console.warn("Supabase save quiz error:", qErr);
+          } else {
+            // Delete existing questions for this quiz to replace cleanly
+            await supabase.from("questions").delete().eq("quiz_id", sanitizedQuiz.id);
+
+            // Batch insert updated questions
+            const questionRows = sanitizedQuiz.questions.map((q, idx) => ({
+              id: q.id,
+              quiz_id: sanitizedQuiz.id,
+              question_text: q.question_text,
+              media_url: q.media_url || "",
+              time_limit: q.time_limit || 20,
+              choices: q.choices,
+              correct_index: q.correct_index,
+              points_multiplier: q.points_multiplier || 1.0,
+              order_index: idx,
+            }));
+
+            await supabase.from("questions").insert(questionRows);
+          }
+        } catch (err) {
+          console.warn("Error uploading quiz to Supabase:", err);
+        }
+      }
     }
 
+    return sanitizedQuiz;
+  }
+
+  // Delete Quiz from LocalStorage and Supabase Cloud Database
+  static async deleteQuizAsync(id: string): Promise<void> {
+    if (typeof window !== "undefined") {
+      const quizzes = this.getQuizzes().filter((q) => q.id !== id);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(quizzes));
+      } catch (e) {
+        console.error("Error deleting quiz from localStorage:", e);
+      }
+    }
+
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        try {
+          await supabase.from("quizzes").delete().eq("id", id);
+        } catch (err) {
+          console.warn("Error deleting quiz from Supabase:", err);
+        }
+      }
+    }
+  }
+
+  // Backward compatibility synchronous wrapper
+  static saveQuiz(quiz: Quiz): Quiz {
+    this.saveQuizAsync(quiz).catch(console.warn);
     return quiz;
   }
 
   static deleteQuiz(id: string): void {
-    if (typeof window === "undefined") return;
-
-    const quizzes = this.getQuizzes().filter((q) => q.id !== id);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(quizzes));
-    } catch (e) {
-      console.error("Error deleting quiz from localStorage:", e);
-    }
+    this.deleteQuizAsync(id).catch(console.warn);
   }
+}
 
-  private static async syncQuizToSupabase(quiz: Quiz) {
-    const supabase = getSupabaseClient();
-    if (!supabase) return;
-
-    // Upsert quiz record
-    const { error: quizError } = await supabase.from("quizzes").upsert({
-      id: quiz.id,
-      title: quiz.title,
-      description: quiz.description,
-      cover_image: quiz.cover_image,
-      is_public: quiz.is_public,
-      updated_at: new Date().toISOString(),
-    });
-
-    if (quizError) {
-      console.warn("Supabase sync warning (quiz):", quizError.message);
-      return;
-    }
-
-    // Upsert questions
-    for (let i = 0; i < quiz.questions.length; i++) {
-      const q = quiz.questions[i];
-      await supabase.from("questions").upsert({
-        id: q.id,
-        quiz_id: quiz.id,
-        question_text: q.question_text,
-        media_url: q.media_url || "",
-        time_limit: q.time_limit,
-        choices: q.choices,
-        correct_index: q.correct_index,
-        points_multiplier: q.points_multiplier,
-        order_index: i,
-      });
-    }
-  }
+function isUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
 }

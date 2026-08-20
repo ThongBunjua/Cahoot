@@ -5,16 +5,29 @@ import { useRouter } from "next/navigation";
 import { Quiz } from "@/lib/realtime/types";
 import { QuizStore } from "@/lib/store/quizStore";
 import { generateGamePin } from "@/lib/utils/pinGenerator";
-import { Play, Plus, Edit3, Trash2, Copy, Layers } from "lucide-react";
+import { Play, Plus, Edit3, Trash2, Copy, Layers, RefreshCw, Cloud } from "lucide-react";
 import Link from "next/link";
 import { HostGuard } from "@/components/auth/HostGuard";
 
 function QuizzesContent() {
   const router = useRouter();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load from local storage immediately, then fetch from Supabase Cloud
+  const loadQuizzes = async () => {
+    setIsLoading(true);
+    // 1. Instant local render
+    setQuizzes(QuizStore.getQuizzes());
+
+    // 2. Fetch fresh cloud quizzes across all devices
+    const cloudQuizzes = await QuizStore.fetchCloudQuizzes();
+    setQuizzes(cloudQuizzes);
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    setQuizzes(QuizStore.getQuizzes());
+    loadQuizzes();
   }, []);
 
   const handleHostGame = (quizId: string) => {
@@ -22,26 +35,25 @@ function QuizzesContent() {
     router.push(`/host/game/${pin}?quizId=${quizId}`);
   };
 
-  const handleDuplicate = (quiz: Quiz) => {
+  const handleDuplicate = async (quiz: Quiz) => {
     const duplicated: Quiz = {
       ...quiz,
-      id: `quiz_${Date.now()}`,
       title: `${quiz.title} (Copy)`,
       created_at: new Date().toISOString(),
     };
-    QuizStore.saveQuiz(duplicated);
-    setQuizzes(QuizStore.getQuizzes());
+    await QuizStore.saveQuizAsync(duplicated);
+    loadQuizzes();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this quiz?")) {
-      QuizStore.deleteQuiz(id);
-      setQuizzes(QuizStore.getQuizzes());
+      await QuizStore.deleteQuizAsync(id);
+      loadQuizzes();
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#141026] text-white flex flex-col">
+    <div className="min-h-screen bg-[#141026] text-white flex flex-col font-sans">
       {/* Top Header */}
       <header className="bg-[#1b1730] border-b border-white/10 p-4 sm:px-10 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -56,6 +68,15 @@ function QuizzesContent() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={loadQuizzes}
+            disabled={isLoading}
+            className="p-2 bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white rounded-xl border border-white/10 transition-all cursor-pointer"
+            title="Sync Cloud Quizzes"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-yellow-400" : ""}`} />
+          </button>
+
           <Link
             href="/creator"
             className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-black rounded-xl shadow-md transition-all flex items-center gap-1.5"
@@ -76,9 +97,15 @@ function QuizzesContent() {
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-10">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-1">
-              Quiz Library & Game Launcher
-            </h1>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Quiz Library & Game Launcher
+              </h1>
+              <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                <Cloud className="w-3 h-3" />
+                <span>Cloud Synced</span>
+              </span>
+            </div>
             <p className="text-slate-400 text-xs sm:text-sm font-medium">
               Choose a quiz to launch a live game session with up to 150 concurrent players.
             </p>
@@ -149,7 +176,7 @@ function QuizzesContent() {
                   <button
                     type="button"
                     onClick={() => handleDuplicate(quiz)}
-                    className="p-1.5 bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white rounded-lg transition-all border border-white/10"
+                    className="p-1.5 bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white rounded-lg transition-all border border-white/10 cursor-pointer"
                     title="Duplicate Quiz"
                   >
                     <Copy className="w-3.5 h-3.5" />
@@ -158,7 +185,7 @@ function QuizzesContent() {
                   <button
                     type="button"
                     onClick={() => handleDelete(quiz.id)}
-                    className="p-1.5 bg-white/10 hover:bg-red-500/20 text-slate-300 hover:text-red-400 rounded-lg transition-all border border-white/10"
+                    className="p-1.5 bg-white/10 hover:bg-red-500/20 text-slate-300 hover:text-red-400 rounded-lg transition-all border border-white/10 cursor-pointer"
                     title="Delete Quiz"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

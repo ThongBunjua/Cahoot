@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Quiz, Question } from "@/lib/realtime/types";
-import { QuizStore } from "@/lib/store/quizStore";
+import { QuizStore, generateUUID } from "@/lib/store/quizStore";
 import { CreatorHeader } from "@/components/creator/CreatorHeader";
 import { SlideSidebar } from "@/components/creator/SlideSidebar";
 import { QuestionStage } from "@/components/creator/QuestionStage";
@@ -52,7 +52,7 @@ function EditQuizContent() {
 
   if (!quiz) {
     return (
-      <div className="h-screen bg-[#141026] text-white flex items-center justify-center">
+      <div className="h-screen bg-[#141026] text-white flex items-center justify-center font-sans">
         <p className="text-xl font-bold">Loading quiz...</p>
       </div>
     );
@@ -63,7 +63,7 @@ function EditQuizContent() {
   const handleAddQuestion = () => {
     const newQ: Question = {
       ...DEFAULT_QUESTION,
-      id: `q_${Date.now()}_${questions.length + 1}`,
+      id: generateUUID(),
       order_index: questions.length,
       choices: [
         { text: "", shape: "triangle", color: "red" },
@@ -81,7 +81,7 @@ function EditQuizContent() {
     const target = questions[activeQuestionIndex];
     const duplicated: Question = {
       ...target,
-      id: `q_${Date.now()}_dup`,
+      id: generateUUID(),
       order_index: activeQuestionIndex + 1,
       choices: target.choices.map((c) => ({ ...c })),
     };
@@ -107,7 +107,7 @@ function EditQuizContent() {
     setQuestions(newQuestions);
   };
 
-  const handleSaveQuiz = (): Quiz => {
+  const handleSaveQuiz = async (): Promise<Quiz> => {
     const updatedQuiz: Quiz = {
       ...quiz,
       title: title.trim() || "Untitled Quiz",
@@ -116,18 +116,18 @@ function EditQuizContent() {
       questions,
     };
 
-    QuizStore.saveQuiz(updatedQuiz);
-    return updatedQuiz;
+    const saved = await QuizStore.saveQuizAsync(updatedQuiz);
+    return saved;
   };
 
-  const handleSaveAndHost = () => {
-    const saved = handleSaveQuiz();
+  const handleSaveAndHost = async () => {
+    const saved = await handleSaveQuiz();
     const pin = generateGamePin();
     router.push(`/host/game/${pin}?quizId=${saved.id}`);
   };
 
   return (
-    <div className="h-screen max-h-screen bg-[#141026] flex flex-col overflow-hidden">
+    <div className="h-screen max-h-screen bg-[#141026] flex flex-col overflow-hidden font-sans">
       {/* Top Header Bar */}
       <CreatorHeader
         title={title}

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Quiz, Question } from "@/lib/realtime/types";
-import { QuizStore } from "@/lib/store/quizStore";
+import { QuizStore, generateUUID } from "@/lib/store/quizStore";
 import { CreatorHeader } from "@/components/creator/CreatorHeader";
 import { SlideSidebar } from "@/components/creator/SlideSidebar";
 import { QuestionStage } from "@/components/creator/QuestionStage";
@@ -26,6 +26,7 @@ const DEFAULT_QUESTION: Omit<Question, "id" | "order_index"> = {
 
 function CreatorStudioContent() {
   const router = useRouter();
+  const [quizId] = useState(() => generateUUID());
   const [title, setTitle] = useState("My New Quiz");
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState("");
@@ -33,7 +34,7 @@ function CreatorStudioContent() {
 
   const [questions, setQuestions] = useState<Question[]>([
     {
-      id: `q_${Date.now()}_1`,
+      id: generateUUID(),
       order_index: 0,
       question_text: "What does the Next.js App Router render by default for components?",
       media_url: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=800&auto=format&fit=crop&q=80",
@@ -54,7 +55,7 @@ function CreatorStudioContent() {
   const handleAddQuestion = () => {
     const newQ: Question = {
       ...DEFAULT_QUESTION,
-      id: `q_${Date.now()}_${questions.length + 1}`,
+      id: generateUUID(),
       order_index: questions.length,
       choices: [
         { text: "", shape: "triangle", color: "red" },
@@ -72,7 +73,7 @@ function CreatorStudioContent() {
     const target = questions[activeQuestionIndex];
     const duplicated: Question = {
       ...target,
-      id: `q_${Date.now()}_dup`,
+      id: generateUUID(),
       order_index: activeQuestionIndex + 1,
       choices: target.choices.map((c) => ({ ...c })),
     };
@@ -98,8 +99,7 @@ function CreatorStudioContent() {
     setQuestions(newQuestions);
   };
 
-  const handleSaveQuiz = (): Quiz => {
-    const quizId = `quiz_${Date.now()}`;
+  const handleSaveQuiz = async (): Promise<Quiz> => {
     const quiz: Quiz = {
       id: quizId,
       title: title.trim() || "Untitled Quiz",
@@ -110,18 +110,18 @@ function CreatorStudioContent() {
       created_at: new Date().toISOString(),
     };
 
-    QuizStore.saveQuiz(quiz);
-    return quiz;
+    const saved = await QuizStore.saveQuizAsync(quiz);
+    return saved;
   };
 
-  const handleSaveAndHost = () => {
-    const saved = handleSaveQuiz();
+  const handleSaveAndHost = async () => {
+    const saved = await handleSaveQuiz();
     const pin = generateGamePin();
     router.push(`/host/game/${pin}?quizId=${saved.id}`);
   };
 
   return (
-    <div className="h-screen max-h-screen bg-[#141026] flex flex-col overflow-hidden">
+    <div className="h-screen max-h-screen bg-[#141026] flex flex-col overflow-hidden font-sans">
       {/* Top Clean Header */}
       <CreatorHeader
         title={title}
