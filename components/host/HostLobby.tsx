@@ -78,7 +78,8 @@ export function HostLobby({
   const handleStartGameClick = () => {
     if (players.length === 0 || isStartingSplash) return;
     setIsStartingSplash(true);
-    sounds.playDrumroll(2.2);
+    sounds.stopLobbyMusic();
+    sounds.playGameStartSplash();
 
     // 2.2s cinematic splash before transitioning to Question 1
     setTimeout(() => {
@@ -133,7 +134,7 @@ export function HostLobby({
       `}</style>
 
       {/* ========================================================================= */}
-      {/* CINEMATIC START GAME SPLASH (Expanding Cahoot! Logo) */}
+      {/* CINEMATIC START GAME SPLASH (Super-Sized Smooth Expanding Cahoot! Logo) */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {isStartingSplash && (
@@ -143,20 +144,28 @@ export function HostLobby({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-[#46178F] flex flex-col items-center justify-center text-center p-6 select-none overflow-hidden"
           >
+            {/* Glowing Aura Ring in Center */}
             <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: [0.6, 1.25, 1.4], opacity: [0, 1, 1] }}
+              initial={{ scale: 0.2, opacity: 0 }}
+              animate={{ scale: [0.2, 1.4, 2.0], opacity: [0, 0.7, 0] }}
               transition={{ duration: 2.2, ease: "easeOut" }}
-              className="flex flex-col items-center"
+              className="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-r from-yellow-400/30 to-amber-500/20 blur-3xl pointer-events-none"
+            />
+
+            <motion.div
+              initial={{ scale: 0.4, opacity: 0, y: 30 }}
+              animate={{ scale: [0.4, 1.15, 1.35], opacity: [0, 1, 1], y: 0 }}
+              transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center relative z-10"
             >
-              <h1 className="text-7xl sm:text-9xl md:text-[140px] font-black tracking-tighter text-white drop-shadow-[0_25px_60px_rgba(0,0,0,0.8)]">
-                Cahoot<span className="text-yellow-400">!</span>
+              <h1 className="text-8xl sm:text-[130px] md:text-[180px] lg:text-[220px] font-black tracking-tighter text-white drop-shadow-[0_25px_80px_rgba(0,0,0,0.9)] leading-none select-none">
+                Cahoot<span className="text-yellow-400 drop-shadow-[0_0_40px_rgba(250,204,21,0.9)]">!</span>
               </h1>
               <motion.p
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-2xl sm:text-4xl font-black uppercase tracking-[0.3em] text-yellow-300 mt-4 drop-shadow-lg"
+                transition={{ delay: 0.35, duration: 0.6 }}
+                className="text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-[0.35em] text-yellow-300 mt-6 drop-shadow-2xl"
               >
                 Get ready to play!
               </motion.p>

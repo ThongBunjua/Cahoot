@@ -132,7 +132,7 @@ function QuizzesContent() {
                 <div className="relative h-40 w-full bg-slate-900 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={quiz.cover_image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
+                    src={quiz.cover_image || quiz.questions?.find((q) => Boolean(q.media_url))?.media_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"}
                     alt={quiz.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

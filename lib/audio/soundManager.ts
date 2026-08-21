@@ -331,6 +331,64 @@ class SoundManager {
     });
   }
 
+  // Play Smooth, Grand Game Start Transition (Warm sub bass + ascending crystal whoosh + chord impact)
+  public playGameStartSplash() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    // 1. Warm Sub-bass sweep
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    subOsc.type = "sine";
+    subOsc.frequency.setValueAtTime(65, ctx.currentTime);
+    subOsc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.6);
+    subOsc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 1.8);
+
+    subGain.gain.setValueAtTime(0.28, ctx.currentTime);
+    subGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+
+    subOsc.connect(subGain);
+    subGain.connect(this.getMasterGain(ctx));
+    subOsc.start(ctx.currentTime);
+    subOsc.stop(ctx.currentTime + 1.8);
+
+    // 2. Ascending Crystal Whoosh / Riser
+    const whooshOsc = ctx.createOscillator();
+    const whooshGain = ctx.createGain();
+    whooshOsc.type = "triangle";
+    whooshOsc.frequency.setValueAtTime(220, ctx.currentTime);
+    whooshOsc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.9);
+
+    whooshGain.gain.setValueAtTime(0.01, ctx.currentTime);
+    whooshGain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.5);
+    whooshGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+
+    whooshOsc.connect(whooshGain);
+    whooshGain.connect(this.getMasterGain(ctx));
+    whooshOsc.start(ctx.currentTime);
+    whooshOsc.stop(ctx.currentTime + 1.2);
+
+    // 3. Energetic Opening Chords
+    const chords = [523.25, 659.25, 783.99, 1046.5]; // C Major
+    chords.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const hitTime = ctx.currentTime + 0.25 + idx * 0.06;
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, hitTime);
+
+      gain.gain.setValueAtTime(0.15, hitTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, hitTime + 1.2);
+
+      osc.connect(gain);
+      gain.connect(this.getMasterGain(ctx));
+      osc.start(hitTime);
+      osc.stop(hitTime + 1.2);
+    });
+  }
+
   // --- CELEBRATION & PODIUM SOUND ENGINE ---
 
   // 1. Realistic Drumroll with rapid snare hits building suspense
