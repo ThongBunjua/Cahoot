@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Question } from "@/lib/realtime/types";
 import { KahootShape } from "@/components/ui/KahootShapes";
+import { processLocalImage } from "@/lib/utils/imageUpload";
 import {
   Check,
   Image as ImageIcon,
@@ -12,6 +13,8 @@ import {
   Copy,
   X,
   Plus,
+  Upload,
+  Link as LinkIcon,
 } from "lucide-react";
 
 interface QuestionStageProps {
@@ -51,6 +54,13 @@ const CHOICE_LAYOUTS = [
   },
 ];
 
+const TIME_OPTIONS = [5, 10, 20, 30, 60, 90];
+const MULTIPLIER_OPTIONS = [
+  { label: "Standard", value: 1.0 },
+  { label: "Double", value: 2.0 },
+  { label: "No Points", value: 0 },
+];
+
 export function QuestionStage({
   question,
   questionNumber,
@@ -61,81 +71,120 @@ export function QuestionStage({
   canDelete,
 }: QuestionStageProps) {
   const [showImageInput, setShowImageInput] = useState(Boolean(question.media_url));
+  const [inputMode, setInputMode] = useState<"upload" | "url">("upload");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleChoiceTextChange = (index: number, text: string) => {
+    const updatedChoices = [...question.choices];
+    updatedChoices[index] = {
+      ...updatedChoices[index],
+      text,
+    };
+    onChange({ ...question, choices: updatedChoices });
+  };
+
+  const handleCorrectChoiceSelect = (index: number) => {
+    onChange({ ...question, correct_index: index });
+  };
 
   const handleQuestionTextChange = (text: string) => {
     onChange({ ...question, question_text: text });
   };
 
-  const handleChoiceTextChange = (index: number, text: string) => {
-    const updated = [...question.choices];
-    updated[index] = { ...updated[index], text };
-    onChange({ ...question, choices: updated });
-  };
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleCorrectToggle = (index: number) => {
-    onChange({ ...question, correct_index: index });
+    try {
+      setIsUploading(true);
+      const dataUrl = await processLocalImage(file);
+      onChange({ ...question, media_url: dataUrl });
+      setShowImageInput(false);
+    } catch (err: any) {
+      alert(err.message || "Failed to process image");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   return (
-    <div className="flex-1 h-full max-h-full overflow-y-auto custom-scrollbar flex flex-col justify-between p-3 sm:p-5 md:p-6 bg-gradient-to-b from-[#250d42] via-[#17062b] to-[#0f031c] relative select-none text-white">
-      {/* 1. Top Controls Bar: Question #, Time Limit, Points, Duplicate, Delete */}
-      <div className="w-full max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/15 shadow-md">
+    <div className="w-full flex-1 flex flex-col justify-between p-3 sm:p-6 select-none">
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
+      {/* 1. Top Controls Bar: Question index, Time, Multiplier, Duplicate, Delete */}
+      <div className="w-full max-w-4xl mx-auto flex items-center justify-between gap-3 text-white mb-2">
         <div className="flex items-center gap-2">
-          <span className="bg-purple-600 text-white text-xs font-black px-3 py-1 rounded-xl">
-            Question {questionNumber} of {totalQuestions}
+          <span className="text-sm font-black px-3 py-1 bg-white/10 rounded-full border border-white/15">
+            Q {questionNumber} / {totalQuestions}
           </span>
         </div>
 
-        {/* Essential Working Controls */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2">
           {/* Time Limit Selector */}
-          <div className="flex items-center gap-1.5 bg-black/30 px-3 py-1 rounded-xl border border-white/15">
-            <Clock className="w-3.5 h-3.5 text-blue-400" />
+          <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/15 text-xs font-bold">
+            <Clock className="w-3.5 h-3.5 text-yellow-400" />
             <select
               value={question.time_limit}
-              onChange={(e) => onChange({ ...question, time_limit: Number(e.target.value) })}
-              className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer"
+              onChange={(e) =>
+                onChange({ ...question, time_limit: parseInt(e.target.value, 10) })
+              }
+              className="bg-transparent text-white font-bold outline-none cursor-pointer"
             >
-              <option value={10} className="bg-[#1e1b36]">10s</option>
-              <option value={20} className="bg-[#1e1b36]">20s</option>
-              <option value={30} className="bg-[#1e1b36]">30s</option>
-              <option value={60} className="bg-[#1e1b36]">60s</option>
+              {TIME_OPTIONS.map((sec) => (
+                <option key={sec} value={sec} className="bg-slate-900 text-white">
+                  {sec}s
+                </option>
+              ))}
             </select>
           </div>
 
           {/* Points Multiplier */}
-          <div className="flex items-center gap-1.5 bg-black/30 px-3 py-1 rounded-xl border border-white/15">
+          <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/15 text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
             <select
-              value={question.points_multiplier}
-              onChange={(e) => onChange({ ...question, points_multiplier: Number(e.target.value) })}
-              className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer"
+              value={question.points_multiplier ?? 1.0}
+              onChange={(e) =>
+                onChange({
+                  ...question,
+                  points_multiplier: parseFloat(e.target.value),
+                })
+              }
+              className="bg-transparent text-white font-bold outline-none cursor-pointer"
             >
-              <option value={1.0} className="bg-[#1e1b36]">Standard (1,000)</option>
-              <option value={2.0} className="bg-[#1e1b36]">Double (2,000)</option>
-              <option value={0.0} className="bg-[#1e1b36]">No points</option>
+              {MULTIPLIER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Duplicate Question */}
+          {/* Duplicate Button */}
           <button
-            type="button"
             onClick={onDuplicate}
-            className="p-1.5 bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white rounded-lg transition-colors"
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all cursor-pointer border border-white/15"
             title="Duplicate Question"
           >
-            <Copy className="w-4 h-4" />
+            <Copy className="w-3.5 h-3.5" />
           </button>
 
-          {/* Delete Question */}
+          {/* Delete Button */}
           {canDelete && (
             <button
-              type="button"
               onClick={onDelete}
-              className="p-1.5 bg-red-500/15 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors border border-red-500/30"
+              className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-full transition-all cursor-pointer border border-red-500/30"
               title="Delete Question"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -154,7 +203,7 @@ export function QuestionStage({
         </div>
       </div>
 
-      {/* 3. Optional Image / Media Box */}
+      {/* 3. Optional Image / Media Box (Upload from PC or Paste URL) */}
       <div className="w-full max-w-4xl mx-auto my-auto py-1">
         {question.media_url ? (
           <div className="relative mx-auto w-full max-w-xs h-32 sm:h-40 rounded-2xl overflow-hidden shadow-xl border-2 border-white/30 bg-black/40">
@@ -164,39 +213,105 @@ export function QuestionStage({
               alt="Question illustration"
               className="w-full h-full object-cover"
             />
-            <button
-              onClick={() => onChange({ ...question, media_url: "" })}
-              className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-all shadow"
-              title="Remove image"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="absolute top-2 right-2 flex items-center gap-1.5">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-all shadow text-xs flex items-center gap-1"
+                title="Change image from computer"
+              >
+                <Upload className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onChange({ ...question, media_url: "" })}
+                className="p-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded-full transition-all shadow"
+                title="Remove image"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ) : showImageInput ? (
-          <div className="bg-white/10 border border-white/15 rounded-2xl p-3 max-w-lg mx-auto flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <input
-              type="url"
-              value={question.media_url || ""}
-              onChange={(e) => onChange({ ...question, media_url: e.target.value })}
-              placeholder="Paste image URL (https://...)"
-              className="flex-1 text-xs text-white bg-transparent outline-none placeholder:text-slate-400"
-            />
-            <button
-              onClick={() => setShowImageInput(false)}
-              className="text-slate-400 hover:text-white p-1"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-3 max-w-lg mx-auto flex flex-col gap-2">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setInputMode("upload")}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                    inputMode === "upload"
+                      ? "bg-[#FFA602] text-slate-950 shadow-sm"
+                      : "text-slate-300 hover:text-white"
+                  }`}
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload from PC</span>
+                </button>
+                <button
+                  onClick={() => setInputMode("url")}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                    inputMode === "url"
+                      ? "bg-[#FFA602] text-slate-950 shadow-sm"
+                      : "text-slate-300 hover:text-white"
+                  }`}
+                >
+                  <LinkIcon className="w-3.5 h-3.5" />
+                  <span>Paste URL</span>
+                </button>
+              </div>
+              <button
+                onClick={() => setShowImageInput(false)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {inputMode === "upload" ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-white/20 hover:border-yellow-400/60 rounded-xl p-4 text-center cursor-pointer transition-all bg-white/5 hover:bg-white/10 flex flex-col items-center gap-1"
+              >
+                <Upload className="w-6 h-6 text-yellow-400 mb-1" />
+                <span className="text-xs font-bold text-white">
+                  {isUploading ? "Processing Image..." : "Click to choose image from your computer"}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  Supports JPG, PNG, WEBP, GIF (Auto-optimized)
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 pt-1">
+                <ImageIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <input
+                  type="url"
+                  value={question.media_url || ""}
+                  onChange={(e) => onChange({ ...question, media_url: e.target.value })}
+                  placeholder="Paste image URL (https://...)"
+                  className="flex-1 text-xs text-white bg-transparent outline-none placeholder:text-slate-400"
+                />
+              </div>
+            )}
           </div>
         ) : (
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-2">
+            {/* Direct Upload from Computer Button */}
             <button
-              onClick={() => setShowImageInput(true)}
-              className="text-xs font-bold text-slate-300 hover:text-white bg-white/10 hover:bg-white/15 px-3.5 py-1.5 rounded-full border border-white/15 flex items-center gap-1.5 transition-all"
+              onClick={() => fileInputRef.current?.click()}
+              className="text-xs font-bold text-slate-950 bg-[#FFA602] hover:bg-[#CC8400] px-4 py-2 rounded-full border border-yellow-300 shadow-md flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Image URL (Optional)</span>
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Image from PC</span>
+            </button>
+
+            {/* Paste URL Option */}
+            <button
+              onClick={() => {
+                setShowImageInput(true);
+                setInputMode("url");
+              }}
+              className="text-xs font-bold text-slate-300 hover:text-white bg-white/10 hover:bg-white/15 px-3.5 py-2 rounded-full border border-white/15 flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <LinkIcon className="w-3.5 h-3.5" />
+              <span>Image URL</span>
             </button>
           </div>
         )}
@@ -222,27 +337,27 @@ export function QuestionStage({
                 <KahootShape shape={layout.shape} size={20} />
               </div>
 
-              {/* Choice Input Text */}
+              {/* Text Input */}
               <input
                 type="text"
-                value={choice?.text || ""}
+                value={choice.text}
                 onChange={(e) => handleChoiceTextChange(layout.index, e.target.value)}
                 placeholder={layout.placeholder}
-                className="flex-1 text-xs sm:text-sm font-bold text-slate-800 placeholder:text-slate-400 outline-none bg-transparent py-1.5 min-w-0"
+                className="flex-1 text-slate-900 font-bold text-sm sm:text-base outline-none bg-transparent placeholder:text-slate-400 placeholder:font-medium"
               />
 
-              {/* Checkmark button to select correct answer */}
+              {/* Correct Answer Checkbox Toggle Button */}
               <button
                 type="button"
-                onClick={() => handleCorrectToggle(layout.index)}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer flex-shrink-0 mr-1 ${
+                onClick={() => handleCorrectChoiceSelect(layout.index)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer flex-shrink-0 border-2 ${
                   isCorrect
-                    ? "bg-[#26890C] border-[#26890C] text-white shadow-md scale-105"
-                    : "border-slate-300 hover:border-slate-400 text-transparent"
+                    ? "bg-[#26890C] text-white border-white shadow-md scale-105"
+                    : "bg-slate-100 border-slate-300 text-transparent hover:border-slate-400"
                 }`}
-                title={isCorrect ? "Correct Answer" : "Mark as correct answer"}
+                title={isCorrect ? "Correct answer" : "Mark as correct answer"}
               >
-                <Check className={`w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[4] ${isCorrect ? "text-white" : ""}`} />
+                <Check className={`w-4 h-4 stroke-[3] ${isCorrect ? "opacity-100" : "opacity-0"}`} />
               </button>
             </div>
           );

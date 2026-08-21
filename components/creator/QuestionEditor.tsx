@@ -1,9 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Question, Choice } from "@/lib/realtime/types";
 import { KahootShape } from "@/components/ui/KahootShapes";
-import { Check, Clock, Sparkles, Image as ImageIcon, Trash2, Copy } from "lucide-react";
+import { processLocalImage } from "@/lib/utils/imageUpload";
+import {
+  Check,
+  Clock,
+  Sparkles,
+  Image as ImageIcon,
+  Trash2,
+  Copy,
+  Upload,
+  Link as LinkIcon,
+  X,
+} from "lucide-react";
 
 interface QuestionEditorProps {
   question: Question;
@@ -29,6 +40,10 @@ export function QuestionEditor({
   onDelete,
   canDelete,
 }: QuestionEditorProps) {
+  const [inputMode, setInputMode] = useState<"upload" | "url">("upload");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleChoiceTextChange = (index: number, text: string) => {
     const updatedChoices = [...question.choices];
     updatedChoices[index] = { ...updatedChoices[index], text };
@@ -39,8 +54,33 @@ export function QuestionEditor({
     onChange({ ...question, correct_index: index });
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const dataUrl = await processLocalImage(file);
+      onChange({ ...question, media_url: dataUrl });
+    } catch (err: any) {
+      alert(err.message || "Failed to process image");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 shadow-2xl flex flex-col gap-6">
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
       {/* Top Header Controls: Question Number, Time Limit, Points Multiplier, Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -115,19 +155,82 @@ export function QuestionEditor({
         />
       </div>
 
-      {/* Optional Media Image URL */}
+      {/* Optional Media Image Upload from PC or URL */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
-          <ImageIcon className="w-3.5 h-3.5 text-yellow-400" />
-          <span>Image / Media URL (Optional)</span>
-        </label>
-        <input
-          type="url"
-          value={question.media_url || ""}
-          onChange={(e) => onChange({ ...question, media_url: e.target.value })}
-          placeholder="https://images.unsplash.com/..."
-          className="w-full text-sm font-medium py-2.5 px-3.5 bg-slate-800 border border-slate-700 rounded-xl focus:border-kahoot-purple text-white placeholder:text-slate-500 outline-none transition-all"
-        />
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <ImageIcon className="w-3.5 h-3.5 text-yellow-400" />
+            <span>Image / Media (Optional)</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setInputMode("upload")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                inputMode === "upload" ? "bg-[#FFA602] text-slate-950" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Upload from PC
+            </button>
+            <button
+              type="button"
+              onClick={() => setInputMode("url")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                inputMode === "url" ? "bg-[#FFA602] text-slate-950" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Paste URL
+            </button>
+          </div>
+        </div>
+
+        {question.media_url ? (
+          <div className="relative w-full max-w-sm h-36 rounded-2xl overflow-hidden border border-white/20 bg-slate-950">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={question.media_url}
+              alt="Question media"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute top-2 right-2 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-1.5 bg-black/70 hover:bg-black text-white rounded-full text-xs shadow transition-all"
+                title="Change Image"
+              >
+                <Upload className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onChange({ ...question, media_url: "" })}
+                className="p-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded-full shadow transition-all"
+                title="Remove Image"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ) : inputMode === "upload" ? (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-slate-700 hover:border-yellow-400/70 rounded-2xl p-4 text-center cursor-pointer transition-all bg-slate-800/60 hover:bg-slate-800 flex flex-col items-center gap-1"
+          >
+            <Upload className="w-6 h-6 text-yellow-400 mb-1" />
+            <span className="text-xs font-bold text-white">
+              {isUploading ? "Compressing & Processing Image..." : "Click to select image from your computer"}
+            </span>
+            <span className="text-[10px] text-slate-400">JPG, PNG, WebP, GIF (Auto-optimized)</span>
+          </div>
+        ) : (
+          <input
+            type="url"
+            value={question.media_url || ""}
+            onChange={(e) => onChange({ ...question, media_url: e.target.value })}
+            placeholder="https://images.unsplash.com/..."
+            className="w-full text-sm font-medium py-2.5 px-3.5 bg-slate-800 border border-slate-700 rounded-xl focus:border-kahoot-purple text-white placeholder:text-slate-500 outline-none transition-all"
+          />
+        )}
       </div>
 
       {/* 4 Choices Grid with Correct Answer Toggle */}
