@@ -62,7 +62,7 @@ export function HostQuestionIntro({
     };
   }, []);
 
-  // 3.4-second reading progress bar -> Seamless Morph upwards to Top Header
+  // 3.4-second reading progress bar -> Long, Luxurious, Continuous Morph upwards to Top Header
   useEffect(() => {
     if (stage !== "question_preview") return;
 
@@ -75,12 +75,12 @@ export function HostQuestionIntro({
         const next = prev + increment;
         if (next >= 100) {
           clearInterval(interval);
-          // Trigger seamless morph upwards animation
+          // Trigger continuous morph upwards animation
           setStage("morph_to_top");
-          // After 0.45s morph completes, smoothly switch to HostQuestion
+          // Smooth 700ms transition to let the card slide all the way to the top before switching
           setTimeout(() => {
             onIntroComplete();
-          }, 450);
+          }, 700);
           return 100;
         }
         return next;
@@ -96,7 +96,7 @@ export function HostQuestionIntro({
   const isMorphing = stage === "morph_to_top";
 
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-3 sm:p-4 md:p-5 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
@@ -111,8 +111,8 @@ export function HostQuestionIntro({
         <AudioControl />
       </header>
 
-      {/* 2. Main Center Stage: 3-2-1 Geometric Shapes -> Phone Mockup -> Seamless Question Morph */}
-      <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-6xl mx-auto my-auto">
+      {/* 2. Main Center Stage: 3-2-1 Shapes -> Phone -> Seamless Full-Width Question Morph */}
+      <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-[98vw] mx-auto my-auto">
         {/* ========================================================================= */}
         {/* PART A: 3-2-1 GEOMETRIC SHAPES */}
         {/* ========================================================================= */}
@@ -187,12 +187,12 @@ export function HostQuestionIntro({
             initial={{ y: 80, scale: 0.5, opacity: 0 }}
             animate={
               isMorphing
-                ? { y: -300, scale: 0.2, opacity: 0 }
+                ? { y: -380, scale: 0.1, opacity: 0 }
                 : stage === "phone_center"
                 ? { y: 0, scale: 1, opacity: 1 }
                 : { y: -220, scale: 0.38, opacity: 1 }
             }
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             className="w-80 h-[500px] sm:w-96 sm:h-[580px] bg-slate-950 rounded-[52px] p-5 border-4 border-slate-700 border-b-[12px] border-b-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.85)] flex flex-col justify-between absolute z-30 origin-center pointer-events-none"
           >
             {/* Phone Speaker Notch & Camera */}
@@ -230,7 +230,7 @@ export function HostQuestionIntro({
         )}
 
         {/* ========================================================================= */}
-        {/* PART C: QUESTION CARD WITH SEAMLESS MORPH UPWARDS (ภาพที่ 1 -> ภาพที่ 2) */}
+        {/* PART C: QUESTION CARD WITH SEAMLESS FULL-WIDTH MORPH UPWARDS (ภาพ 1 -> ภาพ 2) */}
         {/* ========================================================================= */}
         {!isShapeCountdown && (
           <motion.div
@@ -238,28 +238,59 @@ export function HostQuestionIntro({
             animate={
               isMorphing
                 ? {
-                    y: -310,
-                    scale: 0.88,
+                    y: -360,
+                    scale: 1,
                     opacity: 1,
+                    maxWidth: "98vw",
                   }
                 : stage === "phone_center"
                 ? { opacity: 0, scale: 0.85, y: 120, pointerEvents: "none" }
-                : { opacity: 1, scale: 1, y: 65, pointerEvents: "auto" }
+                : { opacity: 1, scale: 1, y: 65, maxWidth: "1150px", pointerEvents: "auto" }
             }
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-5xl flex flex-col items-center text-center relative z-20"
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full flex flex-col items-center text-center relative z-20"
           >
-            {/* Giant Question Preview Box */}
-            <div className="w-full bg-white text-slate-900 rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 mb-6 min-h-[140px] flex items-center justify-center">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-snug tracking-tight">
-                {question.question_text}
-              </h1>
-            </div>
-
-            {/* Reading Progress Track (Fades out when morphing) */}
+            {/* Question Box Morphing to exact header dimensions */}
             <motion.div
-              animate={{ opacity: isMorphing ? 0 : 1 }}
-              transition={{ duration: 0.2 }}
+              animate={
+                isMorphing
+                  ? {
+                      paddingTop: "14px",
+                      paddingBottom: "14px",
+                      paddingLeft: "32px",
+                      paddingRight: "32px",
+                      borderRadius: "24px",
+                      minHeight: "65px",
+                    }
+                  : {
+                      paddingTop: "36px",
+                      paddingBottom: "36px",
+                      paddingLeft: "48px",
+                      paddingRight: "48px",
+                      borderRadius: "32px",
+                      minHeight: "140px",
+                    }
+              }
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full bg-white text-slate-900 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-center mb-6"
+            >
+              <motion.h1
+                animate={
+                  isMorphing
+                    ? { fontSize: "28px", lineHeight: "34px" }
+                    : { fontSize: "40px", lineHeight: "48px" }
+                }
+                transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+                className="font-black text-slate-900 tracking-tight"
+              >
+                {question.question_text}
+              </motion.h1>
+            </motion.div>
+
+            {/* Reading Progress Track (Smoothly fades out during morph) */}
+            <motion.div
+              animate={{ opacity: isMorphing ? 0 : 1, y: isMorphing ? 40 : 0 }}
+              transition={{ duration: 0.3 }}
               className="w-full max-w-2xl flex flex-col items-center"
             >
               <div className="w-full h-4 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">
