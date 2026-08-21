@@ -96,12 +96,12 @@ function KahootPlayerContent() {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] text-white flex flex-col justify-between items-center p-3 sm:p-6 relative overflow-hidden select-none">
+    <div className="min-h-screen min-h-[100dvh] w-full text-white flex flex-col justify-between items-center p-1.5 sm:p-4 md:p-6 relative overflow-hidden select-none">
       {/* Material / Paper-Cut Purple Gradient Background */}
       <PaperCutBackground />
 
       {/* Main Center Floating Card Area */}
-      <main className="relative z-20 w-full flex-1 flex flex-col items-center justify-center my-auto py-4">
+      <main className="relative z-20 w-full h-full flex-1 flex flex-col items-center justify-center my-auto">
         {step !== "game" && (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -136,7 +136,7 @@ function KahootPlayerContent() {
           )}
 
           {step === "game" && (
-            <div key="game-view" className="w-full h-full flex flex-col items-center justify-center">
+            <div key="game-view" className="w-full h-full flex-1 flex flex-col items-center justify-center">
               {(!state.player || state.phase === "lobby") && (
                 <PlayerLobby
                   player={state.player || { id: "temp", nickname: "Player", avatar: "🦊", score: 0, streak: 0, lastPoints: 0, lastCorrect: null, lastAnswerIndex: null, rank: 1, joinedAt: Date.now() }}
