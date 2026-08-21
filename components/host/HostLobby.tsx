@@ -81,10 +81,10 @@ export function HostLobby({
     sounds.stopLobbyMusic();
     sounds.playGameStartSplash();
 
-    // 2.2s cinematic splash before transitioning to Question 1
+    // 4.7s luxurious cinematic splash before transitioning to Question 1 (+2.5s extended)
     setTimeout(() => {
       onStartGame();
-    }, 2200);
+    }, 4700);
   };
 
   // Organize players into 5 STABLE lanes (existing players NEVER jump vertically!)
@@ -134,7 +134,7 @@ export function HostLobby({
       `}</style>
 
       {/* ========================================================================= */}
-      {/* CINEMATIC START GAME SPLASH (Super-Sized Smooth Expanding Cahoot! Logo) */}
+      {/* CINEMATIC START GAME SPLASH (Super-Sized Smooth Expanding Cahoot! Logo 4.7s) */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {isStartingSplash && (
@@ -147,24 +147,24 @@ export function HostLobby({
             {/* Glowing Aura Ring in Center */}
             <motion.div
               initial={{ scale: 0.2, opacity: 0 }}
-              animate={{ scale: [0.2, 1.4, 2.0], opacity: [0, 0.7, 0] }}
-              transition={{ duration: 2.2, ease: "easeOut" }}
-              className="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-r from-yellow-400/30 to-amber-500/20 blur-3xl pointer-events-none"
+              animate={{ scale: [0.2, 1.4, 2.2], opacity: [0, 0.8, 0.3] }}
+              transition={{ duration: 4.7, ease: "easeOut" }}
+              className="absolute w-[540px] h-[540px] rounded-full bg-gradient-to-r from-yellow-400/35 to-amber-500/25 blur-3xl pointer-events-none"
             />
 
             <motion.div
-              initial={{ scale: 0.4, opacity: 0, y: 30 }}
-              animate={{ scale: [0.4, 1.15, 1.35], opacity: [0, 1, 1], y: 0 }}
-              transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ scale: 0.45, opacity: 0, y: 40 }}
+              animate={{ scale: [0.45, 1.12, 1.3, 1.4], opacity: [0, 1, 1, 1], y: [40, 0, -5, -8] }}
+              transition={{ duration: 4.7, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center relative z-10"
             >
               <h1 className="text-8xl sm:text-[130px] md:text-[180px] lg:text-[220px] font-black tracking-tighter text-white drop-shadow-[0_25px_80px_rgba(0,0,0,0.9)] leading-none select-none">
-                Cahoot<span className="text-yellow-400 drop-shadow-[0_0_40px_rgba(250,204,21,0.9)]">!</span>
+                Cahoot<span className="text-yellow-400 drop-shadow-[0_0_45px_rgba(250,204,21,0.95)]">!</span>
               </h1>
               <motion.p
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.6 }}
+                transition={{ delay: 0.5, duration: 0.7 }}
                 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-[0.35em] text-yellow-300 mt-6 drop-shadow-2xl"
               >
                 Get ready to play!

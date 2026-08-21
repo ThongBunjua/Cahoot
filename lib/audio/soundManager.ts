@@ -331,61 +331,68 @@ class SoundManager {
     });
   }
 
-  // Play Smooth, Grand Game Start Transition (Warm sub bass + ascending crystal whoosh + chord impact)
+  // Play Smooth, Grand Game Start Transition (Warm sub bass + ascending crystal whoosh + extended chord resonance ~4.5s)
   public playGameStartSplash() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
-    // 1. Warm Sub-bass sweep
+    // 1. Warm Sustained Sub-bass sweep
     const subOsc = ctx.createOscillator();
     const subGain = ctx.createGain();
     subOsc.type = "sine";
-    subOsc.frequency.setValueAtTime(65, ctx.currentTime);
-    subOsc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.6);
-    subOsc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 1.8);
+    subOsc.frequency.setValueAtTime(55, ctx.currentTime);
+    subOsc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 1.2);
+    subOsc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 4.2);
 
     subGain.gain.setValueAtTime(0.28, ctx.currentTime);
-    subGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+    subGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 4.2);
 
     subOsc.connect(subGain);
     subGain.connect(this.getMasterGain(ctx));
     subOsc.start(ctx.currentTime);
-    subOsc.stop(ctx.currentTime + 1.8);
+    subOsc.stop(ctx.currentTime + 4.2);
 
     // 2. Ascending Crystal Whoosh / Riser
     const whooshOsc = ctx.createOscillator();
     const whooshGain = ctx.createGain();
     whooshOsc.type = "triangle";
-    whooshOsc.frequency.setValueAtTime(220, ctx.currentTime);
-    whooshOsc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.9);
+    whooshOsc.frequency.setValueAtTime(180, ctx.currentTime);
+    whooshOsc.frequency.exponentialRampToValueAtTime(960, ctx.currentTime + 1.6);
 
     whooshGain.gain.setValueAtTime(0.01, ctx.currentTime);
-    whooshGain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.5);
-    whooshGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+    whooshGain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.8);
+    whooshGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
 
     whooshOsc.connect(whooshGain);
     whooshGain.connect(this.getMasterGain(ctx));
     whooshOsc.start(ctx.currentTime);
-    whooshOsc.stop(ctx.currentTime + 1.2);
+    whooshOsc.stop(ctx.currentTime + 2.5);
 
-    // 3. Energetic Opening Chords
-    const chords = [523.25, 659.25, 783.99, 1046.5]; // C Major
-    chords.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const hitTime = ctx.currentTime + 0.25 + idx * 0.06;
+    // 3. Energetic Opening Chords Sequence (Phased progression across 4.5s)
+    const chordProgression = [
+      { notes: [261.63, 329.63, 392.0, 523.25], start: 0.3, dur: 2.2, vol: 0.14 },
+      { notes: [349.23, 440.0, 523.25, 659.25], start: 1.6, dur: 2.4, vol: 0.16 },
+      { notes: [392.0, 493.88, 587.33, 783.99, 1046.5], start: 2.8, dur: 2.0, vol: 0.18 },
+    ];
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, hitTime);
+    chordProgression.forEach((chord) => {
+      const sTime = ctx.currentTime + chord.start;
+      chord.notes.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, sTime);
 
-      gain.gain.setValueAtTime(0.15, hitTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, hitTime + 1.2);
+        gain.gain.setValueAtTime(0.01, sTime);
+        gain.gain.linearRampToValueAtTime(chord.vol / chord.notes.length, sTime + 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001, sTime + chord.dur);
 
-      osc.connect(gain);
-      gain.connect(this.getMasterGain(ctx));
-      osc.start(hitTime);
-      osc.stop(hitTime + 1.2);
+        osc.connect(gain);
+        gain.connect(this.getMasterGain(ctx));
+        osc.start(sTime);
+        osc.stop(sTime + chord.dur);
+      });
     });
   }
 
