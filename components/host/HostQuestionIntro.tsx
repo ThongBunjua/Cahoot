@@ -32,42 +32,35 @@ export function HostQuestionIntro({
     // 0.0s: Stage 3 (Countdown 3 - Red Triangle)
     sounds.playGetReadyPulse(3);
 
-    // 1.0s: Stage 2 (Countdown 2 - Blue Diamond)
+    // 0.8s: Stage 2 (Countdown 2 - Blue Diamond)
     const t2 = setTimeout(() => {
       setStage("countdown_2");
       sounds.playGetReadyPulse(2);
-    }, 1000);
+    }, 800);
 
-    // 2.0s: Stage 1 (Countdown 1 - Yellow Circle)
+    // 1.6s: Stage 1 (Countdown 1 - Yellow Circle)
     const t1 = setTimeout(() => {
       setStage("countdown_1");
       sounds.playGetReadyPulse(1);
-    }, 2000);
+    }, 1600);
 
-    // 3.0s: Stage Phone Pop-up (1.6s duration)
-    const tPop = setTimeout(() => {
-      setStage("phone_popup");
-      sounds.playClick();
-    }, 3000);
-
-    // 4.6s: Stage Question Preview with morphing phone above
+    // 2.4s: Stage Question Preview (Host shows question for exactly 3 seconds)
     const tPreview = setTimeout(() => {
       setStage("question_preview");
-    }, 4600);
+    }, 2400);
 
     return () => {
       clearTimeout(t2);
       clearTimeout(t1);
-      clearTimeout(tPop);
       clearTimeout(tPreview);
     };
   }, []);
 
-  // 4-second smooth reading progress bar
+  // Exactly 3-second smooth reading progress bar on Host screen
   useEffect(() => {
     if (stage !== "question_preview") return;
 
-    const totalDurationMs = 4000;
+    const totalDurationMs = 3000;
     const intervalMs = 25;
     const increment = (intervalMs / totalDurationMs) * 100;
 

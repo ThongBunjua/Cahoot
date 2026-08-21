@@ -8,31 +8,34 @@ interface PlayerGetReadyProps {
   totalQuestions: number;
 }
 
-const SUSPENSE_MESSAGES = [
-  "Get ready",
-  "Think fast",
-  "Focus",
-  "Answers incoming",
-];
-
 export function PlayerGetReady({ questionIndex, totalQuestions }: PlayerGetReadyProps) {
-  const [count, setCount] = useState(5);
+  // Phase 1: "intro" (2.4s) -> Phase 2: "countdown" (3s: 3 -> 2 -> 1)
+  const [mode, setMode] = useState<"intro" | "countdown">("intro");
+  const [countdownNum, setCountdownNum] = useState(3);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCount((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 1;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // 2.4s: Switch from "Get Ready!" to countdown "3" (when Host starts 3s question preview)
+    const tCountdownStart = setTimeout(() => {
+      setMode("countdown");
+      setCountdownNum(3);
+    }, 2400);
 
-    return () => clearInterval(timer);
+    // 3.4s: Countdown "2"
+    const t2 = setTimeout(() => {
+      setCountdownNum(2);
+    }, 3400);
+
+    // 4.4s: Countdown "1"
+    const t1 = setTimeout(() => {
+      setCountdownNum(1);
+    }, 4400);
+
+    return () => {
+      clearTimeout(tCountdownStart);
+      clearTimeout(t2);
+      clearTimeout(t1);
+    };
   }, []);
-
-  const currentMessage = SUSPENSE_MESSAGES[Math.min(5 - count, SUSPENSE_MESSAGES.length - 1)] || "Get ready";
 
   return (
     <div className="flex flex-col items-center justify-center text-center p-6 select-none font-sans w-full max-w-sm mx-auto">
@@ -47,40 +50,53 @@ export function PlayerGetReady({ questionIndex, totalQuestions }: PlayerGetReady
         </span>
       </motion.div>
 
-      {/* Giant Minimalist Countdown Number */}
-      <div className="relative w-36 h-36 flex items-center justify-center mb-8">
-        {/* Subtle pulsating outer ring */}
+      {/* Main Center Stage: Animated Get Ready or Giant 3-2-1 */}
+      <div className="relative w-40 h-40 flex items-center justify-center mb-8">
+        {/* Pulsating Glow Ring */}
         <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-          className="absolute inset-0 rounded-full bg-yellow-400/20 blur-md"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.7, 0.3] }}
+          transition={{ repeat: Infinity, duration: 1.0, ease: "easeInOut" }}
+          className="absolute inset-0 rounded-full bg-yellow-400/20 blur-lg"
         />
 
         <AnimatePresence mode="popLayout">
-          <motion.div
-            key={count}
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 1.3, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 350, damping: 20 }}
-            className="w-32 h-32 bg-yellow-400 text-slate-950 rounded-full flex items-center justify-center text-6xl font-black shadow-2xl border-4 border-yellow-200"
-          >
-            {count}
-          </motion.div>
+          {mode === "intro" ? (
+            <motion.div
+              key="intro-badge"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 1.2, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 350, damping: 20 }}
+              className="w-32 h-32 bg-yellow-400 text-slate-950 rounded-full flex items-center justify-center text-5xl font-black shadow-2xl border-4 border-yellow-200"
+            >
+              !
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`count-${countdownNum}`}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 1.3, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 380, damping: 20 }}
+              className="w-32 h-32 bg-yellow-400 text-slate-950 rounded-full flex items-center justify-center text-6xl font-black shadow-2xl border-4 border-yellow-200"
+            >
+              {countdownNum}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
-      {/* Minimal Suspense Message Underneath */}
+      {/* Minimal Suspense Subtitle */}
       <AnimatePresence mode="wait">
         <motion.h2
-          key={currentMessage}
+          key={mode === "intro" ? "Get ready" : "Answers incoming"}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.2 }}
           className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase"
         >
-          {currentMessage}
+          {mode === "intro" ? "Get ready" : "Answers incoming"}
         </motion.h2>
       </AnimatePresence>
     </div>
