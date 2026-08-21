@@ -10,7 +10,6 @@ import { sounds } from "@/lib/audio/soundManager";
 import {
   Trophy,
   Crown,
-  Medal,
   Home,
   ListOrdered,
 } from "lucide-react";
@@ -22,7 +21,7 @@ interface HostPodiumProps {
   onPlayAgain?: () => void;
 }
 
-export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
+export function HostPodium({ quiz, players }: HostPodiumProps) {
   // Sort players by final total score with deterministic tie-breaker
   const sorted = [...players].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
@@ -44,56 +43,58 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
   const [p1Details, setP1Details] = useState(false);
 
   const [spotlight, setSpotlight] = useState(false);
-  const [celebrateAll, setCelebrateAll] = useState(false);
   const [triggerConfetti, setTriggerConfetti] = useState(false);
   const [showFullScoreboard, setShowFullScoreboard] = useState(false);
 
   useEffect(() => {
     // =========================================================================
-    // EXTENDED SUSPENSEFUL TIMELINE WITH DRUMROLLS, CHEERS, AND FANFARES
+    // EXTENDED SUSPENSEFUL TIMELINE WITH GENEROUS DELAYS BETWEEN RANKINGS
     // =========================================================================
 
-    // STEP 1: 3RD PLACE SUSPENSE & REVEAL (1.2s -> 4.2s)
+    // 1. STEP 1: 3RD PLACE SUSPENSE & REVEAL (1.0s -> 3.8s)
     const t3Pillar = setTimeout(() => {
       setP3Pillar(true);
-      sounds.playDrumroll(2.8); // 2.8s tension drumroll
-    }, 1200);
+      sounds.playDrumroll(2.6);
+    }, 1000);
 
     const t3Details = setTimeout(() => {
       setP3Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(2.8);
-    }, 4200);
+      sounds.playCrowdCheer(2.5);
+    }, 3800);
 
-    // STEP 2: 2ND PLACE SUSPENSE & REVEAL (5.8s -> 9.0s)
+    // [GENEROUS 4.4 SECONDS DELAY / CELEBRATION PAUSE AFTER 3RD PLACE]
+
+    // 2. STEP 2: 2ND PLACE SUSPENSE & REVEAL (8.2s -> 11.4s)
     const t2Pillar = setTimeout(() => {
       setP2Pillar(true);
-      sounds.playDrumroll(3.0); // 3.0s tension drumroll
-    }, 5800);
+      sounds.playDrumroll(3.0);
+    }, 8200);
 
     const t2Details = setTimeout(() => {
       setP2Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(3.0);
-    }, 9000);
+      sounds.playCrowdCheer(2.8);
+    }, 11400);
 
-    // STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (11.0s -> 16.0s)
+    // [GENEROUS 5.0 SECONDS DELAY / CELEBRATION PAUSE AFTER 2ND PLACE]
+
+    // 3. STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (16.4s -> 21.2s)
     const tSpot = setTimeout(() => {
       setSpotlight(true);
-      sounds.playDrumroll(4.8); // Intense 4.8-second grand finale drumroll building maximum tension!
-    }, 11000);
+      sounds.playDrumroll(4.6); // 4.6s grand finale drumroll building maximum tension!
+    }, 16400);
 
     const t1Pillar = setTimeout(() => {
       setP1Pillar(true);
-    }, 12500);
+    }, 18000);
 
     const t1Details = setTimeout(() => {
       setP1Details(true);
       setSpotlight(false);
-      setCelebrateAll(true);
       setTriggerConfetti(true);
       sounds.playChampionReveal(); // Fanfare + Multi-Fireworks Booms + Roaring Stadium Cheers & Applause!
-    }, 16000);
+    }, 21200);
 
     return () => {
       clearTimeout(t3Pillar);

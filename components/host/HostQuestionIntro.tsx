@@ -107,7 +107,7 @@ export function HostQuestionIntro({
       {/* 2. Main Center Stage: 3-2-1 Geometric Shapes -> Phone Mockup -> Question Banner */}
       <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-6xl mx-auto my-auto">
         {/* ========================================================================= */}
-        {/* PART A: 3-2-1 SUPER-SIZED GEOMETRIC SHAPES (3=Pentagon, 2=Square, 1=Triangle) */}
+        {/* PART A: 3-2-1 UNIFORM MINIMALIST GEOMETRIC SHAPES (3=Pentagon, 2=Square, 1=Triangle) */}
         {/* ========================================================================= */}
         <AnimatePresence mode="popLayout">
           {isShapeCountdown && (
@@ -120,10 +120,10 @@ export function HostQuestionIntro({
                   animate={{ scale: [0.2, 1.25, 1], opacity: 1 }}
                   exit={{ scale: 1.4, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 450, damping: 18 }}
-                  className="w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center relative"
+                  className="w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center relative"
                 >
-                  <svg viewBox="0 0 100 100" className="w-full h-full fill-[#E21B3C] filter drop-shadow-[0_20px_50px_rgba(226,27,60,0.6)]">
-                    <polygon points="50,5 95,38 78,92 22,92 5,38" stroke="#FCA5A5" strokeWidth="4" />
+                  <svg viewBox="0 0 100 100" className="w-full h-full fill-[#E21B3C] filter drop-shadow-[0_25px_60px_rgba(226,27,60,0.65)]">
+                    <polygon points="50,6 95,39 78,92 22,92 5,39" stroke="#FCA5A5" strokeWidth="3" />
                   </svg>
                   <span className="absolute inset-0 flex items-center justify-center text-9xl sm:text-[140px] font-black text-white drop-shadow-2xl select-none pt-2">
                     3
@@ -131,7 +131,7 @@ export function HostQuestionIntro({
                 </motion.div>
               )}
 
-              {/* COUNT 2 = Giant Blue Square */}
+              {/* COUNT 2 = Giant Blue Square (Exact Matching Size & Minimalist Rounded Geometry) */}
               {stage === "countdown_2" && (
                 <motion.div
                   key="shape-square-2"
@@ -139,9 +139,12 @@ export function HostQuestionIntro({
                   animate={{ scale: [0.2, 1.25, 1], opacity: 1 }}
                   exit={{ scale: 1.4, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 450, damping: 18 }}
-                  className="w-68 h-68 sm:w-84 sm:h-84 bg-[#1368CE] rounded-3xl flex items-center justify-center shadow-[0_20px_50px_rgba(19,104,206,0.6)] border-4 border-blue-200 relative"
+                  className="w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center relative"
                 >
-                  <span className="text-9xl sm:text-[140px] font-black text-white drop-shadow-2xl select-none">
+                  <svg viewBox="0 0 100 100" className="w-full h-full fill-[#1368CE] filter drop-shadow-[0_25px_60px_rgba(19,104,206,0.65)]">
+                    <rect x="8" y="8" width="84" height="84" rx="18" stroke="#93C5FD" strokeWidth="3" />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-9xl sm:text-[140px] font-black text-white drop-shadow-2xl select-none">
                     2
                   </span>
                 </motion.div>
@@ -155,10 +158,10 @@ export function HostQuestionIntro({
                   animate={{ scale: [0.2, 1.25, 1], opacity: 1 }}
                   exit={{ scale: 1.4, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 450, damping: 18 }}
-                  className="w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center relative"
+                  className="w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center relative"
                 >
-                  <svg viewBox="0 0 100 100" className="w-full h-full fill-[#FFA602] filter drop-shadow-[0_20px_50px_rgba(255,166,2,0.6)]">
-                    <polygon points="50,10 95,85 5,85" stroke="#FEF08A" strokeWidth="4" />
+                  <svg viewBox="0 0 100 100" className="w-full h-full fill-[#FFA602] filter drop-shadow-[0_25px_60px_rgba(255,166,2,0.65)]">
+                    <polygon points="50,8 95,88 5,88" stroke="#FEF08A" strokeWidth="3" />
                   </svg>
                   <span className="absolute inset-0 flex items-center justify-center text-9xl sm:text-[140px] font-black text-slate-950 drop-shadow-2xl select-none pt-6">
                     1
