@@ -427,20 +427,20 @@ export function HostPodium({ quiz, players, onPlayAgain, onEndGame }: HostPodium
                 className="absolute flex flex-col items-center w-[290px] sm:w-[320px] bottom-0"
               >
                 {/* Floating White Name Box + Champion Avatar & Crown */}
-                <div className="h-48 flex flex-col items-center justify-end mb-2 relative">
+                <div className="h-52 flex flex-col items-center justify-end mb-4 relative z-30">
                   {p1Details ? (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.3, y: 30 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       transition={{ type: "spring", stiffness: 240, damping: 15 }}
-                      className="flex flex-col items-center relative"
+                      className="flex flex-col items-center relative pb-2"
                     >
                       {/* Grand Champion Glowing Gold Banner */}
                       <motion.div
                         initial={{ opacity: 0, scale: 0.6, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ delay: 0.15, duration: 0.4 }}
-                        className="mb-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-5 py-1 rounded-full border-2 border-yellow-200 shadow-[0_6px_20px_rgba(251,191,36,0.6)] flex-shrink-0"
+                        className="mb-2 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-5 py-1 rounded-full border-2 border-yellow-200 shadow-[0_6px_20px_rgba(251,191,36,0.6)] flex-shrink-0"
                       >
                         <span className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] block leading-none">
                           Grand Champion
@@ -451,12 +451,12 @@ export function HostPodium({ quiz, players, onPlayAgain, onEndGame }: HostPodium
                       <motion.div
                         animate={{ y: [-3, 3, -3], rotate: [-2, 2, -2] }}
                         transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-                        className="text-[#FFA602] mb-0.5"
+                        className="text-[#FFA602] mb-1"
                       >
                         <Crown className="w-12 h-12 fill-[#FFA602] stroke-amber-200 drop-shadow-xl" />
                       </motion.div>
 
-                      <span className="text-7xl sm:text-8xl mb-1.5 filter drop-shadow-lg select-none leading-none">
+                      <span className="text-7xl sm:text-8xl mb-2 filter drop-shadow-lg select-none leading-none">
                         {first.avatar}
                       </span>
 
@@ -466,25 +466,25 @@ export function HostPodium({ quiz, players, onPlayAgain, onEndGame }: HostPodium
                       </div>
                     </motion.div>
                   ) : (
-                    /* Clean Glowing Suspense with Royal Centered Crown + '?' + Badge */
-                    <div className="h-44 flex flex-col items-center justify-center relative">
+                    /* Clean Glowing Suspense with Royal Centered Crown + '?' + Badge (With generous headroom) */
+                    <div className="h-50 flex flex-col items-center justify-center relative pb-3">
                       {/* Floating Golden Crown on Top */}
                       <motion.div
                         animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
                         transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-                        className="text-[#FFA602] mb-1 drop-shadow-[0_8px_20px_rgba(255,166,2,0.85)]"
+                        className="text-[#FFA602] mb-1.5 drop-shadow-[0_8px_20px_rgba(255,166,2,0.85)]"
                       >
                         <Crown className="w-14 h-14 sm:w-16 sm:h-16 fill-[#FFA602] stroke-yellow-200" />
                       </motion.div>
 
                       {/* Giant Centered Gold Question Mark */}
-                      <span className="text-7xl sm:text-8xl font-black text-yellow-300 animate-pulse drop-shadow-[0_0_30px_rgba(250,204,21,0.95)] leading-none">
+                      <span className="text-7xl sm:text-8xl font-black text-yellow-300 animate-pulse drop-shadow-[0_0_30px_rgba(250,204,21,0.95)] leading-none my-1">
                         ?
                       </span>
 
-                      {/* Golden Subtitle Badge */}
-                      <div className="bg-yellow-400/20 border border-yellow-300/40 px-3 py-0.5 rounded-full mt-2">
-                        <span className="text-[11px] uppercase tracking-widest font-black text-yellow-300">
+                      {/* Golden Subtitle Badge (Elevated with clear space above the pillar) */}
+                      <div className="bg-[#33106B]/90 backdrop-blur-md border-2 border-yellow-400/60 px-4 py-1 rounded-full shadow-lg mt-2">
+                        <span className="text-[11px] sm:text-xs uppercase tracking-widest font-black text-yellow-300 block leading-none">
                           1st Place • Grand Champion
                         </span>
                       </div>
