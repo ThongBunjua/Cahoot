@@ -108,30 +108,53 @@ export function HostPodium({
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
       {/* ========================================================================= */}
-      {/* CINEMATIC SPOTLIGHT LIGHTING: 2 ICONIC SIDE BEAMS + STAGE FLOOR DISK */}
+      {/* CINEMATIC SPOTLIGHT: FLOATS FROM RIGHT TO CENTER OVER 1ST PLACE PILLAR */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {spotlight && (
           <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden flex flex-col items-center justify-center">
-            {/* 1. Left Golden Spotlight Cone */}
+            {/* 1. Ambient Stage Dimming Vignette (Purple Dark Tint) */}
             <motion.div
-              initial={{ opacity: 0, rotate: -30, scaleY: 0.4 }}
-              animate={{ opacity: [0, 0.75, 0.55], rotate: -16, scaleY: 1 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute -top-24 left-1/4 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-[#FFA602]/40 via-amber-500/15 to-transparent blur-3xl origin-top"
-              style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0 bg-[#0e041d]/75 backdrop-blur-[1.5px]"
             />
 
-            {/* 2. Right Violet-Gold Spotlight Cone */}
+            {/* 2. Overhead Light Beam Tracking from Right to Center */}
             <motion.div
-              initial={{ opacity: 0, rotate: 30, scaleY: 0.4 }}
-              animate={{ opacity: [0, 0.75, 0.55], rotate: 16, scaleY: 1 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute -top-24 right-1/4 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-yellow-300/40 via-purple-500/15 to-transparent blur-3xl origin-top"
-              style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
+              initial={{ x: "45vw", rotate: 28, opacity: 0 }}
+              animate={{ x: 0, rotate: 0, opacity: 0.85 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute -top-24 left-1/2 -translate-x-1/2 w-[480px] sm:w-[680px] h-[130vh] origin-top pointer-events-none"
+              style={{
+                background: "linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(254, 240, 138, 0.3) 40%, rgba(250, 204, 21, 0.1) 75%, transparent 100%)",
+                clipPath: "polygon(44% 0%, 56% 0%, 100% 100%, 0% 100%)",
+              }}
             />
 
-            {/* 3. Glowing Circular Stage Floor Spotlight (วงกลมแสงไฟส่องพื้นเวทีอันดับ 1) */}
+            {/* 3. Glowing Circular Spotlight Disk GLIDING IN FROM RIGHT TO CENTER (ลอยมาจากขวามาหยุดตรงกลางแท่นที่ 1) */}
+            <motion.div
+              initial={{ x: "65vw", y: "-12vh", scale: 0.7, opacity: 0 }}
+              animate={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] sm:w-[600px] md:w-[680px] h-[480px] sm:h-[600px] md:h-[680px] rounded-full border-4 border-yellow-200/70 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.35)] flex items-center justify-center pointer-events-none"
+              style={{
+                background: "radial-gradient(circle, rgba(255, 255, 255, 0.42) 0%, rgba(254, 240, 138, 0.3) 45%, rgba(250, 204, 21, 0.12) 75%, transparent 100%)",
+              }}
+            >
+              {/* Inner Soft Shimmering Core */}
+              <motion.div
+                animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
+                className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl"
+              />
+            </motion.div>
+
+            {/* 4. Glowing Circular Stage Floor Spotlight (วงกลมแสงไฟส่องพื้นเวทีอันดับ 1) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{
