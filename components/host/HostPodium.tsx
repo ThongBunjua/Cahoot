@@ -114,24 +114,51 @@ export function HostPodium({
 
   // Host Manual Next Reveal Step Controller (Slow Suspenseful Rise + Details Delayed)
   const handleNextReveal = () => {
-    if (revealStep === 0 && third) {
-      // Step 1: Reveal 3rd Place in Center
-      setRevealStep(1);
-      sounds.playPillarRiser();
-      // Wait for pillar to rise (1.8s) before revealing Avatar & Name
-      setTimeout(() => {
-        setP3Details(true);
-        sounds.playPodiumBronzeReveal();
-      }, 1800);
-    } else if (revealStep === 1 && second) {
-      // Step 2: 3rd moves right, 2nd rises in Center
-      setRevealStep(2);
-      sounds.playPillarRiser();
-      // Wait for 2nd pillar to rise (1.8s) before revealing Avatar & Name
-      setTimeout(() => {
-        setP2Details(true);
-        sounds.playPodiumSilverReveal();
-      }, 1800);
+    if (revealStep === 0) {
+      if (third) {
+        // Step 1: Reveal 3rd Place in Center
+        setRevealStep(1);
+        sounds.playPillarRiser();
+        setTimeout(() => {
+          setP3Details(true);
+          sounds.playPodiumBronzeReveal();
+        }, 1800);
+      } else if (second) {
+        // Only 2 players -> Go directly to 2nd place
+        setRevealStep(2);
+        sounds.playPillarRiser();
+        setTimeout(() => {
+          setP2Details(true);
+          sounds.playPodiumSilverReveal();
+        }, 1800);
+      } else if (first) {
+        // Only 1 player -> Go directly to 1st place
+        setRevealStep(3);
+        sounds.playDrumroll(2.4);
+        setTimeout(() => {
+          setP1Details(true);
+          setTriggerConfetti(true);
+          sounds.playChampionReveal();
+        }, 2200);
+      }
+    } else if (revealStep === 1) {
+      if (second) {
+        // Step 2: 3rd moves right, 2nd rises in Center
+        setRevealStep(2);
+        sounds.playPillarRiser();
+        setTimeout(() => {
+          setP2Details(true);
+          sounds.playPodiumSilverReveal();
+        }, 1800);
+      } else if (first) {
+        setRevealStep(3);
+        sounds.playDrumroll(2.4);
+        setTimeout(() => {
+          setP1Details(true);
+          setTriggerConfetti(true);
+          sounds.playChampionReveal();
+        }, 2200);
+      }
     } else if (revealStep === 2 && first) {
       // Step 3: 2nd moves left, 1st rises in Center with Grand Spotlight Dome & Drumroll
       setRevealStep(3);
@@ -160,33 +187,29 @@ export function HostPodium({
       {/* ========================================================================= */}
       <AnimatePresence>
         {revealStep >= 3 && (
-          <motion.div
-            key="podium-spotlight-stage"
-            className="fixed inset-0 z-20 pointer-events-none overflow-hidden"
-          >
-            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Fades in smoothly 0s - 1.8s) */}
+          <>
+            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Fades in smoothly 0s - 2.0s) */}
             <motion.div
+              key="podium-dark-vignette"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.8, ease: "easeInOut" }}
-              className="absolute inset-0 bg-[#050110]/92 backdrop-blur-[2px]"
+              transition={{ duration: 2.0, ease: "easeInOut" }}
+              className="fixed inset-0 z-20 bg-[#050110]/92 backdrop-blur-[2px] pointer-events-none"
             />
 
-            {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.0s) */}
+            {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.2s) */}
             {/* Using left:50% + negative margin instead of translateX to avoid Framer Motion transform override */}
             <motion.div
+              key="podium-spotlight-dome"
               initial={{ scale: 0.5, opacity: 0 }}
-              animate={{
-                scale: [1, 1.04, 1],
-                opacity: [0.95, 1, 0.95],
-              }}
+              animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{
-                opacity: { duration: 1.2, delay: 1.0, ease: "easeOut" },
-                scale: { duration: 2.5, delay: 1.0, repeat: Infinity, ease: "easeInOut" },
+                opacity: { duration: 1.2, delay: 1.2, ease: "easeOut" },
+                scale: { duration: 1.2, delay: 1.2, ease: "easeOut" },
               }}
-              className="absolute rounded-full border-4 border-yellow-200/60 shadow-[0_0_120px_40px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.35)] pointer-events-none"
+              className="fixed z-25 rounded-full border-4 border-yellow-200/60 shadow-[0_0_120px_40px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.35)] pointer-events-none"
               style={{
                 width: 460,
                 height: 460,
@@ -200,11 +223,11 @@ export function HostPodium({
               {/* Inner Soft Shimmering Core */}
               <motion.div
                 animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2.0, delay: 1.0, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 2.0, delay: 1.2, repeat: Infinity, ease: "easeInOut" }}
                 className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl mx-auto mt-[12.5%]"
               />
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
 
