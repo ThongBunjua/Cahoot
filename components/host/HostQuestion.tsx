@@ -3,8 +3,8 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
-import { AudioControl } from "@/components/ui/AudioControl";
 import { GameBackground } from "@/components/ui/GameBackground";
+import { HostTopBar } from "@/components/host/HostTopBar";
 import { sounds } from "@/lib/audio/soundManager";
 import { FastForward } from "lucide-react";
 
@@ -15,6 +15,7 @@ interface HostQuestionProps {
   timeRemaining: number;
   totalAnswersReceived: number;
   totalPlayers?: number;
+  pin?: string;
   onSkip: () => void;
 }
 
@@ -43,6 +44,8 @@ export function HostQuestion({
   totalQuestions,
   timeRemaining,
   totalAnswersReceived,
+  totalPlayers = 0,
+  pin = "",
   onSkip,
 }: HostQuestionProps) {
   useEffect(() => {
@@ -56,54 +59,63 @@ export function HostQuestion({
   const timeProgressPercent = Math.max(0, Math.min(100, (timeRemaining / totalTime) * 100));
 
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-3 sm:p-4 md:p-5 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
       {/* ========================================================================= */}
-      {/* 1. TOP ZONE: COMPACT & SHARP QUESTION BANNER */}
+      {/* 1. TOP BAR: FULL WIDTH KAHOOT HEADER (PIN, Logo, Players, Controls, Skip) */}
       {/* ========================================================================= */}
-      <motion.header
-        layoutId="host-question-banner"
-        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[98vw] mx-auto bg-white text-slate-900 rounded-2xl sm:rounded-3xl py-2.5 sm:py-3.5 px-4 sm:px-8 shadow-xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 flex items-center justify-between gap-4 z-20 flex-shrink-0"
-      >
-        {/* Left: Question Counter Badge */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-3.5 py-1.5 rounded-xl border-2 border-[#240B4D]">
-            {questionIndex + 1} / {totalQuestions}
-          </span>
-        </div>
-
-        {/* Center: Giant Question Text */}
-        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 leading-snug tracking-tight text-center flex-1 px-3 break-words">
-          {question.question_text}
-        </h1>
-
-        {/* Right: Audio Control & Skip Button */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
-          <AudioControl />
-
+      <HostTopBar
+        pin={pin}
+        totalPlayers={totalPlayers}
+        actionButton={
           <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => onSkip()}
-            className="px-4 py-2 sm:px-5 sm:py-2.5 bg-[#33106B] hover:bg-[#240B4D] text-white font-black text-xs md:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer border-2 border-[#240B4D] border-b-4 border-black active:border-b-2 active:translate-y-0.5"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={onSkip}
+            className="px-4 py-1.5 sm:px-5 sm:py-2 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-slate-300 border-b-3 border-slate-400 active:border-b active:translate-y-0.5"
           >
             <span>Skip</span>
             <FastForward className="w-3.5 h-3.5" />
           </motion.button>
-        </div>
-      </motion.header>
+        }
+      />
 
       {/* ========================================================================= */}
-      {/* 2. MIDDLE ZONE: CENTER MEDIA DISPLAY CANVAS + TIMERS */}
+      {/* 2. QUESTION ZONE: SPACIOUS & LOWERED DOWN (Optimized for Thai Typography) */}
       {/* ========================================================================= */}
-      <main className="w-full max-w-[98vw] mx-auto flex-1 flex items-center justify-between my-2 px-1 sm:px-4 z-10 min-h-0">
+      <div className="w-full max-w-[96vw] mx-auto px-2 sm:px-4 z-20 flex-shrink-0 mt-3 sm:mt-5 mb-1 sm:mb-2">
+        <motion.header
+          layoutId="host-question-banner"
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full bg-white text-slate-900 rounded-2xl sm:rounded-3xl min-h-[90px] sm:min-h-[110px] py-4 sm:py-5 px-6 sm:px-12 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 relative overflow-visible"
+        >
+          {/* Left: Question Counter Badge */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-[#240B4D] shadow-sm">
+              {questionIndex + 1} / {totalQuestions}
+            </span>
+          </div>
+
+          {/* Center: Large Thai-Friendly Question Text (Generous line-height so tone marks never clip) */}
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 leading-normal sm:leading-relaxed tracking-tight text-center flex-1 px-3 py-1 break-words">
+            {question.question_text}
+          </h1>
+
+          {/* Right: Balance placeholder matching left badge width */}
+          <div className="w-16 sm:w-24 flex-shrink-0" />
+        </motion.header>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. MIDDLE ZONE: CENTER MEDIA DISPLAY CANVAS + TIMERS */}
+      {/* ========================================================================= */}
+      <main className="w-full max-w-[96vw] mx-auto flex-1 flex items-center justify-between my-1 sm:my-2 px-2 sm:px-4 z-10 min-h-0">
         {/* Left: Giant Circular Countdown Timer */}
-        <div className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-full border-[8px] sm:border-[10px] border-[#26890C] bg-[#33106B] flex items-center justify-center shadow-2xl flex-shrink-0">
+        <div className="w-20 h-20 sm:w-26 sm:h-26 md:w-32 md:h-32 rounded-full border-[8px] sm:border-[10px] border-[#26890C] bg-[#33106B] flex items-center justify-center shadow-2xl flex-shrink-0">
           <span
-            className={`text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tabular-nums ${
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tabular-nums ${
               timeRemaining <= 5 ? "text-red-400 animate-bounce" : "text-white"
             }`}
           >
@@ -112,7 +124,7 @@ export function HostQuestion({
         </div>
 
         {/* Center: Full-Canvas Media Display */}
-        <div className="flex-1 h-full max-h-[46vh] lg:max-h-[50vh] bg-[#33106B]/90 rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-2xl flex items-center justify-center mx-3 sm:mx-6 md:mx-8 relative">
+        <div className="flex-1 h-full max-h-[42vh] lg:max-h-[46vh] bg-[#33106B]/90 rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-2xl flex items-center justify-center mx-3 sm:mx-6 md:mx-8 relative">
           {question.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -121,11 +133,11 @@ export function HostQuestion({
               className="w-full h-full object-contain bg-black/40"
             />
           ) : (
-            <div className="flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-20 h-20 md:w-28 md:h-28 rounded-3xl bg-[#240B4D] border-2 border-[#1D083E] flex items-center justify-center text-4xl md:text-6xl shadow-md mb-2 animate-pulse">
+            <div className="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+              <div className="w-16 h-16 md:w-24 md:h-24 rounded-3xl bg-[#240B4D] border-2 border-[#1D083E] flex items-center justify-center text-3xl md:text-5xl shadow-md mb-2 animate-pulse">
                 💡
               </div>
-              <p className="text-base md:text-xl font-black uppercase tracking-widest text-[#FFA602]">
+              <p className="text-sm md:text-lg font-black uppercase tracking-widest text-[#FFA602]">
                 Look closely at the question!
               </p>
             </div>
@@ -133,34 +145,34 @@ export function HostQuestion({
         </div>
 
         {/* Right: Giant Live Answers Counter Box */}
-        <div className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 bg-[#33106B] rounded-3xl border-2 border-[#240B4D] border-b-[8px] border-b-[#1D083E] flex flex-col items-center justify-center shadow-xl flex-shrink-0">
-          <span className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white leading-none tabular-nums">
+        <div className="w-20 h-20 sm:w-26 sm:h-26 md:w-32 md:h-32 bg-[#33106B] rounded-3xl border-2 border-[#240B4D] border-b-[8px] border-b-[#1D083E] flex flex-col items-center justify-center shadow-xl flex-shrink-0">
+          <span className="text-3xl sm:text-5xl md:text-6xl font-black text-white leading-none tabular-nums">
             {totalAnswersReceived}
           </span>
-          <span className="text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-widest text-slate-300 mt-1">
+          <span className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-slate-300 mt-1">
             Answers
           </span>
         </div>
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM ZONE: MASSIVE & HIGH-IMPACT 2X2 ANSWER GRID (Super-Sized!) */}
+      {/* 4. BOTTOM ZONE: MASSIVE & HIGH-IMPACT 2X2 ANSWER GRID (Thai Safe) */}
       {/* ========================================================================= */}
-      <footer className="w-full max-w-[98vw] mx-auto grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 pb-2.5 sm:pb-3.5 z-20 flex-shrink-0">
+      <footer className="w-full max-w-[96vw] mx-auto grid grid-cols-2 gap-3 sm:gap-4 pb-3 sm:pb-4 px-2 sm:px-4 z-20 flex-shrink-0">
         {question.choices.map((choice, idx) => {
           const config = CHOICE_CONFIGS[idx] || CHOICE_CONFIGS[0];
           return (
             <div
               key={idx}
-              className={`min-h-[100px] sm:min-h-[125px] md:min-h-[145px] lg:min-h-[160px] rounded-2xl md:rounded-3xl flex items-center px-5 sm:px-7 md:px-9 border-b-[8px] sm:border-b-[10px] text-white shadow-2xl py-3 sm:py-4 transition-transform ${config.bgClass}`}
+              className={`min-h-[90px] sm:min-h-[110px] md:min-h-[130px] rounded-2xl md:rounded-3xl flex items-center px-4 sm:px-7 md:px-8 border-b-[8px] sm:border-b-[10px] text-white shadow-2xl py-3.5 sm:py-4.5 transition-transform overflow-visible ${config.bgClass}`}
             >
               {/* Giant Geometric Shape Icon (▲, ◆, ●, ■) */}
-              <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mr-4 sm:mr-6 md:mr-8 flex-shrink-0 select-none drop-shadow-md">
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mr-3 sm:mr-5 md:mr-6 flex-shrink-0 select-none drop-shadow-md">
                 {config.shapeSymbol}
               </span>
 
-              {/* Massive Answer Text */}
-              <span className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-snug line-clamp-2 break-words drop-shadow-sm flex-1">
+              {/* Massive Thai-Friendly Answer Text (generous line height) */}
+              <span className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight leading-normal sm:leading-relaxed line-clamp-2 break-words drop-shadow-sm flex-1 py-1">
                 {choice.text}
               </span>
             </div>
@@ -169,7 +181,7 @@ export function HostQuestion({
       </footer>
 
       {/* ========================================================================= */}
-      {/* 4. REALTIME SYNCED TIME PROGRESS BAR AT THE VERY BOTTOM OF SCREEN */}
+      {/* 5. REALTIME SYNCED TIME PROGRESS BAR AT THE VERY BOTTOM OF SCREEN */}
       {/* ========================================================================= */}
       <div className="fixed bottom-0 left-0 right-0 h-2 sm:h-2.5 bg-black/40 z-30 overflow-hidden">
         <motion.div
@@ -186,3 +198,4 @@ export function HostQuestion({
     </div>
   );
 }
+

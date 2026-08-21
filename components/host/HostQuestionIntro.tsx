@@ -4,14 +4,16 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { sounds } from "@/lib/audio/soundManager";
-import { AudioControl } from "@/components/ui/AudioControl";
 import { GameBackground } from "@/components/ui/GameBackground";
+import { HostTopBar } from "@/components/host/HostTopBar";
 import { KahootShape } from "@/components/ui/KahootShapes";
 
 interface HostQuestionIntroProps {
   question: Question;
   questionIndex: number;
   totalQuestions: number;
+  pin?: string;
+  totalPlayers?: number;
   onIntroComplete: () => void;
 }
 
@@ -19,6 +21,8 @@ export function HostQuestionIntro({
   question,
   questionIndex,
   totalQuestions,
+  pin = "",
+  totalPlayers = 0,
   onIntroComplete,
 }: HostQuestionIntroProps) {
   // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_center" -> "question_preview"
@@ -85,23 +89,28 @@ export function HostQuestionIntro({
   const isQuestionVisible = stage === "question_preview";
 
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-3 sm:p-4 md:p-5 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
       <GameBackground />
+
+      {/* Top Header Bar */}
+      <HostTopBar
+        pin={pin}
+        totalPlayers={totalPlayers}
+      />
 
       {/* Top Header Badge (during countdown & phone stages only) */}
       {(isShapeCountdown || stage === "phone_center") && (
-        <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
+        <div className="flex items-center justify-center max-w-7xl mx-auto w-full pt-3 z-20 flex-shrink-0">
           <div className="bg-[#33106B] px-6 py-2 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
             <span className="text-sm md:text-base font-black uppercase tracking-wider text-[#FFA602]">
               Question {questionIndex + 1} of {totalQuestions}
             </span>
           </div>
-          <AudioControl />
-        </header>
+        </div>
       )}
 
       {/* Main Center Stage */}
-      <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-[98vw] mx-auto my-auto">
+      <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-[96vw] mx-auto my-auto">
         {/* PART A: 3-2-1 GEOMETRIC SHAPES */}
         <AnimatePresence mode="popLayout">
           {isShapeCountdown && (
@@ -206,11 +215,11 @@ export function HostQuestionIntro({
           <motion.div
             layoutId="host-question-banner"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: 60 }}
+            animate={{ opacity: 1, y: 30 }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-[1100px] bg-white text-slate-900 shadow-2xl flex items-center justify-center py-7 sm:py-9 px-8 sm:px-14 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 z-30"
+            className="w-full max-w-[1100px] bg-white text-slate-900 shadow-2xl flex items-center justify-center min-h-[90px] sm:min-h-[110px] py-5 sm:py-7 px-8 sm:px-14 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 z-30 overflow-visible"
           >
-            <h1 className="font-black text-slate-900 leading-snug tracking-tight text-center flex-1 px-3 break-words text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
+            <h1 className="font-black text-slate-900 leading-normal sm:leading-relaxed tracking-tight text-center flex-1 px-3 py-1 break-words text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
               {question.question_text}
             </h1>
           </motion.div>
@@ -220,7 +229,7 @@ export function HostQuestionIntro({
         {stage === "question_preview" && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: 180 }}
+            animate={{ opacity: 1, y: 160 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="w-full max-w-2xl flex flex-col items-center absolute z-20"
@@ -242,3 +251,4 @@ export function HostQuestionIntro({
     </div>
   );
 }
+

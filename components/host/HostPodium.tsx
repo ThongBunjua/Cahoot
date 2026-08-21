@@ -8,12 +8,14 @@ import { GameBackground } from "@/components/ui/GameBackground";
 import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 import { sounds } from "@/lib/audio/soundManager";
 import { Trophy, Crown, RotateCcw, LogOut, Sparkles, ListOrdered, ChevronRight, Award } from "lucide-react";
+import { HostTopBar } from "@/components/host/HostTopBar";
 import Link from "next/link";
 
 interface HostPodiumProps {
   quiz: Quiz;
   players?: Player[];
   finalPlayers?: Player[];
+  pin?: string;
   onPlayAgain?: () => void;
   onEndGame?: () => void;
 }
@@ -79,24 +81,27 @@ function RankParticles({
 
 export function HostPodium({
   quiz,
-  players,
+  players = [],
   finalPlayers,
+  pin = "",
   onPlayAgain,
   onEndGame,
 }: HostPodiumProps) {
-  const allPlayers = finalPlayers || players || [];
-  // Sort players by score descending
-  const sorted = [...allPlayers].sort((a, b) => b.score - a.score);
+  // Use either finalPlayers or current players
+  const list = finalPlayers && finalPlayers.length > 0 ? finalPlayers : players;
+  const sorted = [...list].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.id.localeCompare(b.id);
+  });
+
   const first = sorted[0];
   const second = sorted[1];
   const third = sorted[2];
 
-  // Manual Reveal Stages:
-  // 0 = Initial Screen (All pillars ready at baseline)
-  // 1 = 3rd Place rises in Center -> Reveals details
-  // 2 = 3rd Place moves to Right, 2nd Place rises in Center -> Reveals details
-  // 3 = 2nd Place moves to Left, 1st Place rises in Center with Dome Light -> Reveals Champion
-  const [revealStep, setRevealStep] = useState<number>(0);
+  // Manual host reveal step: 0 = none, 1 = 3rd, 2 = 2nd, 3 = 1st
+  const [revealStep, setRevealStep] = useState(0);
+
+  // Staggered Detail Reveals (Avatar + Nickname only show after pillar fully rises!)
   const [p3Details, setP3Details] = useState(false);
   const [p2Details, setP2Details] = useState(false);
   const [p1Details, setP1Details] = useState(false);
@@ -193,12 +198,27 @@ export function HostPodium({
   const totalQ = quiz.questions?.length || 0;
 
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-2 sm:p-4 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
       {/* Confetti Cascade on Champion Finale */}
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
+
+      {/* Top Header Bar */}
+      <HostTopBar
+        pin={pin}
+        totalPlayers={sorted.length}
+        actionButton={
+          <button
+            onClick={() => setShowFullScoreboard(!showFullScoreboard)}
+            className="px-3.5 py-1.5 bg-purple-950/80 hover:bg-purple-900 text-white rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 border border-purple-700/50 cursor-pointer shadow-sm"
+          >
+            <ListOrdered className="w-3.5 h-3.5" />
+            <span>{showFullScoreboard ? "Podium" : "Scoreboard"}</span>
+          </button>
+        }
+      />
 
       {/* ========================================================================= */}
       {/* GRAND KAHOOT STAGE: DEEP DARK VIGNETTE & SPOTLIGHT DOME (Holds 5s, then fades back to normal) */}
@@ -256,7 +276,7 @@ export function HostPodium({
       {/* ========================================================================= */}
       {/* 1. TOP HEADER WITH CONTROLS & MANUAL REVEAL BUTTON */}
       {/* ========================================================================= */}
-      <header className="relative z-50 flex items-center justify-between bg-[#33106B] px-4 sm:px-8 py-2.5 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-2xl w-full max-w-[98vw] mx-auto mb-1 flex-shrink-0">
+      <header className="relative z-50 flex items-center justify-between bg-[#33106B] px-4 sm:px-8 py-2.5 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-2xl w-full max-w-[96vw] mx-auto mt-2 mb-1 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#FFA602] border-b-4 border-[#CC8400] rounded-xl text-slate-950 shadow-sm flex-shrink-0">
             <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
@@ -274,14 +294,6 @@ export function HostPodium({
         {/* Action Controls: Audio, Scoreboard, MANUAL REVEAL BUTTON */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           <AudioControl />
-
-          <button
-            onClick={() => setShowFullScoreboard(!showFullScoreboard)}
-            className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#240B4D] hover:bg-[#1D083E] text-white rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 border-2 border-[#1D083E] border-b-4 border-black cursor-pointer active:border-b-2 active:translate-y-0.5"
-          >
-            <ListOrdered className="w-4 h-4" />
-            <span>{showFullScoreboard ? "Podium" : "Scoreboard"}</span>
-          </button>
 
           {/* PRIMARY HOST MANUAL REVEAL BUTTON */}
           {revealStep < 3 ? (

@@ -128,7 +128,7 @@ export function PlayerGameButtons({
                   <div className="w-full text-left mt-1 flex-1 flex items-end overflow-hidden">
                     {choiceText ? (
                       <p
-                        className={`font-black text-white text-xs sm:text-base md:text-lg leading-snug break-words line-clamp-3 ${btn.textShadow}`}
+                        className={`font-black text-white text-xs sm:text-base md:text-lg leading-normal sm:leading-relaxed break-words line-clamp-3 py-0.5 ${btn.textShadow}`}
                       >
                         {choiceText}
                       </p>

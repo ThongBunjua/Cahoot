@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Player } from "@/lib/realtime/types";
-import { AudioControl } from "@/components/ui/AudioControl";
 import { GameBackground } from "@/components/ui/GameBackground";
+import { HostTopBar } from "@/components/host/HostTopBar";
 import { sounds } from "@/lib/audio/soundManager";
 import {
   Trophy,
@@ -17,10 +17,18 @@ import {
 interface HostLeaderboardProps {
   players: Player[];
   isLastQuestion: boolean;
+  pin?: string;
+  totalPlayers?: number;
   onNext: () => void;
 }
 
-export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderboardProps) {
+export function HostLeaderboard({
+  players,
+  isLastQuestion,
+  pin = "",
+  totalPlayers = 0,
+  onNext,
+}: HostLeaderboardProps) {
   // 1. Initial sorted list by score BEFORE this question (with deterministic tie-breaker)
   const initialSorted = [...players].sort((a, b) => {
     const scoreA =
@@ -126,37 +134,40 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
       <GameBackground />
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: 100% Solid 3D Widescreen */}
+      {/* 1. TOP BAR: FULL WIDTH KAHOOT HEADER (PIN, Logo, Players, Controls, Next) */}
       {/* ========================================================================= */}
-      <header className="w-full flex justify-between items-center max-w-[96vw] mx-auto pt-1 z-20">
-        <div className="flex items-center gap-4 bg-[#33106B] px-8 py-4 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-xl">
-          <div className="p-3 bg-[#FFA602] border-b-4 border-[#CC8400] rounded-2xl text-slate-950 shadow-sm">
-            <Trophy className="w-7 h-7 stroke-[2.5]" />
+      <HostTopBar
+        pin={pin}
+        totalPlayers={totalPlayers || players.length}
+        actionButton={
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={onNext}
+            className="px-5 py-1.5 sm:px-6 sm:py-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-emerald-300 border-b-3 border-emerald-800 active:border-b active:translate-y-0.5"
+          >
+            <span>{isLastQuestion ? "Final Podium 🏆" : "Next Question"}</span>
+            <ArrowRight className="w-4 h-4 stroke-[3]" />
+          </motion.button>
+        }
+      />
+
+      {/* Leaderboard Title Badge */}
+      <div className="w-full max-w-[96vw] mx-auto px-4 z-20 flex items-center justify-between mt-2 sm:mt-3 flex-shrink-0">
+        <div className="flex items-center gap-3 bg-[#33106B] px-6 py-2 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-xl">
+          <div className="p-2 bg-[#FFA602] border-b-3 border-[#CC8400] rounded-xl text-slate-950 shadow-sm">
+            <Trophy className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div>
-            <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-[#FFA602] block leading-none">
+            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#FFA602] block leading-none">
               Standings
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight mt-1">
+            <h1 className="text-lg sm:text-xl font-black text-white leading-tight mt-0.5">
               Leaderboard
             </h1>
           </div>
         </div>
-
-        <div className="flex items-center gap-4 flex-shrink-0">
-          <AudioControl />
-
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={onNext}
-            className="px-10 py-4 bg-[#26890C] hover:bg-[#22790A] text-white font-black text-lg md:text-xl rounded-2xl shadow-xl flex items-center gap-3 transition-all cursor-pointer border-b-[6px] border-[#1A6107] active:border-b-[2px] active:translate-y-1"
-          >
-            <span>{isLastQuestion ? "Final Podium 🏆" : "Next Question"}</span>
-            <ArrowRight className="w-6 h-6 stroke-[3]" />
-          </motion.button>
-        </div>
-      </header>
+      </div>
 
       {/* ========================================================================= */}
       {/* 2. MAIN CENTER: REAL-TIME PHYSICAL SLOT CROSSING RANK RUNNER */}

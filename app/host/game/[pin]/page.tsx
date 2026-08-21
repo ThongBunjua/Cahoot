@@ -62,6 +62,8 @@ export default function HostGamePage() {
             question={currentQuestion}
             questionIndex={state.currentQuestionIndex}
             totalQuestions={quiz.questions.length}
+            pin={pin}
+            totalPlayers={state.players.length}
             onIntroComplete={() => startQuestion(state.currentQuestionIndex)}
           />
         );
@@ -75,6 +77,7 @@ export default function HostGamePage() {
             timeRemaining={state.timeRemaining}
             totalAnswersReceived={state.totalAnswersReceived}
             totalPlayers={state.players.length}
+            pin={pin}
             onSkip={endQuestion}
           />
         );
@@ -85,6 +88,8 @@ export default function HostGamePage() {
             question={currentQuestion}
             answerCounts={state.answerCounts}
             isLastQuestion={state.currentQuestionIndex >= quiz.questions.length - 1}
+            pin={pin}
+            totalPlayers={state.players.length}
             onNext={showLeaderboard}
           />
         );
@@ -94,6 +99,8 @@ export default function HostGamePage() {
           <HostLeaderboard
             players={state.players}
             isLastQuestion={state.currentQuestionIndex >= quiz.questions.length - 1}
+            pin={pin}
+            totalPlayers={state.players.length}
             onNext={nextStep}
           />
         );
@@ -103,6 +110,7 @@ export default function HostGamePage() {
           <HostPodium
             quiz={quiz}
             players={state.players}
+            pin={pin}
             onPlayAgain={() => {
               const newPin = generateGamePin();
               router.push(`/host/game/${newPin}?quizId=${quiz.id}`);
