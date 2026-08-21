@@ -42,6 +42,7 @@ export interface Player {
   lastAnswerIndex: number | null;
   rank: number;
   previousRank?: number;
+  correctCount?: number;
   joinedAt: number;
 }
 
@@ -71,6 +72,8 @@ export interface GamePlayerState {
   phase: GamePhase;
   currentQuestionIndex: number;
   totalQuestions: number;
+  questionText?: string;
+  choices?: string[];
   selectedAnswer: number | null;
   hasAnswered: boolean;
   isCorrect: boolean | null;

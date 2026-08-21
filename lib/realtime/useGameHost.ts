@@ -196,6 +196,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
             lastPoints: 0,
             lastCorrect: null,
             lastAnswerIndex: null,
+            correctCount: 0,
             rank: currentState.players.length + 1,
             previousRank: currentState.players.length + 1,
             joinedAt: Date.now(),
@@ -257,6 +258,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
               lastPoints: points,
               lastCorrect: isCorrect,
               lastAnswerIndex: answerIndex,
+              correctCount: (p.correctCount || 0) + (isCorrect ? 1 : 0),
             };
           }
           return p;

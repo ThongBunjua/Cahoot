@@ -254,7 +254,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                         {third.score.toLocaleString()}
                       </span>
                       <span className="text-xs sm:text-sm font-black uppercase text-amber-200 tracking-wider mt-1.5 block bg-[#240B4D] px-3 py-1 rounded-full border border-amber-500/30">
-                        {totalQ} out of {totalQ}
+                        {third.correctCount ?? 0} out of {totalQ}
                       </span>
                     </motion.div>
                   )}
@@ -333,7 +333,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                         {second.score.toLocaleString()}
                       </span>
                       <span className="text-xs sm:text-sm font-black uppercase text-slate-300 tracking-wider mt-1.5 block bg-[#240B4D] px-3 py-1 rounded-full border border-slate-500/30">
-                        {totalQ} out of {totalQ}
+                        {second.correctCount ?? 0} out of {totalQ}
                       </span>
                     </motion.div>
                   )}
@@ -422,7 +422,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                         {first.score.toLocaleString()}
                       </span>
                       <span className="text-sm sm:text-base font-black uppercase text-yellow-400/90 tracking-wider mt-1.5 block bg-[#33106B] px-4 py-1 rounded-full border border-yellow-500/30">
-                        {totalQ} out of {totalQ}
+                        {first.correctCount ?? 0} out of {totalQ}
                       </span>
                     </motion.div>
                   )}

@@ -130,6 +130,8 @@ function KahootPlayerContent() {
                   streak={state.streak}
                   questionIndex={state.currentQuestionIndex}
                   totalQuestions={state.totalQuestions}
+                  questionText={state.questionText}
+                  choices={state.choices}
                 />
               )}
 
@@ -164,8 +166,9 @@ function KahootPlayerContent() {
 
               {state.phase === "podium" && (
                 <PlayerPodium
-                  rank={state.currentRank}
                   score={state.currentScore}
+                  nickname={state.player?.nickname}
+                  avatar={state.player?.avatar}
                   onPlayAgain={handlePlayAgain}
                 />
               )}

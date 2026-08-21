@@ -221,13 +221,15 @@ export function useGamePlayer(initialPin: string = "") {
         }
         if (timerRef.current) clearInterval(timerRef.current);
 
-        const { questionIndex, totalQuestions, timeLimit } = payload.data;
+        const { questionIndex, totalQuestions, timeLimit, questionText, choices } = payload.data;
 
         setState((prev) => ({
           ...prev,
           phase: "question",
           currentQuestionIndex: questionIndex,
           totalQuestions: totalQuestions || prev.totalQuestions,
+          questionText: questionText || "",
+          choices: Array.isArray(choices) ? choices : [],
           selectedAnswer: null,
           hasAnswered: false,
           isCorrect: null,
