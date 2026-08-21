@@ -122,15 +122,15 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-25 pointer-events-none flex flex-col items-center justify-start bg-black/85 overflow-hidden"
+            className="fixed inset-0 z-50 pointer-events-none flex flex-col items-center justify-start bg-black/85 overflow-hidden"
           >
             <motion.div
               initial={{ y: -180, scale: 0.4, opacity: 0 }}
-              animate={{ y: 50, scale: 1, opacity: 1 }}
+              animate={{ y: 130, scale: 1, opacity: 1 }}
               transition={{ duration: 1.0, ease: "easeOut" }}
-              className="w-[560px] h-[560px] sm:w-[720px] sm:h-[720px] rounded-full bg-white/20 shadow-[0_0_200px_rgba(255,255,255,0.75)] border-4 border-white/40 flex flex-col items-center justify-start pt-10"
+              className="w-[560px] h-[560px] sm:w-[720px] sm:h-[720px] rounded-full bg-white/20 shadow-[0_0_200px_rgba(255,255,255,0.75)] border-4 border-white/40 flex flex-col items-center justify-start pt-12"
             >
-              <span className="text-3xl sm:text-4xl font-black text-yellow-300 uppercase tracking-widest animate-pulse">
+              <span className="text-3xl sm:text-5xl font-black text-yellow-300 uppercase tracking-widest animate-pulse drop-shadow-2xl">
                 👑 Grand Champion 👑
               </span>
             </motion.div>

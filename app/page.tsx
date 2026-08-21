@@ -6,6 +6,7 @@ import { useGamePlayer } from "@/lib/realtime/useGamePlayer";
 import { PinForm } from "@/components/player/PinForm";
 import { NicknameForm } from "@/components/player/NicknameForm";
 import { PlayerLobby } from "@/components/player/PlayerLobby";
+import { PlayerGetReady } from "@/components/player/PlayerGetReady";
 import { PlayerGameButtons } from "@/components/player/PlayerGameButtons";
 import { PlayerFeedback } from "@/components/player/PlayerFeedback";
 import { PlayerPodium } from "@/components/player/PlayerPodium";
@@ -31,7 +32,7 @@ class PlayerErrorBoundary extends Component<{ children: ReactNode }, { hasError:
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#1b0738] text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="fixed inset-0 bg-[#1b0738] text-white flex flex-col items-center justify-center p-6 text-center z-50">
           <div className="bg-[#33106B] p-8 rounded-3xl border-2 border-white/20 max-w-sm w-full shadow-2xl flex flex-col items-center gap-4">
             <span className="text-5xl">⚡</span>
             <h2 className="text-2xl font-black">Connection Refreshed</h2>
@@ -96,12 +97,12 @@ function KahootPlayerContent() {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full text-white flex flex-col justify-between items-center p-1.5 sm:p-4 md:p-6 relative overflow-hidden select-none">
+    <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] text-white flex flex-col justify-between items-center p-2 sm:p-4 md:p-6 overflow-hidden select-none">
       {/* Material / Paper-Cut Purple Gradient Background */}
       <PaperCutBackground />
 
       {/* Main Center Floating Card Area */}
-      <main className="relative z-20 w-full h-full flex-1 flex flex-col items-center justify-center my-auto">
+      <main className="relative z-20 w-full h-full flex-1 flex flex-col items-center justify-center my-auto overflow-hidden">
         {step !== "game" && (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -136,7 +137,15 @@ function KahootPlayerContent() {
           )}
 
           {step === "game" && (
-            <div key="game-view" className="w-full h-full flex-1 flex flex-col items-center justify-center">
+            <motion.div
+              key="game-view"
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="w-full h-full flex-1 flex flex-col items-center justify-center overflow-hidden"
+            >
               {(!state.player || state.phase === "lobby") && (
                 <PlayerLobby
                   player={state.player || { id: "temp", nickname: "Player", avatar: "🦊", score: 0, streak: 0, lastPoints: 0, lastCorrect: null, lastAnswerIndex: null, rank: 1, joinedAt: Date.now() }}
@@ -146,19 +155,10 @@ function KahootPlayerContent() {
               )}
 
               {state.player && state.phase === "get_ready" && (
-                <div className="flex flex-col items-center justify-center text-center p-6">
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ repeat: Infinity, duration: 1 }}
-                    className="w-24 h-24 bg-yellow-400 text-slate-950 rounded-full flex items-center justify-center text-4xl font-black shadow-2xl mb-4"
-                  >
-                    !
-                  </motion.div>
-                  <h2 className="text-3xl font-black text-white">Get Ready!</h2>
-                  <p className="text-sm font-bold text-slate-200 mt-2">
-                    Question {state.currentQuestionIndex + 1} of {Math.max(1, state.totalQuestions)}
-                  </p>
-                </div>
+                <PlayerGetReady
+                  questionIndex={state.currentQuestionIndex}
+                  totalQuestions={Math.max(1, state.totalQuestions)}
+                />
               )}
 
               {state.player && state.phase === "question" && (
@@ -168,11 +168,12 @@ function KahootPlayerContent() {
                   hasAnswered={state.hasAnswered}
                   timeRemaining={state.timeRemaining}
                   timeLimit={state.timeLimit}
-                  streak={state.streak}
                   questionIndex={state.currentQuestionIndex}
                   totalQuestions={Math.max(1, state.totalQuestions)}
-                  questionText={state.questionText || ""}
                   choices={state.choices || []}
+                  nickname={state.player?.nickname}
+                  avatar={state.player?.avatar}
+                  score={state.currentScore || 0}
                 />
               )}
 
@@ -213,7 +214,7 @@ function KahootPlayerContent() {
                   onPlayAgain={handlePlayAgain}
                 />
               )}
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </main>
@@ -226,7 +227,7 @@ export default function KahootPlayerPage() {
     <PlayerErrorBoundary>
       <Suspense
         fallback={
-          <div className="min-h-screen bg-[#1b0738] text-white flex items-center justify-center">
+          <div className="fixed inset-0 bg-[#1b0738] text-white flex items-center justify-center">
             <p className="text-xl font-bold">Loading Cahoot!...</p>
           </div>
         }
