@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Player, Quiz } from "@/lib/realtime/types";
 import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
@@ -10,88 +10,90 @@ import { sounds } from "@/lib/audio/soundManager";
 import {
   Trophy,
   Crown,
-  RotateCcw,
-  ListOrdered,
-  Sparkles,
+  Medal,
   Home,
+  ListOrdered,
 } from "lucide-react";
 import Link from "next/link";
 
 interface HostPodiumProps {
   quiz: Quiz;
   players: Player[];
-  onPlayAgain: () => void;
+  onPlayAgain?: () => void;
 }
 
 export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
-  // Cinema Stages (Center-Shift Focus):
+  // Sort players by final total score with deterministic tie-breaker
+  const sorted = [...players].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.id.localeCompare(b.id);
+  });
+
+  const first = sorted[0] || null;
+  const second = sorted[1] || null;
+  const third = sorted[2] || null;
+
+  // Staggered reveal animation states with extended suspense
   const [p3Pillar, setP3Pillar] = useState(false);
   const [p3Details, setP3Details] = useState(false);
 
   const [p2Pillar, setP2Pillar] = useState(false);
   const [p2Details, setP2Details] = useState(false);
 
-  const [spotlight, setSpotlight] = useState(false);
   const [p1Pillar, setP1Pillar] = useState(false);
   const [p1Details, setP1Details] = useState(false);
 
+  const [spotlight, setSpotlight] = useState(false);
   const [celebrateAll, setCelebrateAll] = useState(false);
-  const [showFullScoreboard, setShowFullScoreboard] = useState(false);
   const [triggerConfetti, setTriggerConfetti] = useState(false);
-
-  const first = players[0];
-  const second = players[1];
-  const third = players[2];
-  const totalQ = quiz.questions.length;
+  const [showFullScoreboard, setShowFullScoreboard] = useState(false);
 
   useEffect(() => {
-    // ----------------------------------------------------
-    // STEP 1: 3RD PLACE in CENTER with Drumroll Suspense
-    // ----------------------------------------------------
+    // =========================================================================
+    // EXTENDED SUSPENSEFUL TIMELINE WITH DRUMROLLS, CHEERS, AND FANFARES
+    // =========================================================================
+
+    // STEP 1: 3RD PLACE SUSPENSE & REVEAL (1.2s -> 4.2s)
     const t3Pillar = setTimeout(() => {
       setP3Pillar(true);
-      sounds.playDrumroll(1.4);
-    }, 600);
+      sounds.playDrumroll(2.8); // 2.8s tension drumroll
+    }, 1200);
 
     const t3Details = setTimeout(() => {
       setP3Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(1.8);
-    }, 2000);
+      sounds.playCrowdCheer(2.8);
+    }, 4200);
 
-    // ----------------------------------------------------
-    // STEP 2: 3RD moves RIGHT, 2ND in CENTER with Drumroll Suspense
-    // ----------------------------------------------------
+    // STEP 2: 2ND PLACE SUSPENSE & REVEAL (5.8s -> 9.0s)
     const t2Pillar = setTimeout(() => {
       setP2Pillar(true);
-      sounds.playDrumroll(1.5);
-    }, 4600);
+      sounds.playDrumroll(3.0); // 3.0s tension drumroll
+    }, 5800);
 
     const t2Details = setTimeout(() => {
       setP2Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(2.2);
-    }, 6200);
+      sounds.playCrowdCheer(3.0);
+    }, 9000);
 
-    // ----------------------------------------------------
-    // STEP 3: 2ND moves LEFT, 1ST in CENTER with Spotlight & Grand Drumroll
-    // ----------------------------------------------------
+    // STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (11.0s -> 16.0s)
     const tSpot = setTimeout(() => {
       setSpotlight(true);
-      sounds.playDrumroll(3.1); // Intense 3-second drumroll building maximum tension!
-    }, 8600);
+      sounds.playDrumroll(4.8); // Intense 4.8-second grand finale drumroll building maximum tension!
+    }, 11000);
 
     const t1Pillar = setTimeout(() => {
       setP1Pillar(true);
-    }, 9600);
+    }, 12500);
 
     const t1Details = setTimeout(() => {
       setP1Details(true);
       setSpotlight(false);
       setCelebrateAll(true);
       setTriggerConfetti(true);
-      sounds.playChampionReveal(); // Fanfare + Fireworks Booms + Roaring Stadium Crowd Cheers & Applause!
-    }, 11800);
+      sounds.playChampionReveal(); // Fanfare + Multi-Fireworks Booms + Roaring Stadium Cheers & Applause!
+    }, 16000);
 
     return () => {
       clearTimeout(t3Pillar);
@@ -104,55 +106,65 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
     };
   }, []);
 
+  const totalQ = quiz.questions?.length ?? 1;
+
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
       {/* Confetti Cascade on Champion Finale */}
-      <ConfettiEffect trigger={triggerConfetti} duration={14000} />
+      <ConfettiEffect trigger={triggerConfetti} duration={15000} />
 
       {/* ========================================================================= */}
-      {/* DUAL GOLDEN CINEMATIC STAGE SPOTLIGHT BEAMS & CELEBRATION */}
+      {/* HYBRID CINEMATIC STAGE LIGHTING: CIRCULAR SPOTLIGHT + PURPLE & GOLD BEAMS */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {spotlight && (
-          <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
-            {/* Soft Ambient Stage Dimming */}
+          <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden flex flex-col items-center justify-center">
+            {/* 1. Ambient Stage Dimming */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.0 }}
-              className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+              transition={{ duration: 1.2 }}
+              className="absolute inset-0 bg-black/65 backdrop-blur-[3px]"
             />
 
-            {/* Left Golden Spotlight Cone */}
+            {/* 2. Left Purple-Gold Spotlight Cone */}
             <motion.div
-              initial={{ opacity: 0, rotate: -25, scaleY: 0.5 }}
-              animate={{ opacity: [0, 0.7, 0.5], rotate: -15, scaleY: 1 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              className="absolute -top-20 left-1/4 w-[280px] sm:w-[420px] h-[120vh] bg-gradient-to-b from-yellow-300/40 via-amber-400/15 to-transparent blur-2xl origin-top"
-              style={{ clipPath: "polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)" }}
+              initial={{ opacity: 0, rotate: -30, scaleY: 0.4 }}
+              animate={{ opacity: [0, 0.8, 0.6], rotate: -18, scaleY: 1 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="absolute -top-24 left-1/5 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-[#FFA602]/40 via-purple-600/25 to-transparent blur-3xl origin-top"
+              style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
             />
 
-            {/* Right Golden Spotlight Cone */}
+            {/* 3. Right Violet-Gold Spotlight Cone */}
             <motion.div
-              initial={{ opacity: 0, rotate: 25, scaleY: 0.5 }}
-              animate={{ opacity: [0, 0.7, 0.5], rotate: 15, scaleY: 1 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              className="absolute -top-20 right-1/4 w-[280px] sm:w-[420px] h-[120vh] bg-gradient-to-b from-yellow-300/40 via-amber-400/15 to-transparent blur-2xl origin-top"
-              style={{ clipPath: "polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)" }}
+              initial={{ opacity: 0, rotate: 30, scaleY: 0.4 }}
+              animate={{ opacity: [0, 0.8, 0.6], rotate: 18, scaleY: 1 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="absolute -top-24 right-1/5 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-yellow-300/40 via-purple-500/25 to-transparent blur-3xl origin-top"
+              style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
             />
 
-            {/* Grand Champion Floating Banner */}
+            {/* 4. Large Luminous Circular Stage Spotlight Disc on Center */}
+            <motion.div
+              initial={{ scale: 0.4, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="w-[520px] h-[520px] sm:w-[680px] sm:h-[680px] rounded-full bg-gradient-to-b from-white/20 via-yellow-300/10 to-purple-600/10 shadow-[0_0_150px_rgba(255,255,255,0.65)] border-4 border-yellow-300/30 flex flex-col items-center justify-start pt-10"
+            />
+
+            {/* 5. Grand Champion Floating Banner */}
             <motion.div
               initial={{ opacity: 0, y: -20, scale: 0.8 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+              transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
               className="absolute top-24 sm:top-28 left-1/2 -translate-x-1/2 flex flex-col items-center text-center z-40"
             >
-              <span className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-yellow-400 bg-black/60 px-6 py-2 rounded-full border-2 border-yellow-400/40 shadow-2xl backdrop-blur-md">
+              <span className="text-xs sm:text-base font-black uppercase tracking-[0.3em] text-yellow-400 bg-black/70 px-8 py-2.5 rounded-full border-2 border-yellow-400/50 shadow-2xl backdrop-blur-md">
                 Grand Champion
               </span>
             </motion.div>
@@ -200,25 +212,25 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN SUPER-SIZED PODIUM STAGE (Commanding Presence for Top 3 Winners) */}
+      {/* 2. MAIN STAGE: THE 3 PODIUM PILLARS WITH SPRING SUSPENSE PHYSICS */}
       {/* ========================================================================= */}
-      <main className="relative z-35 flex-1 my-1 flex flex-col items-center justify-end pb-6 sm:pb-10 w-full max-w-[96vw] mx-auto overflow-visible">
+      <main className="flex-1 flex flex-col items-center justify-end relative z-20 pb-4">
         {!showFullScoreboard ? (
-          <div className="relative flex items-end justify-center w-full h-[640px] sm:h-[680px] max-w-6xl mx-auto overflow-visible">
+          <div className="relative w-full max-w-6xl h-[620px] flex items-end justify-center">
             {/* ========================================================================= */}
-            {/* 3RD PLACE (BRONZE) - Super-Sized & Tall (min-h-[320px]) */}
+            {/* 3RD PLACE (BRONZE) - Super-Sized Pillar (320px) */}
             {/* ========================================================================= */}
             {p3Pillar && third && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.7, y: 120 }}
+                initial={{ opacity: 0, scale: 0.6, y: 120 }}
                 animate={{
-                  opacity: p2Pillar ? 0.9 : 1,
-                  scale: p2Pillar ? 0.95 : 1.15,
-                  x: p2Pillar ? 310 : 0,
-                  y: 0, // Explicit y: 0
-                  zIndex: p2Pillar ? 15 : 35,
+                  opacity: p2Pillar ? 0.85 : 1,
+                  scale: p2Pillar ? 0.9 : 1.15,
+                  x: p1Pillar ? 310 : p2Pillar ? 270 : 0,
+                  y: 0,
+                  zIndex: p1Pillar ? 10 : p2Pillar ? 10 : 30,
                 }}
-                transition={{ type: "spring", stiffness: 190, damping: 22 }}
+                transition={{ type: "spring", stiffness: 180, damping: 22 }}
                 className="absolute flex flex-col items-center w-[290px] sm:w-[320px] bottom-0"
               >
                 {/* Floating White Name Box + Avatar */}
@@ -240,21 +252,21 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </motion.div>
                   ) : (
                     <div className="h-32 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-2xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-amber-300 font-black text-3xl animate-pulse">
+                      <div className="w-18 h-18 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-amber-300 font-black text-4xl animate-bounce shadow-2xl">
                         ?
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* 3rd Giant Dark Navy Solid Pillar (Extra Tall 320px) */}
+                {/* 3rd Giant Dark Navy Solid Pillar (320px) */}
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: "320px" }}
-                  transition={{ duration: 0.85, ease: "easeOut" }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
                   className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative"
                 >
-                  {/* Bronze Giant Pentagon Shield */}
+                  {/* Bronze Giant Shield */}
                   <div className="relative mb-3 flex-shrink-0">
                     <svg viewBox="0 0 100 110" className="w-20 h-22 fill-[#D97706] filter drop-shadow-lg">
                       <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
@@ -264,7 +276,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </span>
                   </div>
 
-                  {/* Score & Correct Count (Fully Elevated, Never Cut Off) */}
+                  {/* Score & Correct Count */}
                   {p3Details && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
@@ -285,7 +297,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
             )}
 
             {/* ========================================================================= */}
-            {/* 2ND PLACE (SILVER) - Super-Sized & Tall (min-h-[390px]) */}
+            {/* 2ND PLACE (SILVER) - Super-Sized Pillar (390px) */}
             {/* ========================================================================= */}
             {p2Pillar && second && (
               <motion.div
@@ -294,7 +306,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                   opacity: p1Pillar ? 0.9 : 1,
                   scale: p1Pillar ? 0.95 : 1.15,
                   x: p1Pillar ? -310 : 0,
-                  y: 0, // Explicit y: 0
+                  y: 0,
                   zIndex: p1Pillar ? 15 : 35,
                 }}
                 transition={{ type: "spring", stiffness: 190, damping: 22 }}
@@ -319,21 +331,21 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </motion.div>
                   ) : (
                     <div className="h-32 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-2xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-slate-300 font-black text-3xl animate-pulse">
+                      <div className="w-18 h-18 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-slate-300 font-black text-4xl animate-bounce shadow-2xl">
                         ?
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* 2nd Giant Dark Navy Solid Pillar (Extra Tall 390px) */}
+                {/* 2nd Giant Dark Navy Solid Pillar (390px) */}
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: "390px" }}
-                  transition={{ duration: 0.85, ease: "easeOut" }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
                   className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative"
                 >
-                  {/* Silver Giant Pentagon Shield */}
+                  {/* Silver Giant Shield */}
                   <div className="relative mb-3 flex-shrink-0">
                     <svg viewBox="0 0 100 110" className="w-20 h-22 fill-[#94A3B8] filter drop-shadow-lg">
                       <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#CBD5E1" strokeWidth="4" />
@@ -364,7 +376,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
             )}
 
             {/* ========================================================================= */}
-            {/* 1ST PLACE (GOLD CHAMPION) - Super-Sized & Tall (min-h-[470px]) */}
+            {/* 1ST PLACE (GOLD CHAMPION) - Tallest Center Pillar (470px) */}
             {/* ========================================================================= */}
             {p1Pillar && first && (
               <motion.div
@@ -373,7 +385,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                   opacity: 1,
                   scale: 1.3,
                   x: 0,
-                  y: 0, // Explicit y: 0
+                  y: 0,
                   zIndex: 40,
                 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -408,21 +420,21 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </motion.div>
                   ) : (
                     <div className="h-36 flex items-center justify-center">
-                      <div className="w-20 h-20 rounded-2xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-yellow-400 font-black text-4xl animate-pulse">
-                        👑 ?
+                      <div className="w-22 h-22 rounded-3xl bg-[#33106B] border-4 border-yellow-400 flex items-center justify-center text-yellow-300 font-black text-5xl animate-bounce shadow-2xl">
+                        ?
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* 1st Giant Dark Navy Solid Pillar (Tallest in Center - 470px) */}
+                {/* 1st Giant Dark Navy Solid Pillar (470px) */}
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: "470px" }}
-                  transition={{ duration: 0.95, ease: "easeOut" }}
+                  transition={{ duration: 1.0, ease: "easeOut" }}
                   className="w-full bg-[#240B4D] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 pb-6 border-2 border-[#33106B] border-b-[8px] border-b-[#1D083E] relative"
                 >
-                  {/* Gold Giant Pentagon Shield */}
+                  {/* Gold Giant Shield */}
                   <div className="relative mb-3 flex-shrink-0">
                     <svg viewBox="0 0 100 110" className="w-22 h-24 fill-[#FFA602] filter drop-shadow-xl">
                       <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
@@ -432,7 +444,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                     </span>
                   </div>
 
-                  {/* Score & Correct Count (Fully Elevated, Never Cut Off) */}
+                  {/* Score & Correct Count */}
                   {p1Details && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
@@ -470,25 +482,30 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shadow-sm ${
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm ${
                         idx === 0
-                          ? "bg-[#FFA602] border-b-2 border-[#CC8400] text-slate-950"
+                          ? "bg-amber-400 text-slate-950"
                           : idx === 1
-                          ? "bg-[#94A3B8] border-b-2 border-[#64748B] text-white"
+                          ? "bg-slate-300 text-slate-950"
                           : idx === 2
-                          ? "bg-[#D97706] border-b-2 border-[#92400E] text-white"
-                          : "bg-[#33106B] text-white"
+                          ? "bg-amber-700 text-white"
+                          : "bg-slate-200 text-slate-700"
                       }`}
                     >
                       #{idx + 1}
                     </span>
                     <span className="text-2xl">{p.avatar}</span>
-                    <span className="font-black text-slate-900 text-base">{p.nickname}</span>
+                    <span className="font-black text-lg text-slate-900">{p.nickname}</span>
                   </div>
 
-                  <span className="font-black text-[#46178F] text-lg tabular-nums">
-                    {p.score.toLocaleString()} pts
-                  </span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-bold text-slate-500">
+                      {p.correctCount ?? 0}/{totalQ} correct
+                    </span>
+                    <span className="font-mono font-black text-xl text-slate-950">
+                      {p.score.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -496,29 +513,8 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
         )}
       </main>
 
-      {/* ========================================================================= */}
-      {/* 3. BOTTOM FINALE CONTROLS: Extra-Tall Play Again Button */}
-      {/* ========================================================================= */}
-      <footer className="relative z-40 flex items-center justify-center gap-4 pb-2">
-        {celebrateAll && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex items-center gap-4"
-          >
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={onPlayAgain}
-              className="px-16 py-6 min-h-[82px] bg-[#26890C] hover:bg-[#22790A] text-white font-black text-2xl sm:text-3xl rounded-3xl shadow-2xl flex items-center gap-4 transition-all cursor-pointer border-b-[8px] border-[#165406] active:border-b-[2px] active:translate-y-1.5"
-            >
-              <RotateCcw className="w-8 h-8 stroke-[3]" />
-              <span>Play Again</span>
-            </motion.button>
-          </motion.div>
-        )}
-      </footer>
+      {/* 3. Empty bottom footer */}
+      <footer className="h-6 z-10" />
     </div>
   );
 }

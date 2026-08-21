@@ -227,10 +227,6 @@ export function HostLobby({
           <div className="w-full flex-1 flex flex-col justify-center gap-1.5 sm:gap-2.5 py-1 overflow-hidden">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
-
-              // Systematic multiplier for infinite seamless loop
-              const multiplier = Math.max(3, Math.ceil(15 / rowPlayers.length));
-              const seamlessList = Array(multiplier).fill(rowPlayers).flat();
               const speedSec = laneSpeeds[rowIndex % laneSpeeds.length];
 
               return (
@@ -241,40 +237,68 @@ export function HostLobby({
                     maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)",
                   }}
                 >
-                  <motion.div
-                    animate={{ x: ["-50%", "0%"] }} // Smooth infinite scroll to the right
-                    transition={{
-                      duration: speedSec,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="flex gap-2.5 sm:gap-3.5 items-center flex-nowrap shrink-0 pr-4"
-                  >
-                    {seamlessList.map((player, pIdx) => (
-                      <motion.div
-                        key={`${player.id}-${pIdx}`}
-                        initial={{ scale: 0.2 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 350, damping: 18 }}
-                        className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-6 py-2.5 sm:px-8 sm:py-3.5 flex items-center gap-3.5 shadow-xl select-none shrink-0"
-                      >
+                  {rowPlayers.length === 1 ? (
+                    /* Single player in lane: single card slides across full screen and loops */
+                    <motion.div
+                      animate={{ x: ["-120%", "105vw"] }}
+                      transition={{
+                        duration: speedSec * 0.65,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="flex items-center shrink-0"
+                    >
+                      <div className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-6 py-2.5 sm:px-8 sm:py-3.5 flex items-center gap-3.5 shadow-xl select-none shrink-0">
                         <span className="text-2xl sm:text-4xl flex-shrink-0 filter drop-shadow-sm select-none">
-                          {player.avatar}
+                          {rowPlayers[0].avatar}
                         </span>
                         <span className="text-lg sm:text-2xl font-black text-white truncate max-w-[200px] sm:max-w-[260px] tracking-tight">
-                          {player.nickname}
+                          {rowPlayers[0].nickname}
                         </span>
 
                         <button
-                          onClick={() => onKickPlayer(player.id)}
+                          onClick={() => onKickPlayer(rowPlayers[0].id)}
                           className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
-                          title={`Remove ${player.nickname}`}
+                          title={`Remove ${rowPlayers[0].nickname}`}
                         >
                           <X className="w-3.5 h-3.5 stroke-[3]" />
                         </button>
-                      </motion.div>
-                    ))}
-                  </motion.div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    /* Multiple players in lane: smooth seamless tape */
+                    <motion.div
+                      animate={{ x: ["-50%", "0%"] }}
+                      transition={{
+                        duration: speedSec,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="flex gap-4 sm:gap-6 items-center flex-nowrap shrink-0 pr-6"
+                    >
+                      {[...rowPlayers, ...rowPlayers].map((player, pIdx) => (
+                        <div
+                          key={`${player.id}-${pIdx}`}
+                          className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-6 py-2.5 sm:px-8 sm:py-3.5 flex items-center gap-3.5 shadow-xl select-none shrink-0"
+                        >
+                          <span className="text-2xl sm:text-4xl flex-shrink-0 filter drop-shadow-sm select-none">
+                            {player.avatar}
+                          </span>
+                          <span className="text-lg sm:text-2xl font-black text-white truncate max-w-[200px] sm:max-w-[260px] tracking-tight">
+                            {player.nickname}
+                          </span>
+
+                          <button
+                            onClick={() => onKickPlayer(player.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
+                            title={`Remove ${player.nickname}`}
+                          >
+                            <X className="w-3.5 h-3.5 stroke-[3]" />
+                          </button>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
                 </div>
               );
             })}
