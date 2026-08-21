@@ -1,10 +1,42 @@
+/**
+ * ==============================================================================================
+ * 🤖 CAHOOT! LIVE MULTIPLAYER BOT SIMULATOR & STRESS TESTER
+ * ==============================================================================================
+ * 
+ * 📖 วิธีการเรียกใช้งานบอท (HOW TO RUN BOTS):
+ * 
+ * 1. รันบอทตามจำนวนที่ต้องการ (ใส่ PIN และจำนวนบอท):
+ *    $env:Path = "$env:LOCALAPPDATA\Programs\nodejs;" + $env:Path
+ *    npx tsx scratch/stress-test-150.ts <GAME_PIN> <จำนวนบอท>
+ * 
+ * 2. ตัวอย่างคำสั่งที่ใช้บ่อย (Common Usage Examples):
+ * 
+ *    👉 ทดสอบบอท 1 ตัว (Single Player Test):
+ *       npx tsx scratch/stress-test-150.ts 123456 1
+ * 
+ *    👉 ทดสอบบอท 10 ตัว (Small Group Test):
+ *       npx tsx scratch/stress-test-150.ts 123456 10
+ * 
+ *    👉 ทดสอบบอท 50 ตัว (Medium Classroom Test):
+ *       npx tsx scratch/stress-test-150.ts 123456 50
+ * 
+ *    👉 ทดสอบบอท 150 ตัว (Full Auditorium Max Stress Test):
+ *       npx tsx scratch/stress-test-150.ts 123456 150
+ * 
+ * 3. หรือรันผ่าน npm script (ถ้ากำหนดไว้ใน package.json):
+ *    npm run bot 123456 10
+ *    npm run bot:150 123456
+ * 
+ * ==============================================================================================
+ */
+
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
 const url = "https://bzazyptrrccblejktyhc.supabase.co";
 const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6YXp5cHRycmNjYmxlamt0eWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNTM3MjksImV4cCI6MjEwMjcyOTcyOX0.f-M8XNuWEZPPJdKdk-xIc_e9HbRSty6SdjhnMeg8fyo";
 
-// Parse Game PIN from command line arguments or default
+// Parse Game PIN from command line arguments (Arg 1: PIN, Arg 2: Count)
 const targetPin = process.argv[2] || "999999";
 const botCount = parseInt(process.argv[3] || "150", 10);
 
@@ -12,15 +44,21 @@ const AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐸", "🐙", "🦄",
 const NAMES = [
   "Somchai", "Somsak", "Ananda", "Nadech", "Yaya", "Bella", "Mario", "Baifern",
   "Alex", "Max", "Leo", "Emma", "Liam", "Sophia", "Lucas", "Mia",
-  "Ninja", "Pixel", "Cyber", "Rocket", "Shadow", "Flash", "Blaze", "Nova"
+  "Ninja", "Pixel", "Cyber", "Rocket", "Shadow", "Flash", "Blaze", "Nova",
+  "Thong", "Arthit", "Mali", "Sun", "Sky", "Ocean", "Ken", "Ploy"
 ];
 
-async function run150PlayerSimulation() {
+async function runPlayerSimulation() {
   console.log(`\n======================================================`);
-  console.log(`🚀 STARTING LIVE STRESS TEST SIMULATOR (150 PLAYERS)`);
+  console.log(`🚀 CAHOOT! BOT SIMULATOR`);
   console.log(`📌 Target Game PIN: ${targetPin}`);
   console.log(`👥 Total Simulated Bots: ${botCount}`);
   console.log(`======================================================\n`);
+
+  if (!process.argv[2]) {
+    console.log(`⚠️ ไม่ได้ระบุ Game PIN! ใช้ PIN เริ่มต้น: 999999`);
+    console.log(`💡 วิธีระบุ PIN: npx tsx scratch/stress-test-150.ts <PIN> <จำนวนบอท>\n`);
+  }
 
   // Create Supabase client with WebSocket transport
   const supabase = createClient(url, key, {
@@ -38,7 +76,9 @@ async function run150PlayerSimulation() {
   const bots: Array<{ id: string; nickname: string; avatar: string }> = [];
 
   for (let i = 1; i <= botCount; i++) {
-    const randomName = NAMES[(i - 1) % NAMES.length] + "_" + i;
+    const nameIndex = (i - 1) % NAMES.length;
+    const suffix = Math.floor((i - 1) / NAMES.length) > 0 ? `_${Math.floor((i - 1) / NAMES.length) + 1}` : "";
+    const randomName = `${NAMES[nameIndex]}${suffix}`;
     const randomAvatar = AVATARS[(i - 1) % AVATARS.length];
     bots.push({
       id: `bot_${i}_${Date.now()}`,
@@ -54,14 +94,14 @@ async function run150PlayerSimulation() {
       if (!data) return;
 
       if (data.event === "GET_READY") {
-        console.log(`\n🔔 Host broadcasted GET_READY for Question #${data.data.questionIndex + 1}!`);
+        console.log(`\n🔔 Host broadcasted GET_READY for Question #${(data.data?.questionIndex || 0) + 1}!`);
       }
 
       if (data.event === "QUESTION_START") {
-        const qIndex = data.data.questionIndex;
+        const qIndex = data.data?.questionIndex ?? 0;
         console.log(`\n⚡ Question #${qIndex + 1} STARTED! Simulating ${botCount} answers...`);
 
-        // Simulate 150 bots answering with random realistic latency (0.3s - 4.5s)
+        // Simulate bots answering with random realistic latency (0.3s - 4.5s)
         bots.forEach((bot, index) => {
           const randomChoice = Math.floor(Math.random() * 4); // 0, 1, 2, 3
           const randomDelay = 300 + Math.random() * 3800; // 300ms to 4100ms
@@ -82,7 +122,7 @@ async function run150PlayerSimulation() {
               },
             });
 
-            if ((index + 1) % 30 === 0 || index + 1 === botCount) {
+            if ((index + 1) % 25 === 0 || index + 1 === botCount) {
               console.log(`  ✓ ${index + 1}/${botCount} bots submitted answers.`);
             }
           }, randomDelay);
@@ -90,15 +130,15 @@ async function run150PlayerSimulation() {
       }
 
       if (data.event === "QUESTION_END") {
-        console.log(`\n🏆 Host broadcasted QUESTION_END! Total results returned:`, data.data.playerResults?.length);
+        console.log(`\n🏆 Host broadcasted QUESTION_END! Total results returned:`, data.data?.playerResults?.length || 0);
       }
 
       if (data.event === "SHOW_LEADERBOARD") {
-        console.log(`\n📊 Host showing Leaderboard! Top 5:`, data.data.topPlayers?.map((p: any) => `${p.nickname}: ${p.score}pts`));
+        console.log(`\n📊 Host showing Leaderboard! Top 5:`, data.data?.topPlayers?.slice(0, 5).map((p: any) => `${p.nickname}: ${p.score}pts`));
       }
 
       if (data.event === "GAME_OVER") {
-        console.log(`\n🎉 GAME OVER! Winner:`, data.data.top3?.[0]);
+        console.log(`\n🎉 GAME OVER! Winner:`, data.data?.top3?.[0] || "Champion");
       }
     })
     .subscribe(async (status) => {
@@ -134,9 +174,9 @@ async function run150PlayerSimulation() {
 
         console.log(`\n✅ ALL ${botCount} BOTS HAVE SUCCESSFULLY JOINED ROOM ${targetPin}!`);
         console.log(`👉 Look at the Host screen. You should see ${botCount} players in the lobby.`);
-        console.log(`👉 Press "Start Game" on Host whenever you are ready.`);
+        console.log(`👉 Press "Start Game" on Host whenever you are ready.\n`);
       }
     });
 }
 
-run150PlayerSimulation();
+runPlayerSimulation();
