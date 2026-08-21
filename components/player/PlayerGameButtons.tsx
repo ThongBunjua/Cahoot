@@ -62,7 +62,6 @@ export function PlayerGameButtons({
   streak = 0,
   questionIndex = 0,
   totalQuestions = 1,
-  questionText = "",
   choices = [],
 }: PlayerGameButtonsProps) {
   const safeTimeLimit = typeof timeLimit === "number" && timeLimit > 0 ? timeLimit : 20;
@@ -72,7 +71,7 @@ export function PlayerGameButtons({
   const safeChoices = Array.isArray(choices) ? choices : [];
 
   return (
-    <div className="w-full h-full max-w-6xl mx-auto flex flex-col justify-between p-2.5 sm:p-4 md:p-6 lg:p-8 flex-1 min-h-[94dvh] font-sans select-none gap-2 sm:gap-3">
+    <div className="w-full h-full max-w-5xl mx-auto flex flex-col justify-between p-2 sm:p-4 md:p-6 flex-1 min-h-[92dvh] max-h-[96dvh] overflow-hidden font-sans select-none gap-2 sm:gap-3">
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: Question Counter & Streak Badge ONLY (No top timer) */}
       {/* ========================================================================= */}
@@ -82,51 +81,36 @@ export function PlayerGameButtons({
             Question {questionIndex + 1} of {totalQuestions}
           </span>
           {streak > 1 && (
-            <div className="flex items-center gap-1 bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-xs sm:text-sm font-black px-3 py-0.5 rounded-full shadow-sm">
-              <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#D97706] text-[#D97706]" />
+            <div className="flex items-center gap-1 bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-xs sm:text-sm font-black px-2.5 py-0.5 rounded-full shadow-sm">
+              <Flame className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
               <span>{streak} Streak</span>
             </div>
           )}
         </div>
 
-        <span className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">
+        <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-purple-300 bg-purple-950/60 px-2.5 py-1 rounded-xl border border-purple-400/30">
           Cahoot! Live
         </span>
       </div>
-
-      {/* ========================================================================= */}
-      {/* 2. QUESTION TEXT BOX ON PLAYER DEVICE (Responsive & Scroll-Safe for Long Text) */}
-      {/* ========================================================================= */}
-      {Boolean(questionText) && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white text-slate-900 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 md:p-6 shadow-xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 text-center flex flex-col justify-center max-h-[22vh] overflow-y-auto flex-shrink-0 w-full"
-        >
-          <h2 className="text-sm sm:text-base md:text-xl lg:text-2xl font-black text-slate-900 tracking-tight leading-snug break-words">
-            {questionText}
-          </h2>
-        </motion.div>
-      )}
 
       {/* Answer Submitted Floating Banner */}
       {hasAnswered && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#26890C] text-white py-2 sm:py-2.5 px-4 rounded-2xl border-2 border-[#1B6108] text-center shadow-lg flex items-center justify-center gap-2 flex-shrink-0 w-full"
+          className="bg-[#26890C] text-white py-2 px-4 rounded-2xl border-2 border-[#1B6108] text-center shadow-lg flex items-center justify-center gap-2 flex-shrink-0 w-full"
         >
-          <Check className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
-          <span className="text-xs sm:text-sm md:text-base font-black tracking-wide">
+          <Check className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3.5]" />
+          <span className="text-xs sm:text-sm font-black tracking-wide">
             Answer submitted! Look at the big screen...
           </span>
         </motion.div>
       )}
 
       {/* ========================================================================= */}
-      {/* 3. 2x2 GEOMETRIC ANSWER BUTTONS (Unified White Text + Responsive 50/50 Stretch) */}
+      {/* 2. 2x2 GEOMETRIC ANSWER BUTTONS (No Question Text - Maximum Touch Target) */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 grid-rows-2 gap-2.5 sm:gap-4 md:gap-5 flex-1 w-full min-h-[300px] sm:min-h-[380px] md:min-h-[460px]">
+      <div className="grid grid-cols-2 grid-rows-2 gap-2 sm:gap-3.5 md:gap-5 flex-1 w-full h-full min-h-0">
         {BUTTON_CONFIGS.map((btn) => {
           const isSelected = selectedAnswer === btn.index;
           const isDimmed = hasAnswered && !isSelected;
@@ -152,7 +136,7 @@ export function PlayerGameButtons({
               {/* Top Row: Geometric Shape Icon + Checkmark */}
               <div className="w-full flex items-center justify-between flex-shrink-0">
                 <div className="p-1 rounded-xl text-white">
-                  <KahootShape shape={btn.shape} size={36} className="drop-shadow-md" />
+                  <KahootShape shape={btn.shape} size={38} className="drop-shadow-md" />
                 </div>
 
                 {isSelected && (
@@ -162,11 +146,11 @@ export function PlayerGameButtons({
                 )}
               </div>
 
-              {/* Bottom Row: Unified Pure White Text with High Contrast Shadow */}
-              <div className="w-full text-left mt-2 flex-1 flex items-end">
+              {/* Bottom Row: High Contrast Unified Pure White Text */}
+              <div className="w-full text-left mt-2 flex-1 flex items-end overflow-hidden">
                 {choiceText ? (
                   <p
-                    className={`font-black text-white text-xs sm:text-base md:text-lg lg:text-xl leading-snug break-words line-clamp-4 ${btn.textShadow}`}
+                    className={`font-black text-white text-xs sm:text-base md:text-xl lg:text-2xl leading-snug break-words line-clamp-4 ${btn.textShadow}`}
                   >
                     {choiceText}
                   </p>
@@ -180,15 +164,15 @@ export function PlayerGameButtons({
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. BOTTOM COUNTDOWN PROGRESS BAR & DIGITAL TIMER (Single Timer Display) */}
+      {/* 3. BOTTOM COUNTDOWN PROGRESS BAR & DIGITAL TIMER (Accurate Wall-Clock) */}
       {/* ========================================================================= */}
       <div className="w-full flex flex-col gap-1.5 pt-1 flex-shrink-0">
         {/* Progress Track */}
         <div className="w-full h-3 sm:h-4 bg-[#240B4D] rounded-full border-2 border-[#1D083E] overflow-hidden p-0.5 shadow-inner">
           <motion.div
             style={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.3, ease: "linear" }}
-            className={`h-full rounded-full transition-all duration-300 ${
+            transition={{ duration: 0.25, ease: "linear" }}
+            className={`h-full rounded-full transition-all duration-200 ${
               isUrgent
                 ? "bg-[#E21B3C] shadow-[0_0_15px_#E21B3C]"
                 : safeRemaining <= 10

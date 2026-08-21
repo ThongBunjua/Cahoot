@@ -252,20 +252,29 @@ export function useGamePlayer(initialPin: string = "") {
           timeRemaining: limit,
         }));
 
-        let remaining = limit;
+        // Accurate Wall-Clock Countdown Timer (survives mobile throttle & phase transitions)
+        const startAt = Date.now();
+        const endAt = startAt + limit * 1000;
+
         timerRef.current = setInterval(() => {
-          remaining -= 1;
-          if (remaining <= 0) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
+          const now = Date.now();
+          const remainingSec = Math.max(0, Math.ceil((endAt - now) / 1000));
+          if (remainingSec <= 0) {
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
           }
-          setState((prev) => ({ ...prev, timeRemaining: Math.max(0, remaining) }));
-        }, 1000);
+          setState((prev) => ({ ...prev, timeRemaining: remainingSec }));
+        }, 250);
       }
 
       // 5. Question Results
       if (payload.event === "QUESTION_END") {
-        if (timerRef.current) clearInterval(timerRef.current);
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
 
         const { playerResults, correctIndex } = eventData;
         const resultsArray = Array.isArray(playerResults) ? playerResults : [];
@@ -357,7 +366,7 @@ export function useGamePlayer(initialPin: string = "") {
       if (joinHandshakeIntervalRef.current) clearInterval(joinHandshakeIntervalRef.current);
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [state.pin, state.player, state.phase]);
+  }, [state.pin]);
 
   const leaveRoom = useCallback(() => {
     localStorage.removeItem("cahoot_player_session");

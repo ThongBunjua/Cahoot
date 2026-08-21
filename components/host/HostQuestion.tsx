@@ -74,7 +74,7 @@ export function HostQuestion({
         </div>
 
         {/* Center: Giant Question Text */}
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 leading-tight tracking-tight text-center flex-1 px-4 truncate-2-lines">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-slate-900 leading-tight tracking-tight text-center flex-1 px-4 line-clamp-3">
           {question.question_text}
         </h1>
 
@@ -99,9 +99,9 @@ export function HostQuestion({
       {/* ========================================================================= */}
       <main className="w-full max-w-[96vw] mx-auto flex-1 flex items-center justify-between my-3 md:my-5 px-2 md:px-4 z-10">
         {/* Left: Giant Circular Countdown Timer */}
-        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[8px] border-[#26890C] bg-[#33106B] flex items-center justify-center shadow-xl flex-shrink-0">
+        <div className="w-32 h-32 md:w-44 md:h-44 rounded-full border-[10px] border-[#26890C] bg-[#33106B] flex items-center justify-center shadow-2xl flex-shrink-0">
           <span
-            className={`text-5xl md:text-7xl font-black tabular-nums ${
+            className={`text-6xl md:text-8xl font-black tabular-nums ${
               timeRemaining <= 5 ? "text-red-400 animate-bounce" : "text-white"
             }`}
           >
@@ -123,7 +123,7 @@ export function HostQuestion({
               <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-[#240B4D] border-2 border-[#1D083E] flex items-center justify-center text-5xl md:text-7xl shadow-md mb-3 animate-pulse">
                 💡
               </div>
-              <p className="text-base md:text-lg font-black uppercase tracking-widest text-[#FFA602]">
+              <p className="text-base md:text-xl font-black uppercase tracking-widest text-[#FFA602]">
                 Look closely at the question!
               </p>
             </div>
@@ -131,8 +131,8 @@ export function HostQuestion({
         </div>
 
         {/* Right: Giant Live Answers Counter Box */}
-        <div className="w-36 h-36 md:w-44 md:h-44 bg-[#33106B] rounded-3xl border-2 border-[#240B4D] border-b-[8px] border-b-[#1D083E] flex flex-col items-center justify-center shadow-xl flex-shrink-0">
-          <span className="text-6xl md:text-8xl font-black text-white leading-none tabular-nums">
+        <div className="w-36 h-36 md:w-48 md:h-48 bg-[#33106B] rounded-3xl border-2 border-[#240B4D] border-b-[8px] border-b-[#1D083E] flex flex-col items-center justify-center shadow-xl flex-shrink-0">
+          <span className="text-6xl md:text-8xl lg:text-9xl font-black text-white leading-none tabular-nums">
             {totalAnswersReceived}
           </span>
           <span className="text-xs md:text-base font-black uppercase tracking-widest text-slate-300 mt-2">
@@ -150,15 +150,15 @@ export function HostQuestion({
           return (
             <div
               key={idx}
-              className={`h-20 md:h-26 lg:h-28 rounded-2xl md:rounded-3xl flex items-center px-6 md:px-8 border-b-[8px] text-white shadow-xl ${config.bgClass}`}
+              className={`min-h-[85px] md:min-h-[110px] lg:min-h-[125px] rounded-2xl md:rounded-3xl flex items-center px-6 md:px-10 border-b-[8px] text-white shadow-2xl py-3 ${config.bgClass}`}
             >
               {/* Geometric Shape Icon (▲, ◆, ●, ■) */}
-              <span className="text-3xl md:text-4xl lg:text-5xl mr-5 md:mr-6 flex-shrink-0 select-none">
+              <span className="text-4xl md:text-5xl lg:text-6xl mr-5 md:mr-7 flex-shrink-0 select-none">
                 {config.shapeSymbol}
               </span>
 
               {/* Answer Text */}
-              <span className="text-xl md:text-2xl lg:text-3xl font-black truncate tracking-tight">
+              <span className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black tracking-tight leading-snug line-clamp-2 break-words">
                 {choice.text}
               </span>
             </div>
