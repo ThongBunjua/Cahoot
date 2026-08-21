@@ -4,11 +4,13 @@
  * drumrolls, fireworks explosions, and stadium crowd cheers.
  */
 
-type SoundEventListener = (isMuted: boolean) => void;
+type SoundEventListener = (isMuted: boolean, volume: number) => void;
 
 class SoundManager {
   private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
   private isMuted: boolean = false;
+  private volume: number = 0.8; // 0.0 to 1.0
   private isLobbyPlaying: boolean = false;
   private isQuestionBeatPlaying: boolean = false;
   private musicInterval: any = null;
@@ -18,9 +20,16 @@ class SoundManager {
   constructor() {
     if (typeof window !== "undefined") {
       try {
-        const saved = localStorage.getItem("cahoot_audio_muted");
-        if (saved !== null) {
-          this.isMuted = saved === "true";
+        const savedMute = localStorage.getItem("cahoot_audio_muted");
+        if (savedMute !== null) {
+          this.isMuted = savedMute === "true";
+        }
+        const savedVol = localStorage.getItem("cahoot_audio_volume");
+        if (savedVol !== null) {
+          const parsed = parseFloat(savedVol);
+          if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+            this.volume = parsed;
+          }
         }
       } catch (e) {}
 
@@ -62,7 +71,7 @@ class SoundManager {
   }
 
   private notify() {
-    this.listeners.forEach((fn) => fn(this.isMuted));
+    this.listeners.forEach((fn) => fn(this.isMuted, this.volume));
   }
 
   public initContext(): AudioContext | null {
@@ -79,6 +88,39 @@ class SoundManager {
     return this.ctx;
   }
 
+  public getMasterGain(ctx: AudioContext): GainNode {
+    if (!this.masterGain || this.masterGain.context !== ctx) {
+      this.masterGain = ctx.createGain();
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.volume, ctx.currentTime);
+      this.masterGain.connect(ctx.destination);
+    }
+    return this.masterGain;
+  }
+
+  public getVolume(): number {
+    return this.volume;
+  }
+
+  public setVolume(newVol: number) {
+    this.volume = Math.max(0, Math.min(1, newVol));
+    if (this.volume === 0) {
+      this.isMuted = true;
+    } else {
+      this.isMuted = false;
+    }
+    try {
+      localStorage.setItem("cahoot_audio_volume", String(this.volume));
+      localStorage.setItem("cahoot_audio_muted", String(this.isMuted));
+    } catch (e) {}
+
+    const ctx = this.initContext();
+    if (ctx) {
+      const mg = this.getMasterGain(ctx);
+      mg.gain.setValueAtTime(this.isMuted ? 0 : this.volume, ctx.currentTime);
+    }
+    this.notify();
+  }
+
   public toggleMute(): boolean {
     const ctx = this.initContext();
     if (ctx && ctx.state === "suspended") {
@@ -89,6 +131,11 @@ class SoundManager {
     try {
       localStorage.setItem("cahoot_audio_muted", String(this.isMuted));
     } catch (e) {}
+
+    if (ctx) {
+      const mg = this.getMasterGain(ctx);
+      mg.gain.setValueAtTime(this.isMuted ? 0 : this.volume, ctx.currentTime);
+    }
 
     if (this.isMuted) {
       this.stopAllMusic();
@@ -114,6 +161,12 @@ class SoundManager {
       localStorage.setItem("cahoot_audio_muted", String(this.isMuted));
     } catch (e) {}
 
+    const ctx = this.initContext();
+    if (ctx) {
+      const mg = this.getMasterGain(ctx);
+      mg.gain.setValueAtTime(this.isMuted ? 0 : this.volume, ctx.currentTime);
+    }
+
     if (this.isMuted) {
       this.stopAllMusic();
     }
@@ -138,7 +191,7 @@ class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.getMasterGain(ctx));
     osc.start();
     osc.stop(ctx.currentTime + 0.08);
   }
@@ -159,7 +212,7 @@ class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.getMasterGain(ctx));
     osc.start();
     osc.stop(ctx.currentTime + 0.05);
   }
@@ -181,7 +234,7 @@ class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.getMasterGain(ctx));
     osc.start();
     osc.stop(ctx.currentTime + 0.35);
   }
@@ -205,7 +258,7 @@ class SoundManager {
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
 
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.getMasterGain(ctx));
       osc.start(startTime);
       osc.stop(startTime + 0.3);
     });
@@ -220,19 +273,19 @@ class SoundManager {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(160, ctx.currentTime);
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
     osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.35);
 
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.getMasterGain(ctx));
     osc.start();
     osc.stop(ctx.currentTime + 0.35);
   }
 
-  // Play Times Up gong
+  // Play Time's Up Sound
   public playTimesUp() {
     if (this.isMuted) return;
     const ctx = this.initContext();
@@ -240,43 +293,45 @@ class SoundManager {
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "square";
+    osc.type = "sawtooth";
     osc.frequency.setValueAtTime(320, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.6);
+    osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.4);
 
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.22, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.getMasterGain(ctx));
     osc.start();
-    osc.stop(ctx.currentTime + 0.6);
+    osc.stop(ctx.currentTime + 0.4);
   }
 
-  // Play Leaderboard swoosh
+  // Play Leaderboard reveal whoosh & chime
   public playLeaderboard() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(261.63, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.5);
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const sTime = ctx.currentTime + idx * 0.08;
 
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, sTime);
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.18, sTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, sTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.getMasterGain(ctx));
+      osc.start(sTime);
+      osc.stop(sTime + 0.35);
+    });
   }
 
-  // =========================================================================
-  // SUSPENSE & FINALE AUDIO SYNTHESIS
-  // =========================================================================
+  // --- CELEBRATION & PODIUM SOUND ENGINE ---
 
   // 1. Realistic Drumroll with rapid snare hits building suspense
   public playDrumroll(durationSec: number = 1.4) {
@@ -284,12 +339,12 @@ class SoundManager {
     const ctx = this.initContext();
     if (!ctx) return;
 
-    const numHits = Math.floor(durationSec * 22); // 22 rapid hits per second
+    const numHits = Math.floor(durationSec * 22);
     const stepTime = durationSec / numHits;
 
     for (let i = 0; i < numHits; i++) {
       const hitTime = ctx.currentTime + i * stepTime;
-      const progress = i / numHits; // 0 to 1 building intensity
+      const progress = i / numHits;
 
       // Snare Noise Burst
       const bufferSize = Math.floor(ctx.sampleRate * 0.04);
@@ -314,12 +369,12 @@ class SoundManager {
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.getMasterGain(ctx));
 
       noise.start(hitTime);
       noise.stop(hitTime + 0.04);
 
-      // Low Tom resonance on every hit
+      // Low Tom resonance
       const osc = ctx.createOscillator();
       const oscGain = ctx.createGain();
       osc.type = "triangle";
@@ -330,14 +385,14 @@ class SoundManager {
       oscGain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.05);
 
       osc.connect(oscGain);
-      oscGain.connect(ctx.destination);
+      oscGain.connect(this.getMasterGain(ctx));
 
       osc.start(hitTime);
       osc.stop(hitTime + 0.05);
     }
   }
 
-  // 2. Fireworks Explosions with whistling ascent and multi-pop crackles
+  // 2. Fireworks Explosions
   public playFireworks(burstCount: number = 3) {
     if (this.isMuted) return;
     const ctx = this.initContext();
@@ -357,27 +412,27 @@ class SoundManager {
       whistleGain.gain.exponentialRampToValueAtTime(0.001, burstDelay + 0.25);
 
       whistle.connect(whistleGain);
-      whistleGain.connect(ctx.destination);
+      whistleGain.connect(this.getMasterGain(ctx));
       whistle.start(burstDelay);
       whistle.stop(burstDelay + 0.25);
 
-      // Deep Boom Explosion
-      const boomTime = burstDelay + 0.26;
+      // Deep Boom
+      const boomTime = burstDelay + 0.25;
       const boom = ctx.createOscillator();
       const boomGain = ctx.createGain();
       boom.type = "sine";
-      boom.frequency.setValueAtTime(160, boomTime);
-      boom.frequency.exponentialRampToValueAtTime(30, boomTime + 0.5);
+      boom.frequency.setValueAtTime(120, boomTime);
+      boom.frequency.exponentialRampToValueAtTime(30, boomTime + 0.4);
 
       boomGain.gain.setValueAtTime(0.35, boomTime);
-      boomGain.gain.exponentialRampToValueAtTime(0.001, boomTime + 0.5);
+      boomGain.gain.exponentialRampToValueAtTime(0.001, boomTime + 0.4);
 
       boom.connect(boomGain);
-      boomGain.connect(ctx.destination);
+      boomGain.connect(this.getMasterGain(ctx));
       boom.start(boomTime);
-      boom.stop(boomTime + 0.5);
+      boom.stop(boomTime + 0.4);
 
-      // Crackling Sparkle Burst (Multi noise spikes)
+      // Crackling Sparkle Burst
       for (let s = 0; s < 6; s++) {
         const sTime = boomTime + 0.05 + s * 0.06;
         const bufferSize = Math.floor(ctx.sampleRate * 0.05);
@@ -399,7 +454,7 @@ class SoundManager {
 
         noise.connect(filter);
         filter.connect(sGain);
-        sGain.connect(ctx.destination);
+        sGain.connect(this.getMasterGain(ctx));
 
         noise.start(sTime);
         noise.stop(sTime + 0.05);
@@ -413,7 +468,6 @@ class SoundManager {
     const ctx = this.initContext();
     if (!ctx) return;
 
-    // Filtered pink noise for continuous cheering roar
     const bufferSize = Math.floor(ctx.sampleRate * durationSec);
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -442,7 +496,7 @@ class SoundManager {
 
     cheerNoise.connect(filter);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.getMasterGain(ctx));
 
     cheerNoise.start();
     cheerNoise.stop(ctx.currentTime + durationSec);
@@ -461,7 +515,7 @@ class SoundManager {
       wGain.gain.exponentialRampToValueAtTime(0.001, wTime + 0.35);
 
       osc.connect(wGain);
-      wGain.connect(ctx.destination);
+      wGain.connect(this.getMasterGain(ctx));
       osc.start(wTime);
       osc.stop(wTime + 0.35);
     });
@@ -484,7 +538,7 @@ class SoundManager {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.65);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.getMasterGain(ctx));
     osc.start();
     osc.stop(ctx.currentTime + 0.65);
   }
@@ -514,7 +568,7 @@ class SoundManager {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 1.2);
 
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(this.getMasterGain(ctx));
       osc.start(ctx.currentTime + i * 0.08);
       osc.stop(ctx.currentTime + i * 0.08 + 1.2);
     });
@@ -547,7 +601,7 @@ class SoundManager {
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + chord.dur);
 
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(this.getMasterGain(ctx));
         osc.start(startTime);
         osc.stop(startTime + chord.dur);
       });
@@ -556,7 +610,7 @@ class SoundManager {
 
   // --- BACKGROUND MUSIC ENGINE ---
 
-  // 1. Energetic Lobby Theme (Bouncy Kahoot-style syncopated melody & funk bass)
+  // 1. Energetic Lobby Theme
   public startLobbyMusic() {
     this.isLobbyPlaying = true;
     this.isQuestionBeatPlaying = false;
@@ -569,14 +623,14 @@ class SoundManager {
     this.isLobbyPlaying = true;
 
     const melody = [
-      { bass: 130.81, lead: 523.25 }, // C3 + C5
-      { bass: 0, lead: 659.25 },      // E5
-      { bass: 155.56, lead: 587.33 }, // Eb3 + D5
-      { bass: 0, lead: 523.25 },      // C5
-      { bass: 174.61, lead: 783.99 }, // F3 + G5
-      { bass: 0, lead: 659.25 },      // E5
-      { bass: 196.0, lead: 1046.5 },  // G3 + C6
-      { bass: 155.56, lead: 783.99 }, // Eb3 + G5
+      { bass: 130.81, lead: 523.25 },
+      { bass: 0, lead: 659.25 },
+      { bass: 155.56, lead: 587.33 },
+      { bass: 0, lead: 523.25 },
+      { bass: 174.61, lead: 783.99 },
+      { bass: 0, lead: 659.25 },
+      { bass: 196.0, lead: 1046.5 },
+      { bass: 155.56, lead: 783.99 },
     ];
 
     let step = 0;
@@ -585,7 +639,7 @@ class SoundManager {
       if (!this.isLobbyPlaying || this.isMuted || !this.ctx) return;
       const cur = melody[step % melody.length];
 
-      // Play Bass
+      // Bass
       if (cur.bass > 0) {
         const bOsc = this.ctx.createOscillator();
         const bGain = this.ctx.createGain();
@@ -594,12 +648,12 @@ class SoundManager {
         bGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
         bGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
         bOsc.connect(bGain);
-        bGain.connect(this.ctx.destination);
+        bGain.connect(this.getMasterGain(this.ctx));
         bOsc.start();
         bOsc.stop(this.ctx.currentTime + 0.22);
       }
 
-      // Play Lead Chime
+      // Lead Chime
       if (cur.lead > 0) {
         const lOsc = this.ctx.createOscillator();
         const lGain = this.ctx.createGain();
@@ -608,7 +662,7 @@ class SoundManager {
         lGain.gain.setValueAtTime(0.06, this.ctx.currentTime);
         lGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
         lOsc.connect(lGain);
-        lGain.connect(this.ctx.destination);
+        lGain.connect(this.getMasterGain(this.ctx));
         lOsc.start();
         lOsc.stop(this.ctx.currentTime + 0.18);
       }
@@ -617,7 +671,7 @@ class SoundManager {
     }, 240);
   }
 
-  // 2. Question Countdown Tension Beat (Fast pulsing arcade suspense + bassline)
+  // 2. Question Countdown Tension Beat
   public startQuestionMusic() {
     this.isQuestionBeatPlaying = true;
     this.isLobbyPlaying = false;
@@ -629,16 +683,15 @@ class SoundManager {
     this.stopAllMusic();
     this.isQuestionBeatPlaying = true;
 
-    // Iconic syncopated question groove: Root-Octave Bassline + High Ticking Chime
     const groove = [
-      { bass: 110.0, lead: 440.0 }, // A2 + A4
-      { bass: 0, lead: 523.25 },     // C5
-      { bass: 220.0, lead: 440.0 }, // A3 + A4
-      { bass: 0, lead: 659.25 },     // E5
-      { bass: 146.83, lead: 587.33 },// D3 + D5
-      { bass: 0, lead: 523.25 },     // C5
-      { bass: 220.0, lead: 659.25 }, // A3 + E5
-      { bass: 164.81, lead: 783.99 },// E3 + G5
+      { bass: 110.0, lead: 440.0 },
+      { bass: 0, lead: 523.25 },
+      { bass: 220.0, lead: 440.0 },
+      { bass: 0, lead: 659.25 },
+      { bass: 146.83, lead: 587.33 },
+      { bass: 0, lead: 523.25 },
+      { bass: 220.0, lead: 659.25 },
+      { bass: 164.81, lead: 783.99 },
     ];
     let step = 0;
 
@@ -646,7 +699,6 @@ class SoundManager {
       if (!this.isQuestionBeatPlaying || this.isMuted || !this.ctx) return;
       const beat = groove[step % groove.length];
 
-      // Bass synth note
       if (beat.bass > 0) {
         const bOsc = this.ctx.createOscillator();
         const bGain = this.ctx.createGain();
@@ -656,12 +708,11 @@ class SoundManager {
         bGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.16);
 
         bOsc.connect(bGain);
-        bGain.connect(this.ctx.destination);
+        bGain.connect(this.getMasterGain(this.ctx));
         bOsc.start();
         bOsc.stop(this.ctx.currentTime + 0.16);
       }
 
-      // High Ticking Arp Note
       if (beat.lead > 0) {
         const lOsc = this.ctx.createOscillator();
         const lGain = this.ctx.createGain();
@@ -671,7 +722,7 @@ class SoundManager {
         lGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.10);
 
         lOsc.connect(lGain);
-        lGain.connect(this.ctx.destination);
+        lGain.connect(this.getMasterGain(this.ctx));
         lOsc.start();
         lOsc.stop(this.ctx.currentTime + 0.10);
       }
