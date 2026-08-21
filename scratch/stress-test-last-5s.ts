@@ -20,12 +20,12 @@ const NAMES = [
   "Ninja", "Pixel", "Cyber", "Rocket", "Shadow", "Flash", "Blaze", "Nova"
 ];
 
-async function runLast3SecondsRushSimulation() {
+async function runLast5SecondsRushSimulation() {
   console.log(`\n=============================================================`);
-  console.log(`⏱️ STARTING LAST-3-SECONDS RUSH STRESS TEST (150 PLAYERS)`);
+  console.log(`⏱️ STARTING LAST-5-SECONDS RUSH STRESS TEST (150 PLAYERS)`);
   console.log(`📌 Target Game PIN: ${targetPin}`);
   console.log(`👥 Total Simulated Bots: ${botCount}`);
-  console.log(`⚡ Rush Rule: All bots wait quietly until the LAST 3 SECONDS!`);
+  console.log(`⚡ Rush Rule: All bots wait quietly until the LAST 5 SECONDS!`);
   console.log(`=============================================================\n`);
 
   // Create Supabase client with WebSocket transport
@@ -47,7 +47,7 @@ async function runLast3SecondsRushSimulation() {
     const randomName = NAMES[(i - 1) % NAMES.length] + "_" + i;
     const randomAvatar = AVATARS[(i - 1) % AVATARS.length];
     bots.push({
-      id: `bot_last3s_${i}_${Date.now()}`,
+      id: `bot_last5s_${i}_${Date.now()}`,
       nickname: randomName,
       avatar: randomAvatar,
     });
@@ -67,15 +67,15 @@ async function runLast3SecondsRushSimulation() {
         const qIndex = data.data.questionIndex;
         const timeLimitSec = data.data.timeLimit || 20;
         console.log(`\n⚡ Question #${qIndex + 1} STARTED! (Timer: ${timeLimitSec}s)`);
-        console.log(`⏳ Bots are waiting quietly... Will RUSH in the LAST 3 SECONDS (at ${timeLimitSec - 3}s mark)!`);
+        console.log(`⏳ Bots are waiting quietly... Will RUSH in the LAST 5 SECONDS (at ${timeLimitSec - 5}s mark)!`);
 
-        // Target: Answer in the last 3 seconds (e.g. from 17.0s to 19.5s)
-        const rushStartMs = Math.max(0, (timeLimitSec - 3.0) * 1000);
+        // Target: Answer in the last 5 seconds (e.g. from 15.0s to 19.5s on a 20s question)
+        const rushStartMs = Math.max(0, (timeLimitSec - 5.0) * 1000);
 
         bots.forEach((bot, index) => {
           const randomChoice = Math.floor(Math.random() * 4); // 0, 1, 2, 3
-          // Stagger within the last 2.6 seconds (e.g., between 17.0s and 19.6s)
-          const randomDelay = rushStartMs + Math.random() * 2600;
+          // Stagger naturally within the last 4.2 seconds
+          const randomDelay = rushStartMs + Math.random() * 4200;
 
           setTimeout(() => {
             channel.send({
@@ -85,8 +85,11 @@ async function runLast3SecondsRushSimulation() {
                 event: "SUBMIT_ANSWER",
                 pin: targetPin,
                 data: {
+                  id: bot.id,
                   playerId: bot.id,
                   nickname: bot.nickname,
+                  avatar: bot.avatar,
+                  choiceIndex: randomChoice,
                   answerIndex: randomChoice,
                   clientTimestamp: Date.now(),
                 },
@@ -94,7 +97,7 @@ async function runLast3SecondsRushSimulation() {
             });
 
             if ((index + 1) % 30 === 0 || index + 1 === botCount) {
-              console.log(`  🔥 [LAST 3s RUSH] ${index + 1}/${botCount} bots submitted answers!`);
+              console.log(`  🔥 [LAST 5s RUSH] ${index + 1}/${botCount} bots submitted answers!`);
             }
           }, randomDelay);
         });
@@ -145,9 +148,9 @@ async function runLast3SecondsRushSimulation() {
 
         console.log(`\n✅ ALL ${botCount} BOTS HAVE JOINED ROOM ${targetPin}!`);
         console.log(`👉 Press "Start Game" on Host whenever you are ready.`);
-        console.log(`👉 Watch the host screen: In the last 3 seconds, all ${botCount} answers will flood in simultaneously!`);
+        console.log(`👉 Watch the host screen: In the last 5 seconds, all ${botCount} answers will flood in smoothly!`);
       }
     });
 }
 
-runLast3SecondsRushSimulation();
+runLast5SecondsRushSimulation();
