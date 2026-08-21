@@ -27,6 +27,16 @@ interface HostLobbyProps {
   onKickPlayer: (id: string) => void;
 }
 
+// Deterministic string hash for permanent stable lane assignment
+function getStableLane(playerId: string, numLanes: number = 5): number {
+  let hash = 0;
+  for (let i = 0; i < playerId.length; i++) {
+    hash = (hash << 5) - hash + playerId.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % numLanes;
+}
+
 export function HostLobby({
   pin,
   quiz,
@@ -76,11 +86,12 @@ export function HostLobby({
     }, 2200);
   };
 
-  // Organize players systematically across exactly 5 conveyor lanes
+  // Organize players into 5 STABLE lanes (existing players NEVER jump vertically!)
   const numRows = 5;
   const rows: Player[][] = Array.from({ length: numRows }, () => []);
-  players.forEach((p, idx) => {
-    rows[idx % numRows].push(p);
+  players.forEach((p) => {
+    const lane = getStableLane(p.id, numRows);
+    rows[lane].push(p);
   });
 
   // Dynamic varied speeds for natural, randomized flow across the 5 lanes
@@ -237,7 +248,7 @@ export function HostLobby({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: 5 Continuous Non-Resetting Conveyor Lanes */}
+      {/* 3. CENTER STAGE: 5 Stable Non-Resetting Conveyor Lanes (Fill horizontally to the right!) */}
       {/* ========================================================================= */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-1">
         {players.length === 0 ? (
@@ -253,7 +264,7 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          /* Exactly 5 Conveyor Lines with Continuous CSS Scrolling (Never resets on new joins!) */
+          /* Exactly 5 Conveyor Lines with Permanent Stable Lane Assignment */
           <div className="w-full flex-1 flex flex-col justify-center gap-1.5 sm:gap-2.5 py-1 overflow-hidden">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
@@ -268,7 +279,7 @@ export function HostLobby({
                   }}
                 >
                   {rowPlayers.length === 1 ? (
-                    /* Single player in lane: slides across full screen and loops smoothly without repeating duplicate badges */
+                    /* Single player in lane: single card slides across full screen and loops */
                     <div
                       className="single-player-track items-center shrink-0"
                       style={{ animationDuration: `${speedSec * 0.65}s` }}
@@ -291,7 +302,7 @@ export function HostLobby({
                       </div>
                     </div>
                   ) : (
-                    /* Multiple players: continuous non-resetting marquee track */
+                    /* Multiple players in lane: smooth seamless tape */
                     <div
                       className="conveyor-track gap-4 sm:gap-6 items-center flex-nowrap shrink-0 pr-6"
                       style={{ animationDuration: `${speedSec}s` }}

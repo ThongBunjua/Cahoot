@@ -28,16 +28,16 @@ export function HostQuestionIntro({
   const [readingProgress, setReadingProgress] = useState(0);
 
   useEffect(() => {
-    // 0.0s: Stage 3 (Countdown 3 - Red Triangle)
+    // 0.0s: Stage 3 (Countdown 3 - Giant Red Pentagon)
     sounds.playGetReadyPulse(3);
 
-    // 0.9s: Stage 2 (Countdown 2 - Blue Diamond)
+    // 0.9s: Stage 2 (Countdown 2 - Giant Blue Square)
     const t2 = setTimeout(() => {
       setStage("countdown_2");
       sounds.playGetReadyPulse(2);
     }, 900);
 
-    // 1.8s: Stage 1 (Countdown 1 - Yellow Circle)
+    // 1.8s: Stage 1 (Countdown 1 - Giant Yellow Triangle)
     const t1 = setTimeout(() => {
       setStage("countdown_1");
       sounds.playGetReadyPulse(1);
@@ -107,52 +107,60 @@ export function HostQuestionIntro({
       {/* 2. Main Center Stage: 3-2-1 Geometric Shapes -> Phone Mockup -> Question Banner */}
       <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-6xl mx-auto my-auto">
         {/* ========================================================================= */}
-        {/* PART A: 3-2-1 GEOMETRIC SHAPE PULSE COUNTDOWN */}
+        {/* PART A: 3-2-1 SUPER-SIZED GEOMETRIC SHAPES (3=Pentagon, 2=Square, 1=Triangle) */}
         {/* ========================================================================= */}
         <AnimatePresence mode="popLayout">
           {isShapeCountdown && (
-            <div className="relative w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center">
+            <div className="relative w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
+              {/* COUNT 3 = Giant Red Pentagon */}
               {stage === "countdown_3" && (
                 <motion.div
-                  key="shape-3"
-                  initial={{ scale: 0.2, rotate: -45, opacity: 0 }}
-                  animate={{ scale: [0.2, 1.2, 1], rotate: [-45, 5, 0], opacity: 1 }}
+                  key="shape-pentagon-3"
+                  initial={{ scale: 0.2, opacity: 0 }}
+                  animate={{ scale: [0.2, 1.25, 1], opacity: 1 }}
                   exit={{ scale: 1.4, opacity: 0 }}
-                  transition={{ duration: 0.45, ease: "easeOut" }}
-                  className="w-56 h-56 sm:w-72 sm:h-72 bg-[#E21B3C] rounded-3xl flex flex-col items-center justify-center shadow-2xl border-4 border-red-300 relative"
+                  transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                  className="w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center relative"
                 >
-                  <KahootShape shape="triangle" size={140} className="text-white drop-shadow-lg opacity-40 absolute" />
-                  <span className="text-8xl sm:text-9xl font-black text-white relative z-10 drop-shadow-xl">
+                  <svg viewBox="0 0 100 100" className="w-full h-full fill-[#E21B3C] filter drop-shadow-[0_20px_50px_rgba(226,27,60,0.6)]">
+                    <polygon points="50,5 95,38 78,92 22,92 5,38" stroke="#FCA5A5" strokeWidth="4" />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-9xl sm:text-[140px] font-black text-white drop-shadow-2xl select-none pt-2">
                     3
                   </span>
                 </motion.div>
               )}
 
+              {/* COUNT 2 = Giant Blue Square */}
               {stage === "countdown_2" && (
                 <motion.div
-                  key="shape-2"
-                  initial={{ scale: 0.2, rotate: 45, opacity: 0 }}
-                  animate={{ scale: [0.2, 1.2, 1], rotate: [45, -5, 0], opacity: 1 }}
+                  key="shape-square-2"
+                  initial={{ scale: 0.2, opacity: 0 }}
+                  animate={{ scale: [0.2, 1.25, 1], opacity: 1 }}
                   exit={{ scale: 1.4, opacity: 0 }}
-                  transition={{ duration: 0.45, ease: "easeOut" }}
-                  className="w-56 h-56 sm:w-72 sm:h-72 bg-[#1368CE] rounded-3xl flex flex-col items-center justify-center shadow-2xl border-4 border-blue-300 relative rotate-45"
+                  transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                  className="w-68 h-68 sm:w-84 sm:h-84 bg-[#1368CE] rounded-3xl flex items-center justify-center shadow-[0_20px_50px_rgba(19,104,206,0.6)] border-4 border-blue-200 relative"
                 >
-                  <span className="text-8xl sm:text-9xl font-black text-white relative z-10 drop-shadow-xl -rotate-45">
+                  <span className="text-9xl sm:text-[140px] font-black text-white drop-shadow-2xl select-none">
                     2
                   </span>
                 </motion.div>
               )}
 
+              {/* COUNT 1 = Giant Yellow Triangle */}
               {stage === "countdown_1" && (
                 <motion.div
-                  key="shape-1"
+                  key="shape-triangle-1"
                   initial={{ scale: 0.2, opacity: 0 }}
-                  animate={{ scale: [0.2, 1.2, 1], opacity: 1 }}
+                  animate={{ scale: [0.2, 1.25, 1], opacity: 1 }}
                   exit={{ scale: 1.4, opacity: 0 }}
-                  transition={{ duration: 0.45, ease: "easeOut" }}
-                  className="w-56 h-56 sm:w-72 sm:h-72 bg-[#FFA602] rounded-full flex flex-col items-center justify-center shadow-2xl border-4 border-yellow-200 relative"
+                  transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                  className="w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center relative"
                 >
-                  <span className="text-8xl sm:text-9xl font-black text-slate-950 relative z-10 drop-shadow-xl">
+                  <svg viewBox="0 0 100 100" className="w-full h-full fill-[#FFA602] filter drop-shadow-[0_20px_50px_rgba(255,166,2,0.6)]">
+                    <polygon points="50,10 95,85 5,85" stroke="#FEF08A" strokeWidth="4" />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-9xl sm:text-[140px] font-black text-slate-950 drop-shadow-2xl select-none pt-6">
                     1
                   </span>
                 </motion.div>
