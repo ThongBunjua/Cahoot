@@ -76,7 +76,7 @@ export function HostLobby({
     }, 2200);
   };
 
-  // Organize players systematically across 5 infinite conveyor lanes
+  // Organize players systematically across exactly 5 infinite conveyor lanes
   const numRows = 5;
   const rows: Player[][] = Array.from({ length: numRows }, () => []);
   players.forEach((p, idx) => {
@@ -124,27 +124,27 @@ export function HostLobby({
       {/* ========================================================================= */}
       {/* 1. TOP STATUS BAR (Header with z-50 to stay 100% Bright when QR is open) */}
       {/* ========================================================================= */}
-      <div className="relative z-50 w-full bg-[#1e0741] px-6 sm:px-10 py-2.5 flex items-center justify-between border-b-2 border-purple-900/50 shadow-lg flex-shrink-0">
+      <div className="relative z-50 w-full bg-[#1e0741] px-6 sm:px-12 py-3 flex items-center justify-between border-b-2 border-purple-900/50 shadow-lg flex-shrink-0">
         {/* Left: Quiz title */}
         <div className="flex items-center gap-3">
-          <span className="text-base sm:text-lg font-black text-purple-200 truncate max-w-xs sm:max-w-md">
+          <span className="text-base sm:text-xl font-black text-purple-200 truncate max-w-xs sm:max-w-md">
             {quiz.title}
           </span>
-          <span className="text-xs font-black text-yellow-400 bg-[#33106B] px-3 py-1 rounded-full border border-purple-600/40 shadow-sm">
+          <span className="text-xs sm:text-sm font-black text-yellow-400 bg-[#33106B] px-3.5 py-1 rounded-full border border-purple-600/40 shadow-sm">
             {quiz.questions.length} Questions
           </span>
         </div>
 
         {/* Center: Brand Logo */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tighter text-white drop-shadow-md">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-white drop-shadow-md">
             Cahoot<span className="text-yellow-400">!</span>
           </h2>
         </div>
 
         {/* Right: Players Count, Audio & Screen Controls */}
         <div className="flex items-center gap-3.5">
-          <div className="flex items-center gap-2 bg-[#33106B] px-4 py-1.5 rounded-2xl border-2 border-purple-700/50 text-sm sm:text-base font-black text-white shadow-md">
+          <div className="flex items-center gap-2 bg-[#33106B] px-4 py-2 rounded-2xl border-2 border-purple-700/50 text-sm sm:text-lg font-black text-white shadow-md">
             <Users className="w-5 h-5 text-yellow-400" />
             <span>{players.length}</span>
           </div>
@@ -153,58 +153,58 @@ export function HostLobby({
 
           <button
             onClick={toggleFullscreen}
-            className="p-2 rounded-2xl bg-[#33106B] hover:bg-[#240B4D] text-white border-2 border-purple-700/50 shadow-md transition-all cursor-pointer"
+            className="p-2.5 rounded-2xl bg-[#33106B] hover:bg-[#240B4D] text-white border-2 border-purple-700/50 shadow-md transition-all cursor-pointer"
             title="Toggle Fullscreen"
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. TOP MASTER BADGE: SUPER-SIZED EXTRA LARGE PIN & JOIN URL (Huge & Wide) */}
+      {/* 2. TOP MASTER BADGE: AUDITORIUM MASSIVE PIN & JOIN URL (Huge, Wide & High Visibility) */}
       {/* ========================================================================= */}
       <div className="relative z-50 w-full flex justify-center pt-2 sm:pt-4 px-4">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white text-slate-950 rounded-3xl sm:rounded-[36px] shadow-[0_25px_70px_rgba(0,0,0,0.6)] border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-stretch divide-x-2 divide-slate-200 overflow-hidden max-w-6xl w-full"
+          className="bg-white text-slate-950 rounded-3xl sm:rounded-[40px] shadow-[0_30px_90px_rgba(0,0,0,0.65)] border-2 border-slate-200 border-b-[10px] border-b-slate-300 flex items-stretch divide-x-2 divide-slate-200 overflow-hidden w-full max-w-[94vw] lg:max-w-7xl"
         >
           {/* Left Partition: Giant Join Instructions */}
-          <div className="px-8 sm:px-12 py-3.5 sm:py-5 flex flex-col justify-center text-left flex-1">
-            <span className="text-sm sm:text-lg md:text-xl font-bold text-slate-600">
-              Join at <span className="font-black text-slate-950 underline decoration-[#46178F] underline-offset-4 text-lg sm:text-2xl md:text-3xl">{siteUrl}</span>
+          <div className="px-8 sm:px-14 py-4 sm:py-6 flex flex-col justify-center text-left flex-1">
+            <span className="text-base sm:text-2xl md:text-3xl font-bold text-slate-600">
+              Join at <span className="font-black text-slate-950 underline decoration-[#46178F] underline-offset-4 text-xl sm:text-3xl md:text-4xl">{siteUrl}</span>
             </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-500 mt-1">
+            <span className="text-xs sm:text-base font-semibold text-slate-500 mt-1">
               or scan with your mobile camera
             </span>
           </div>
 
-          {/* Center Partition: Super-Sized Giant Game PIN */}
-          <div className="px-10 sm:px-16 py-3.5 sm:py-5 flex flex-col justify-center text-center bg-slate-50/90">
+          {/* Center Partition: Super-Sized Giant Game PIN (Auditorium Scale) */}
+          <div className="px-10 sm:px-20 py-4 sm:py-6 flex flex-col justify-center text-center bg-slate-50/90">
             <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-500">
               Game PIN:
             </span>
-            <span className="text-5xl sm:text-7xl md:text-8xl font-black font-mono tracking-widest text-slate-950 leading-none mt-1">
+            <span className="text-6xl sm:text-8xl md:text-9xl lg:text-[110px] font-black font-mono tracking-widest text-slate-950 leading-none mt-1">
               {formatPin(pin)}
             </span>
           </div>
 
-          {/* Right Partition: Built-in Live QR Code */}
+          {/* Right Partition: Built-in Big Live QR Code (120px) */}
           <button
             onClick={() => setShowQR(true)}
-            className="p-3 sm:p-5 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group flex-shrink-0"
+            className="p-4 sm:p-6 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group flex-shrink-0"
             title="Click to enlarge QR Code"
           >
-            <div className="p-1.5 bg-white rounded-2xl border-2 border-slate-200 shadow-sm group-hover:scale-105 transition-transform">
-              <QRCodeSVG value={fullJoinUrl} size={88} />
+            <div className="p-2 bg-white rounded-2xl border-2 border-slate-200 shadow-md group-hover:scale-105 transition-transform">
+              <QRCodeSVG value={fullJoinUrl} size={110} />
             </div>
           </button>
         </motion.div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: 5 Full-Width Infinite Conveyor Lines Scrolling Right */}
+      {/* 3. CENTER STAGE: 5 Full-Width Infinite Conveyor Lanes Scrolling Right */}
       {/* ========================================================================= */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-1">
         {players.length === 0 ? (
@@ -220,15 +220,15 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          /* 5 Multi-Row Full-Width Continuous Rightward Conveyor Lines */
-          <div className="w-full flex-1 flex flex-col justify-center gap-2 sm:gap-3 overflow-hidden py-1">
+          /* Exactly 5 Multi-Row Full-Width Continuous Rightward Conveyor Lines */
+          <div className="w-full flex-1 flex flex-col justify-evenly gap-1.5 sm:gap-2.5 overflow-hidden py-1">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
 
               // Systematic multiplier for infinite smooth loop without rapid single repeats
               const multiplier = Math.max(3, Math.ceil(15 / rowPlayers.length));
               const seamlessList = Array(multiplier).fill(rowPlayers).flat();
-              const speedSec = 36 + rowIndex * 6; // Calm readable pace
+              const speedSec = 34 + rowIndex * 6; // Calm readable pace
 
               return (
                 <div
@@ -284,8 +284,8 @@ export function HostLobby({
       {/* ========================================================================= */}
       <div className="relative z-30 w-full max-w-[98vw] mx-auto px-6 sm:px-12 pb-4 sm:pb-5 flex items-center justify-between">
         {/* Left Indicator */}
-        <div className="flex items-center gap-3 text-base sm:text-lg font-black text-purple-200">
-          <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+        <div className="flex items-center gap-3 text-base sm:text-xl font-black text-purple-200">
+          <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-ping" />
           <span>{players.length} {players.length === 1 ? "Player" : "Players"} Ready</span>
         </div>
 
@@ -295,7 +295,7 @@ export function HostLobby({
           whileTap={players.length > 0 && !isStartingSplash ? { scale: 0.96 } : {}}
           disabled={players.length === 0 || isStartingSplash}
           onClick={handleStartGameClick}
-          className={`px-10 sm:px-14 py-3.5 sm:py-4.5 rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl flex items-center gap-3.5 transition-all ${
+          className={`px-10 sm:px-16 py-4 sm:py-5 rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl flex items-center gap-3.5 transition-all ${
             players.length > 0
               ? "bg-[#26890C] hover:bg-[#22790A] text-white shadow-2xl cursor-pointer border-b-[6px] border-[#165406] active:border-b-[2px] active:translate-y-1"
               : "bg-[#240B4D] text-slate-500 border-2 border-[#1D083E] cursor-not-allowed opacity-60"
