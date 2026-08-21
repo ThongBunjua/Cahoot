@@ -173,7 +173,7 @@ export function HostQuestionIntro({
             animate={
               stage === "phone_center"
                 ? { y: 0, scale: 1, opacity: 1 }
-                : { y: -200, scale: 0.38, opacity: 1 }
+                : { y: -275, scale: 0.28, opacity: 1 }
             }
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             className="w-80 h-[500px] sm:w-96 sm:h-[580px] bg-slate-950 rounded-[52px] p-5 border-4 border-slate-700 border-b-[12px] border-b-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.85)] flex flex-col justify-between absolute z-20 origin-center pointer-events-none"
@@ -215,7 +215,7 @@ export function HostQuestionIntro({
           <motion.div
             layoutId="host-question-banner"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-[1380px] bg-white text-slate-900 shadow-2xl flex items-center justify-center min-h-[160px] sm:min-h-[220px] md:min-h-[260px] py-8 sm:py-12 px-8 sm:px-20 rounded-3xl border-3 border-slate-200 border-b-[10px] border-b-slate-300 z-30 overflow-visible"
           >
@@ -225,11 +225,11 @@ export function HostQuestionIntro({
           </motion.div>
         )}
 
-        {/* PART D: Reading Progress Track (Centered below Question Card) */}
+        {/* PART D: Reading Progress Track (Centered well below Question Card) */}
         {stage === "question_preview" && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: 190 }}
+            animate={{ opacity: 1, y: 220 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="w-full max-w-3xl flex flex-col items-center absolute z-20"

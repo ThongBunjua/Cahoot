@@ -57,9 +57,9 @@ const BUTTON_CONFIGS = [
 function getPlayerChoiceFontSize(text: string) {
   const len = text ? text.trim().length : 0;
   if (len <= 35) return "text-xs sm:text-base md:text-lg";
-  if (len <= 75) return "text-[11px] sm:text-sm md:text-base";
-  if (len <= 120) return "text-[10px] sm:text-xs md:text-sm leading-tight";
-  return "text-[9px] sm:text-[11px] md:text-xs leading-tight line-clamp-4";
+  if (len <= 80) return "text-[11px] sm:text-sm md:text-base";
+  if (len <= 140) return "text-[10px] sm:text-xs md:text-sm leading-snug";
+  return "text-[10px] sm:text-xs md:text-sm leading-snug";
 }
 
 export function PlayerGameButtons({

@@ -41,10 +41,10 @@ const CHOICES_SOLID_THEME = [
 
 function getAnswerFontSize(text: string) {
   const len = text ? text.trim().length : 0;
-  if (len <= 35) return "text-base sm:text-xl md:text-2xl lg:text-3xl";
-  if (len <= 75) return "text-sm sm:text-lg md:text-xl lg:text-2xl";
-  if (len <= 120) return "text-xs sm:text-sm md:text-base lg:text-lg";
-  return "text-[11px] sm:text-xs md:text-sm lg:text-[15px] leading-tight";
+  if (len <= 40) return "text-lg sm:text-2xl md:text-3xl lg:text-4xl";
+  if (len <= 85) return "text-base sm:text-xl md:text-2xl lg:text-3xl";
+  if (len <= 140) return "text-sm sm:text-lg md:text-xl lg:text-2xl";
+  return "text-xs sm:text-base md:text-lg lg:text-xl leading-snug";
 }
 
 export function HostResults({
