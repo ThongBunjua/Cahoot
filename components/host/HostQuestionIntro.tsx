@@ -208,26 +208,27 @@ export function HostQuestionIntro({
           </motion.div>
         )}
 
-        {/* PART C: QUESTION CARD WITH SMOOTH MORPH UPWARD */}
+        {/* PART C: QUESTION CARD - STAYS 100% STILL IN PREVIEW, SLIDES UP AT CONSTANT SPEED ON MORPH */}
         {isQuestionVisible && (
           <motion.div
             layoutId="host-question-banner"
-            initial={{ opacity: 0, y: 120, scale: 0.9 }}
+            initial={{ opacity: 0 }}
             animate={
               isMorphing
                 ? {
                     y: -360,
-                    scale: 1,
                     opacity: 1,
                   }
                 : {
                     y: 60,
-                    scale: 1,
                     opacity: 1,
                   }
             }
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className={`w-full bg-white text-slate-900 shadow-2xl flex items-center justify-between z-30 transition-all ${
+            transition={{
+              duration: isMorphing ? 0.6 : 0.25,
+              ease: isMorphing ? "easeInOut" : "easeOut",
+            }}
+            className={`w-full bg-white text-slate-900 shadow-2xl flex items-center justify-between z-30 ${
               isMorphing
                 ? "max-w-[98vw] py-2.5 sm:py-3.5 px-4 sm:px-8 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 gap-4"
                 : "max-w-[1100px] py-7 sm:py-9 px-8 sm:px-14 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300"
@@ -238,7 +239,7 @@ export function HostQuestionIntro({
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: 0.2 }}
                 className="flex items-center gap-2 flex-shrink-0"
               >
                 <span className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-3.5 py-1.5 rounded-xl border-2 border-[#240B4D]">
@@ -263,7 +264,7 @@ export function HostQuestionIntro({
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: 0.2 }}
                 className="flex items-center gap-2.5 flex-shrink-0"
               >
                 <AudioControl />
@@ -275,10 +276,10 @@ export function HostQuestionIntro({
         {/* PART D: Reading Progress Track (Centered below Question Card) */}
         {stage === "question_preview" && (
           <motion.div
-            initial={{ opacity: 0, y: 160 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1, y: 180 }}
-            exit={{ opacity: 0, y: 220 }}
-            transition={{ duration: 0.35 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
             className="w-full max-w-2xl flex flex-col items-center absolute z-20"
           >
             <div className="w-full h-4 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">
