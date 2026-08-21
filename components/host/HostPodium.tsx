@@ -7,21 +7,27 @@ import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 import { AudioControl } from "@/components/ui/AudioControl";
 import { GameBackground } from "@/components/ui/GameBackground";
 import { sounds } from "@/lib/audio/soundManager";
+import { SessionManager } from "@/lib/realtime/sessionManager";
 import {
   Trophy,
   Crown,
   Home,
   ListOrdered,
+  RotateCcw,
+  LogOut,
 } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface HostPodiumProps {
   quiz: Quiz;
   players: Player[];
   onPlayAgain?: () => void;
+  onEndGame?: () => void;
 }
 
-export function HostPodium({ quiz, players }: HostPodiumProps) {
+export function HostPodium({ quiz, players, onPlayAgain, onEndGame }: HostPodiumProps) {
+  const router = useRouter();
+
   // Sort players by final total score with deterministic tie-breaker
   const sorted = [...players].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
@@ -84,7 +90,7 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
     // 3. STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (17.0s -> 22.0s)
     const tSpot = setTimeout(() => {
       setSpotlight(true);
-      sounds.playDrumroll(4.8); // 4.8s intense grand finale drumroll!
+      sounds.playDrumroll(4.8);
     }, 17000);
 
     const t1Pillar = setTimeout(() => {
@@ -110,6 +116,22 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
     };
   }, []);
 
+  const handleEndGame = () => {
+    if (onEndGame) {
+      onEndGame();
+    } else {
+      router.push("/quizzes");
+    }
+  };
+
+  const handlePlayAgainClick = () => {
+    if (onPlayAgain) {
+      onPlayAgain();
+    } else {
+      router.push(`/quizzes`);
+    }
+  };
+
   const totalQ = quiz.questions?.length ?? 1;
 
   return (
@@ -121,7 +143,7 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
       {/* ========================================================================= */}
-      {/* HYBRID CINEMATIC STAGE LIGHTING: CIRCULAR SPOTLIGHT + PURPLE & GOLD BEAMS */}
+      {/* CINEMATIC DUAL SPOTLIGHT LIGHT BEAMS (Clean, no weird border rings!) */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {spotlight && (
@@ -132,40 +154,32 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1.2 }}
-              className="absolute inset-0 bg-black/65 backdrop-blur-[3px]"
+              className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
             />
 
-            {/* 2. Left Purple-Gold Spotlight Cone */}
+            {/* 2. Left Golden Spotlight Cone */}
             <motion.div
               initial={{ opacity: 0, rotate: -30, scaleY: 0.4 }}
-              animate={{ opacity: [0, 0.8, 0.6], rotate: -18, scaleY: 1 }}
+              animate={{ opacity: [0, 0.75, 0.55], rotate: -16, scaleY: 1 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute -top-24 left-1/5 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-[#FFA602]/40 via-purple-600/25 to-transparent blur-3xl origin-top"
+              className="absolute -top-24 left-1/4 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-[#FFA602]/35 via-amber-500/15 to-transparent blur-3xl origin-top"
               style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
             />
 
             {/* 3. Right Violet-Gold Spotlight Cone */}
             <motion.div
               initial={{ opacity: 0, rotate: 30, scaleY: 0.4 }}
-              animate={{ opacity: [0, 0.8, 0.6], rotate: 18, scaleY: 1 }}
+              animate={{ opacity: [0, 0.75, 0.55], rotate: 16, scaleY: 1 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute -top-24 right-1/5 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-yellow-300/40 via-purple-500/25 to-transparent blur-3xl origin-top"
+              className="absolute -top-24 right-1/4 w-[320px] sm:w-[480px] h-[130vh] bg-gradient-to-b from-yellow-300/35 via-purple-500/15 to-transparent blur-3xl origin-top"
               style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
-            />
-
-            {/* 4. Large Luminous Circular Stage Spotlight Disc on Center */}
-            <motion.div
-              initial={{ scale: 0.4, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              className="w-[520px] h-[520px] sm:w-[680px] sm:h-[680px] rounded-full bg-gradient-to-b from-white/20 via-yellow-300/10 to-purple-600/10 shadow-[0_0_150px_rgba(255,255,255,0.65)] border-4 border-yellow-300/30 flex flex-col items-center justify-start pt-10"
             />
           </div>
         )}
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER (Highest z-50 to ensure clean visibility without overlaps) */}
+      {/* 1. TOP HEADER WITH PLAY AGAIN & END GAME BUTTONS */}
       {/* ========================================================================= */}
       <header className="relative z-50 flex items-center justify-between bg-[#33106B] px-6 sm:px-8 py-3.5 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-2xl w-full max-w-[96vw] mx-auto mb-2 flex-shrink-0">
         <div className="flex items-center gap-3.5">
@@ -182,24 +196,35 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
           </div>
         </div>
 
+        {/* Action Controls: Audio, Full Scoreboard, Play Again, End Game */}
         <div className="flex items-center gap-3">
           <AudioControl />
 
           <button
             onClick={() => setShowFullScoreboard(!showFullScoreboard)}
-            className="px-5 py-3 bg-[#240B4D] hover:bg-[#1D083E] text-white rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 border-2 border-[#1D083E] border-b-4 border-black cursor-pointer active:border-b-2 active:translate-y-0.5"
+            className="px-4 py-2.5 sm:px-5 sm:py-3 bg-[#240B4D] hover:bg-[#1D083E] text-white rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 border-2 border-[#1D083E] border-b-4 border-black cursor-pointer active:border-b-2 active:translate-y-0.5"
           >
             <ListOrdered className="w-4 h-4" />
-            <span>{showFullScoreboard ? "Show Podium" : "Full Scoreboard"}</span>
+            <span>{showFullScoreboard ? "Show Podium" : "Scoreboard"}</span>
           </button>
 
-          <Link
-            href="/quizzes"
-            className="px-6 py-3 bg-[#26890C] hover:bg-[#22790A] text-white rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 shadow-md border-b-4 border-[#1B6108] active:border-b-0 active:translate-y-1"
+          {/* Play Again Button */}
+          <button
+            onClick={handlePlayAgainClick}
+            className="px-4 py-2.5 sm:px-6 sm:py-3 bg-[#26890C] hover:bg-[#22790A] text-white rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 shadow-md border-b-4 border-[#1B6108] cursor-pointer active:border-b-0 active:translate-y-1"
           >
-            <Home className="w-4 h-4" />
-            <span>Library</span>
-          </Link>
+            <RotateCcw className="w-4 h-4" />
+            <span>Play Again</span>
+          </button>
+
+          {/* End Game / Library Button */}
+          <button
+            onClick={handleEndGame}
+            className="px-4 py-2.5 sm:px-6 sm:py-3 bg-[#E21B3C] hover:bg-[#B0142D] text-white rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 shadow-md border-b-4 border-[#8B0000] cursor-pointer active:border-b-0 active:translate-y-1"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>End Game</span>
+          </button>
         </div>
       </header>
 
@@ -243,10 +268,14 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
                       </div>
                     </motion.div>
                   ) : (
-                    <div className="h-32 flex items-center justify-center">
-                      <div className="w-18 h-18 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-amber-300 font-black text-4xl animate-bounce shadow-2xl">
+                    /* Clean Glowing Suspense '?' without weird border box */
+                    <div className="h-32 flex flex-col items-center justify-center">
+                      <span className="text-7xl sm:text-8xl font-black text-amber-300 animate-pulse drop-shadow-[0_0_25px_rgba(251,191,36,0.8)]">
                         ?
-                      </div>
+                      </span>
+                      <span className="text-xs uppercase tracking-widest font-black text-amber-300/80 mt-1">
+                        3rd Place
+                      </span>
                     </div>
                   )}
                 </div>
@@ -322,10 +351,14 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
                       </div>
                     </motion.div>
                   ) : (
-                    <div className="h-32 flex items-center justify-center">
-                      <div className="w-18 h-18 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] flex items-center justify-center text-slate-300 font-black text-4xl animate-bounce shadow-2xl">
+                    /* Clean Glowing Suspense '?' without weird border box */
+                    <div className="h-32 flex flex-col items-center justify-center">
+                      <span className="text-7xl sm:text-8xl font-black text-slate-200 animate-pulse drop-shadow-[0_0_25px_rgba(226,232,240,0.8)]">
                         ?
-                      </div>
+                      </span>
+                      <span className="text-xs uppercase tracking-widest font-black text-slate-300/80 mt-1">
+                        2nd Place
+                      </span>
                     </div>
                   )}
                 </div>
@@ -423,10 +456,14 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
                       </div>
                     </motion.div>
                   ) : (
-                    <div className="h-36 flex items-center justify-center">
-                      <div className="w-22 h-22 rounded-3xl bg-[#33106B] border-4 border-yellow-400 flex items-center justify-center text-yellow-300 font-black text-5xl animate-bounce shadow-2xl">
-                        ?
-                      </div>
+                    /* Clean Glowing Suspense '👑 ?' without weird border box */
+                    <div className="h-36 flex flex-col items-center justify-center">
+                      <span className="text-8xl sm:text-9xl font-black text-yellow-300 animate-pulse drop-shadow-[0_0_35px_rgba(250,204,21,0.9)]">
+                        👑 ?
+                      </span>
+                      <span className="text-xs uppercase tracking-widest font-black text-yellow-300/80 mt-1">
+                        1st Place
+                      </span>
                     </div>
                   )}
                 </div>
