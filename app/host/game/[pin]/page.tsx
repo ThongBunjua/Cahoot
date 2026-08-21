@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { LayoutGroup } from "framer-motion";
 import { QuizStore, STARTER_QUIZZES } from "@/lib/store/quizStore";
 import { useGameHost } from "@/lib/realtime/useGameHost";
 import { HostLobby } from "@/components/host/HostLobby";
@@ -41,74 +42,78 @@ export default function HostGamePage() {
 
   const currentQuestion = quiz.questions[state.currentQuestionIndex] || quiz.questions[0];
 
-  // Render Phase Views
-  switch (state.phase) {
-    case "lobby":
-      return (
-        <HostLobby
-          pin={pin}
-          quiz={quiz}
-          players={state.players}
-          onStartGame={startGame}
-          onKickPlayer={kickPlayer}
-        />
-      );
+  // Wrap in LayoutGroup so layoutId animations work seamlessly across phase switches
+  const renderPhase = () => {
+    switch (state.phase) {
+      case "lobby":
+        return (
+          <HostLobby
+            pin={pin}
+            quiz={quiz}
+            players={state.players}
+            onStartGame={startGame}
+            onKickPlayer={kickPlayer}
+          />
+        );
 
-    case "get_ready":
-      return (
-        <HostQuestionIntro
-          question={currentQuestion}
-          questionIndex={state.currentQuestionIndex}
-          totalQuestions={quiz.questions.length}
-          onIntroComplete={() => startQuestion(state.currentQuestionIndex)}
-        />
-      );
+      case "get_ready":
+        return (
+          <HostQuestionIntro
+            question={currentQuestion}
+            questionIndex={state.currentQuestionIndex}
+            totalQuestions={quiz.questions.length}
+            onIntroComplete={() => startQuestion(state.currentQuestionIndex)}
+          />
+        );
 
-    case "question":
-      return (
-        <HostQuestion
-          question={currentQuestion}
-          questionIndex={state.currentQuestionIndex}
-          totalQuestions={quiz.questions.length}
-          timeRemaining={state.timeRemaining}
-          totalAnswersReceived={state.totalAnswersReceived}
-          totalPlayers={state.players.length}
-          onSkip={endQuestion}
-        />
-      );
+      case "question":
+        return (
+          <HostQuestion
+            question={currentQuestion}
+            questionIndex={state.currentQuestionIndex}
+            totalQuestions={quiz.questions.length}
+            timeRemaining={state.timeRemaining}
+            totalAnswersReceived={state.totalAnswersReceived}
+            totalPlayers={state.players.length}
+            onSkip={endQuestion}
+          />
+        );
 
-    case "question_results":
-      return (
-        <HostResults
-          question={currentQuestion}
-          answerCounts={state.answerCounts}
-          isLastQuestion={state.currentQuestionIndex >= quiz.questions.length - 1}
-          onNext={showLeaderboard}
-        />
-      );
+      case "question_results":
+        return (
+          <HostResults
+            question={currentQuestion}
+            answerCounts={state.answerCounts}
+            isLastQuestion={state.currentQuestionIndex >= quiz.questions.length - 1}
+            onNext={showLeaderboard}
+          />
+        );
 
-    case "leaderboard":
-      return (
-        <HostLeaderboard
-          players={state.players}
-          isLastQuestion={state.currentQuestionIndex >= quiz.questions.length - 1}
-          onNext={nextStep}
-        />
-      );
+      case "leaderboard":
+        return (
+          <HostLeaderboard
+            players={state.players}
+            isLastQuestion={state.currentQuestionIndex >= quiz.questions.length - 1}
+            onNext={nextStep}
+          />
+        );
 
-    case "podium":
-      return (
-        <HostPodium
-          quiz={quiz}
-          players={state.players}
-          onPlayAgain={() => {
-            const newPin = generateGamePin();
-            router.push(`/host/game/${newPin}?quizId=${quiz.id}`);
-          }}
-        />
-      );
+      case "podium":
+        return (
+          <HostPodium
+            quiz={quiz}
+            players={state.players}
+            onPlayAgain={() => {
+              const newPin = generateGamePin();
+              router.push(`/host/game/${newPin}?quizId=${quiz.id}`);
+            }}
+          />
+        );
 
-    default:
-      return null;
-  }
+      default:
+        return null;
+    }
+  };
+
+  return <LayoutGroup>{renderPhase()}</LayoutGroup>;
 }

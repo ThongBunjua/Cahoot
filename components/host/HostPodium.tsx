@@ -156,21 +156,22 @@ export function HostPodium({
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
       {/* ========================================================================= */}
-      {/* GRAND KAHOOT CIRCULAR SPOTLIGHT DOME (100% Guaranteed Dead Center!) */}
+      {/* GRAND KAHOOT CIRCULAR SPOTLIGHT DOME (Dead Center via margin, no transform conflicts!) */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {revealStep >= 3 && (
           <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden">
-            {/* 1. Ambient Stage Dimming Vignette (Purple Dark Tint) */}
+            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8 }}
-              className="absolute inset-0 bg-[#070212]/88 backdrop-blur-[1.5px]"
+              className="absolute inset-0 bg-[#050110]/90 backdrop-blur-[2px]"
             />
 
-            {/* 2. Compact Kahoot Circular Spotlight Dome (Dead Center X, Elevated Y at 22%) */}
+            {/* 2. Compact Kahoot Circular Spotlight Dome */}
+            {/* Using left:50% + negative margin instead of translateX to avoid Framer Motion transform override */}
             <motion.div
               initial={{ scale: 0.7, opacity: 0 }}
               animate={{
@@ -179,8 +180,13 @@ export function HostPodium({
               }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[22%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[460px] md:w-[500px] h-[400px] sm:h-[460px] md:h-[500px] rounded-full border-4 border-yellow-200/60 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.3)] pointer-events-none"
+              className="absolute rounded-full border-4 border-yellow-200/60 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.3)] pointer-events-none"
               style={{
+                width: 460,
+                height: 460,
+                top: "18%",
+                left: "50%",
+                marginLeft: -230,
                 background:
                   "radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, rgba(254, 240, 138, 0.28) 45%, rgba(147, 51, 234, 0.12) 75%, transparent 100%)",
               }}
@@ -189,7 +195,7 @@ export function HostPodium({
               <motion.div
                 animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
-                className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl mx-auto my-auto mt-[12.5%]"
+                className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl mx-auto mt-[12.5%]"
               />
             </motion.div>
           </div>
