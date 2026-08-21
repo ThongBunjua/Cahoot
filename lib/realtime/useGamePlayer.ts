@@ -157,13 +157,15 @@ export function useGamePlayer(initialPin: string = "") {
         hasAnswered: true,
       }));
 
-      // Broadcast answer to Host immediately
+      // Broadcast answer to Host immediately with all field aliases
       const channel = getRealtimeChannel(pin);
       channel.broadcast("SUBMIT_ANSWER", {
         id: player.id,
+        playerId: player.id,
         nickname: player.nickname,
         avatar: player.avatar,
         choiceIndex,
+        answerIndex: choiceIndex,
         timeRemaining: effectiveTime,
         points: basePoints,
         questionIndex: currentQuestionIndex,

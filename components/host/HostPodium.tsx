@@ -54,56 +54,56 @@ export function HostPodium({ quiz, players, onPlayAgain, onEndGame }: HostPodium
 
   useEffect(() => {
     // =========================================================================
-    // EXTENDED SUSPENSEFUL TIMELINE WITH THRILLING SFX & PAUSES
+    // CRISP & SUSPENSEFUL TIMELINE (Tuned pause duration)
     // =========================================================================
 
-    // 1. STEP 1: 3RD PLACE SUSPENSE & REVEAL (1.0s -> 4.0s)
+    // 1. STEP 1: 3RD PLACE SUSPENSE & REVEAL (1.0s -> 3.6s)
     const t3Pillar = setTimeout(() => {
       setP3Pillar(true);
-      sounds.playDrumroll(2.8);
+      sounds.playDrumroll(2.5);
       sounds.playPillarRiser();
     }, 1000);
 
     const t3Details = setTimeout(() => {
       setP3Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(2.6);
-    }, 4000);
+      sounds.playCrowdCheer(2.5);
+    }, 3600);
 
-    // [GENEROUS 4.5 SECONDS PAUSE / CELEBRATION AFTER 3RD PLACE]
+    // [CRISP 3.6 SECONDS CELEBRATION PAUSE AFTER 3RD PLACE]
 
-    // 2. STEP 2: 2ND PLACE SUSPENSE & REVEAL (8.5s -> 12.0s)
+    // 2. STEP 2: 2ND PLACE SUSPENSE & REVEAL (7.2s -> 10.2s)
     const t2Pillar = setTimeout(() => {
       setP2Pillar(true);
-      sounds.playDrumroll(3.2);
+      sounds.playDrumroll(2.8);
       sounds.playPillarRiser();
-    }, 8500);
+    }, 7200);
 
     const t2Details = setTimeout(() => {
       setP2Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(3.0);
-    }, 12000);
+      sounds.playCrowdCheer(2.8);
+    }, 10200);
 
-    // [GENEROUS 5.0 SECONDS PAUSE / CELEBRATION AFTER 2ND PLACE]
+    // [CRISP 4.0 SECONDS CELEBRATION PAUSE AFTER 2ND PLACE]
 
-    // 3. STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (17.0s -> 22.0s)
+    // 3. STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (14.2s -> 18.8s)
     const tSpot = setTimeout(() => {
       setSpotlight(true);
-      sounds.playDrumroll(4.8);
-    }, 17000);
+      sounds.playDrumroll(4.4);
+    }, 14200);
 
     const t1Pillar = setTimeout(() => {
       setP1Pillar(true);
       sounds.playPillarRiser();
-    }, 18800);
+    }, 15800);
 
     const t1Details = setTimeout(() => {
       setP1Details(true);
       setSpotlight(false);
       setTriggerConfetti(true);
       sounds.playChampionReveal(); // Fanfare + Multi-Fireworks Booms + Roaring Stadium Cheers & Chimes!
-    }, 22000);
+    }, 18800);
 
     return () => {
       clearTimeout(t3Pillar);

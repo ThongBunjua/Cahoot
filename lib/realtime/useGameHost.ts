@@ -224,8 +224,19 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
       // 2. Player Submits Answer during Question Phase
       if (payload.event === "SUBMIT_ANSWER" && currentState.phase === "question") {
-        const { playerId, nickname, answerIndex } = payload.data;
-        const answerKey = `${playerId}_${nickname || ""}`;
+        const payloadData = payload.data || {};
+        const playerId = payloadData.playerId || payloadData.id;
+        const nickname = payloadData.nickname;
+        const answerIndex =
+          typeof payloadData.answerIndex === "number"
+            ? payloadData.answerIndex
+            : typeof payloadData.choiceIndex === "number"
+            ? payloadData.choiceIndex
+            : -1;
+
+        if (answerIndex < 0 || answerIndex > 3) return;
+
+        const answerKey = `${playerId || ""}_${nickname || ""}`;
         if (answersMapRef.current.has(answerKey)) return;
 
         const question = currentState.quiz.questions[currentState.currentQuestionIndex];
@@ -235,11 +246,11 @@ export function useGameHost(pin: string, quiz: Quiz) {
         const responseTimeMs = Math.max(0, hostNow - currentState.questionStartTime);
         answersMapRef.current.set(answerKey, { answerIndex, timestamp: hostNow });
 
-        const isCorrect = answerIndex === question.correct_index;
+        const isCorrect = Number(answerIndex) === Number(question.correct_index);
         
         // Match player by ID or Nickname
         const player = currentState.players.find(
-          (p) => p.id === playerId || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())
+          (p) => (playerId && p.id === playerId) || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())
         );
         const currentStreak = player ? player.streak : 0;
 
@@ -261,7 +272,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
         // Update player record
         const updatedPlayers = currentState.players.map((p) => {
-          if (p.id === playerId || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())) {
+          if ((playerId && p.id === playerId) || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())) {
             return {
               ...p,
               score: p.score + points,
