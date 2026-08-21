@@ -1,52 +1,42 @@
 "use client";
 
 import { useEffect } from "react";
-import confetti from "canvas-confetti";
 
 interface ConfettiEffectProps {
   trigger?: boolean;
   duration?: number;
 }
 
-export function ConfettiEffect({ trigger = true, duration = 3000 }: ConfettiEffectProps) {
+export function ConfettiEffect({ trigger = true, duration = 2500 }: ConfettiEffectProps) {
   useEffect(() => {
     if (!trigger || typeof window === "undefined") return;
 
-    const colors = ["#E21B3C", "#1368CE", "#D89E00", "#26890C", "#46178F", "#FFA602"];
+    let isMounted = true;
 
-    // Initial big burst
-    confetti({
-      particleCount: 100,
-      spread: 80,
-      origin: { y: 0.6 },
-      colors,
-    });
+    // Dynamic import to guarantee safe client-only execution on all mobile browsers
+    import("canvas-confetti")
+      .then((module) => {
+        if (!isMounted) return;
+        const confetti = module.default || module;
+        if (typeof confetti !== "function") return;
 
-    const end = Date.now() + duration;
+        const colors = ["#E21B3C", "#1368CE", "#D89E00", "#26890C", "#46178F", "#FFA602"];
 
-    const interval = setInterval(() => {
-      if (Date.now() > end) {
-        clearInterval(interval);
-        return;
-      }
+        try {
+          // Initial burst
+          confetti({
+            particleCount: 80,
+            spread: 75,
+            origin: { y: 0.6 },
+            colors,
+          });
+        } catch (e) {}
+      })
+      .catch(() => {});
 
-      confetti({
-        particleCount: 35,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors,
-      });
-      confetti({
-        particleCount: 35,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors,
-      });
-    }, 250);
-
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+    };
   }, [trigger, duration]);
 
   return null;

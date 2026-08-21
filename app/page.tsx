@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, Component, ErrorInfo, ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGamePlayer } from "@/lib/realtime/useGamePlayer";
 import { PinForm } from "@/components/player/PinForm";
@@ -9,11 +9,54 @@ import { PlayerLobby } from "@/components/player/PlayerLobby";
 import { PlayerGameButtons } from "@/components/player/PlayerGameButtons";
 import { PlayerFeedback } from "@/components/player/PlayerFeedback";
 import { PlayerPodium } from "@/components/player/PlayerPodium";
-import { SoundControl } from "@/components/ui/SoundControl";
 import { PaperCutBackground } from "@/components/ui/PaperCutBackground";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+
+// Client-side Error Boundary to catch any unexpected errors gracefully
+class PlayerErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; errorText: string }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, errorText: "" };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, errorText: error?.message || "Unknown error" };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("[PlayerErrorBoundary caught]", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#1b0738] text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="bg-[#33106B] p-8 rounded-3xl border-2 border-white/20 max-w-sm w-full shadow-2xl flex flex-col items-center gap-4">
+            <span className="text-5xl">⚡</span>
+            <h2 className="text-2xl font-black">Connection Refreshed</h2>
+            <p className="text-xs text-slate-300">
+              Your session was refreshed. Click below to reconnect to the game.
+            </p>
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("cahoot_player_session");
+                  window.location.href = "/";
+                }
+              }}
+              className="w-full py-3.5 px-6 bg-[#26890C] hover:bg-[#22790A] text-white font-black rounded-2xl flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+            >
+              <RotateCcw className="w-5 h-5" />
+              <span>Back to Home</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function KahootPlayerContent() {
   const searchParams = useSearchParams();
@@ -57,8 +100,6 @@ function KahootPlayerContent() {
       {/* Material / Paper-Cut Purple Gradient Background */}
       <PaperCutBackground />
 
-
-
       {/* Main Center Floating Card Area */}
       <main className="relative z-20 w-full flex-1 flex flex-col items-center justify-center my-auto py-4">
         {step !== "game" && (
@@ -94,17 +135,17 @@ function KahootPlayerContent() {
             />
           )}
 
-          {step === "game" && state.player && (
+          {step === "game" && (
             <div key="game-view" className="w-full h-full flex flex-col items-center justify-center">
-              {state.phase === "lobby" && (
+              {(!state.player || state.phase === "lobby") && (
                 <PlayerLobby
-                  player={state.player}
-                  pin={state.pin}
+                  player={state.player || { id: "temp", nickname: "Player", avatar: "🦊", score: 0, streak: 0, lastPoints: 0, lastCorrect: null, lastAnswerIndex: null, rank: 1, joinedAt: Date.now() }}
+                  pin={state.pin || enteredPin}
                   onLeave={handlePlayAgain}
                 />
               )}
 
-              {state.phase === "get_ready" && (
+              {state.player && state.phase === "get_ready" && (
                 <div className="flex flex-col items-center justify-center text-center p-6">
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
@@ -115,12 +156,12 @@ function KahootPlayerContent() {
                   </motion.div>
                   <h2 className="text-3xl font-black text-white">Get Ready!</h2>
                   <p className="text-sm font-bold text-slate-200 mt-2">
-                    Question {state.currentQuestionIndex + 1} of {state.totalQuestions}
+                    Question {state.currentQuestionIndex + 1} of {Math.max(1, state.totalQuestions)}
                   </p>
                 </div>
               )}
 
-              {state.phase === "question" && (
+              {state.player && state.phase === "question" && (
                 <PlayerGameButtons
                   onSelect={submitAnswer}
                   selectedAnswer={state.selectedAnswer}
@@ -129,24 +170,24 @@ function KahootPlayerContent() {
                   timeLimit={state.timeLimit}
                   streak={state.streak}
                   questionIndex={state.currentQuestionIndex}
-                  totalQuestions={state.totalQuestions}
-                  questionText={state.questionText}
-                  choices={state.choices}
+                  totalQuestions={Math.max(1, state.totalQuestions)}
+                  questionText={state.questionText || ""}
+                  choices={state.choices || []}
                 />
               )}
 
-              {state.phase === "question_results" && (
+              {state.player && state.phase === "question_results" && (
                 <PlayerFeedback
                   isCorrect={state.isCorrect}
-                  pointsEarned={state.pointsEarned}
-                  currentScore={state.currentScore}
-                  streak={state.streak}
-                  currentRank={state.currentRank}
-                  totalPlayers={state.totalPlayers}
+                  pointsEarned={state.pointsEarned || 0}
+                  currentScore={state.currentScore || 0}
+                  streak={state.streak || 0}
+                  currentRank={state.currentRank || 1}
+                  totalPlayers={Math.max(1, state.totalPlayers)}
                 />
               )}
 
-              {state.phase === "leaderboard" && (
+              {state.player && state.phase === "leaderboard" && (
                 <div className="flex flex-col items-center justify-center text-center p-6 bg-slate-900/80 backdrop-blur-md rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl">
                   <span className="text-5xl mb-3">📊</span>
                   <h2 className="text-2xl font-black text-white mb-1">Scoreboard</h2>
@@ -158,15 +199,15 @@ function KahootPlayerContent() {
                       Your Current Rank
                     </span>
                     <span className="text-3xl font-black text-yellow-400">
-                      #{state.currentRank}
+                      #{state.currentRank || 1}
                     </span>
                   </div>
                 </div>
               )}
 
-              {state.phase === "podium" && (
+              {state.player && state.phase === "podium" && (
                 <PlayerPodium
-                  score={state.currentScore}
+                  score={state.currentScore || 0}
                   nickname={state.player?.nickname}
                   avatar={state.player?.avatar}
                   onPlayAgain={handlePlayAgain}
@@ -176,22 +217,22 @@ function KahootPlayerContent() {
           )}
         </AnimatePresence>
       </main>
-
-
     </div>
   );
 }
 
 export default function KahootPlayerPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#1b0738] text-white flex items-center justify-center">
-          <p className="text-xl font-bold">Loading Cahoot!...</p>
-        </div>
-      }
-    >
-      <KahootPlayerContent />
-    </Suspense>
+    <PlayerErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-[#1b0738] text-white flex items-center justify-center">
+            <p className="text-xl font-bold">Loading Cahoot!...</p>
+          </div>
+        }
+      >
+        <KahootPlayerContent />
+      </Suspense>
+    </PlayerErrorBoundary>
   );
 }

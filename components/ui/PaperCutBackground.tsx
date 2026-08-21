@@ -65,7 +65,7 @@ export function PaperCutBackground() {
       </svg>
 
       {/* 5. Natural Vignette to enhance center elevation */}
-      <div className="absolute inset-0 bg-radial from-transparent via-[#100321]/30 to-[#090114]/80 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#090114]/80 via-transparent to-[#090114]/50 pointer-events-none" />
     </div>
   );
 }
