@@ -46,44 +46,44 @@ export function HostPodium({
   const [showFullScoreboard, setShowFullScoreboard] = useState(false);
 
   useEffect(() => {
-    // 1. Initial fanfare on mount (0.0s)
+    // 1. Initial Opening Fanfare on mount (0.0s)
     sounds.playPodiumFanfare();
 
-    // 2. 3rd Place Reveal (Starts at 1.2s)
+    // 2. 3rd Place Reveal (Starts at 2.0s with suspense)
     const t1 = setTimeout(() => {
       setP3Pillar(true);
       sounds.playPillarRiser();
-    }, 1200);
+    }, 2000);
 
     const t2 = setTimeout(() => {
       setP3Details(true);
       sounds.playWinCheer();
-    }, 2200);
+    }, 3800);
 
-    // 3. 2nd Place Reveal (Starts at 3.8s)
+    // 3. 2nd Place Reveal (Starts at 6.2s with suspense)
     const t3 = setTimeout(() => {
       setP2Pillar(true);
       sounds.playPillarRiser();
-    }, 3800);
+    }, 6200);
 
     const t4 = setTimeout(() => {
       setP2Details(true);
       sounds.playWinCheer();
-    }, 4800);
+    }, 8000);
 
-    // 4. 1st Place Suspense (Drumroll starts at 6.4s)
+    // 4. 1st Place Suspense (Darkness + Spotlight + Pillar + Long Drumroll at 10.5s)
     const t5 = setTimeout(() => {
       setP1Pillar(true);
       setSpotlight(true);
-      sounds.playDrumroll(2.6);
-    }, 6400);
+      sounds.playDrumroll(3.3);
+    }, 10500);
 
-    // 5. 1st Place Champion Reveal (At 9.0s)
+    // 5. 1st Place Grand Champion Reveal Boom (At 13.8s)
     const t6 = setTimeout(() => {
       setP1Details(true);
       setTriggerConfetti(true);
       sounds.playChampionReveal();
-    }, 9000);
+    }, 13800);
 
     return () => {
       clearTimeout(t1);
@@ -106,15 +106,15 @@ export function HostPodium({
       {/* Confetti Cascade on Champion Finale */}
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
-      {/* Full-Stage Ambient Dimming when Spotlight is active */}
+      {/* Full-Stage Deep Dark Stage Dimming when Spotlight is active */}
       <AnimatePresence>
         {spotlight && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-20 pointer-events-none bg-[#0e041d]/70 backdrop-blur-[1.5px]"
+            transition={{ duration: 1.0 }}
+            className="fixed inset-0 z-20 pointer-events-none bg-[#05020a]/88 backdrop-blur-[2px]"
           />
         )}
       </AnimatePresence>
@@ -122,7 +122,7 @@ export function HostPodium({
       {/* ========================================================================= */}
       {/* 1. TOP HEADER WITH CONTROLS */}
       {/* ========================================================================= */}
-      <header className="relative z-50 flex items-center justify-between bg-[#33106B] px-5 sm:px-7 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-2xl w-full max-w-[96vw] mx-auto mb-1 flex-shrink-0">
+      <header className="relative z-50 flex items-center justify-between bg-[#33106B] px-5 sm:px-8 py-3 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-2xl w-full max-w-[96vw] mx-auto mb-1 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#FFA602] border-b-4 border-[#CC8400] rounded-xl text-slate-950 shadow-sm flex-shrink-0">
             <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
@@ -143,7 +143,7 @@ export function HostPodium({
 
           <button
             onClick={() => setShowFullScoreboard(!showFullScoreboard)}
-            className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#240B4D] hover:bg-[#1D083E] text-white rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 border-2 border-[#1D083E] border-b-4 border-black cursor-pointer active:border-b-2 active:translate-y-0.5"
+            className="px-4 py-2 sm:px-5 sm:py-2.5 bg-[#240B4D] hover:bg-[#1D083E] text-white rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 border-2 border-[#1D083E] border-b-4 border-black cursor-pointer active:border-b-2 active:translate-y-0.5"
           >
             <ListOrdered className="w-4 h-4" />
             <span>{showFullScoreboard ? "Podium" : "Scoreboard"}</span>
@@ -180,7 +180,7 @@ export function HostPodium({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN STAGE: 3-COLUMN OLYMPIC PODIUM WITH ANCHORED SPOTLIGHT */}
+      {/* 2. MAIN STAGE: SUPER-SIZED 3-COLUMN OLYMPIC PODIUM WITH LOCKED SPOTLIGHT */}
       {/* ========================================================================= */}
       {showFullScoreboard ? (
         <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col justify-center py-4 z-30">
@@ -237,56 +237,56 @@ export function HostPodium({
         </div>
       ) : (
         <div className="flex-1 flex flex-col justify-end items-center relative z-20 pb-1 overflow-visible">
-          {/* 3-Column Olympic Podium Layout: Column 1 = 2nd (Silver), Column 2 = 1st (Gold), Column 3 = 3rd (Bronze) */}
-          <div className="w-full max-w-6xl mx-auto flex-1 flex items-end justify-center gap-3 sm:gap-6 md:gap-8 pb-1 relative z-10">
+          {/* Super-Sized 3-Column Olympic Podium Layout */}
+          <div className="w-full max-w-7xl mx-auto flex-1 flex items-end justify-center gap-4 sm:gap-8 md:gap-10 pb-1 relative z-10">
             {/* ========================================================================= */}
             {/* COLUMN 1: 2ND PLACE (SILVER) - Left Slot */}
             {/* ========================================================================= */}
-            <div className="w-[240px] sm:w-[280px] md:w-[320px] flex flex-col items-center justify-end z-20">
+            <div className="w-[260px] sm:w-[320px] md:w-[370px] flex flex-col items-center justify-end z-20">
               {second && p2Pillar ? (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                  initial={{ opacity: 0, scale: 0.8, y: 60 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   className="w-full flex flex-col items-center"
                 >
                   {/* Floating White Name Box + Avatar */}
-                  <div className="h-44 flex flex-col items-center justify-end mb-2.5">
+                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3">
                     {p2Details ? (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.3, y: 25 }}
+                        initial={{ opacity: 0, scale: 0.3, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: "spring", stiffness: 260, damping: 16 }}
                         className="flex flex-col items-center"
                       >
-                        <span className="text-6xl sm:text-7xl mb-1.5 filter drop-shadow-md select-none">
+                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-md select-none">
                           {second.avatar}
                         </span>
                         {/* Solid White Name Plaque */}
-                        <div className="bg-white text-slate-950 font-black text-xl sm:text-2xl px-6 py-2.5 rounded-2xl shadow-xl border-2 border-slate-200 border-b-[5px] border-b-slate-400 truncate max-w-[240px] text-center">
+                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-10 py-3 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-400 truncate max-w-[280px] sm:max-w-[320px] text-center">
                           {second.nickname}
                         </div>
                       </motion.div>
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-[#240B4D] border-2 border-[#1D083E] flex items-center justify-center text-3xl font-black text-yellow-300 animate-pulse shadow-lg">
+                      <div className="w-20 h-20 rounded-full bg-[#240B4D] border-4 border-[#1D083E] flex items-center justify-center text-4xl font-black text-yellow-300 animate-pulse shadow-2xl">
                         ?
                       </div>
                     )}
                   </div>
 
-                  {/* 2nd Pillar (350px) */}
+                  {/* 2nd Pillar (Taller 375px) */}
                   <motion.div
                     initial={{ height: 0 }}
-                    animate={{ height: "350px" }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 pb-5 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative"
+                    animate={{ height: "375px" }}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
+                    className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative"
                   >
                     {/* Silver Shield */}
-                    <div className="relative mb-3 flex-shrink-0">
-                      <svg viewBox="0 0 100 110" className="w-18 h-20 fill-[#94A3B8] filter drop-shadow-lg">
+                    <div className="relative mb-3.5 flex-shrink-0">
+                      <svg viewBox="0 0 100 110" className="w-20 h-22 sm:w-22 sm:h-24 fill-[#94A3B8] filter drop-shadow-xl">
                         <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#CBD5E1" strokeWidth="4" />
                       </svg>
-                      <span className="absolute inset-0 flex items-center justify-center font-black text-3xl text-white">
+                      <span className="absolute inset-0 flex items-center justify-center font-black text-4xl text-white">
                         2
                       </span>
                     </div>
@@ -294,15 +294,15 @@ export function HostPodium({
                     {/* Score & Correct Count */}
                     {p2Details && (
                       <motion.div
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.35 }}
                         className="flex flex-col items-center text-center mt-1 flex-shrink-0"
                       >
-                        <span className="text-2xl sm:text-3xl font-black text-white tabular-nums tracking-tight block">
+                        <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight block">
                           {second.score.toLocaleString()}
                         </span>
-                        <span className="text-xs font-black uppercase text-slate-300 tracking-wider mt-1 block bg-[#240B4D] px-3 py-0.5 rounded-full border border-slate-500/30">
+                        <span className="text-xs sm:text-sm font-black uppercase text-slate-300 tracking-wider mt-1.5 block bg-[#240B4D] px-3.5 py-1 rounded-full border border-slate-500/30">
                           {second.correctCount ?? 0} out of {totalQ}
                         </span>
                       </motion.div>
@@ -315,9 +315,9 @@ export function HostPodium({
             </div>
 
             {/* ========================================================================= */}
-            {/* COLUMN 2: 1ST PLACE (GOLD CHAMPION) - Center Slot (Anchored Spotlight!) */}
+            {/* COLUMN 2: 1ST PLACE (GOLD CHAMPION) - Center Slot (Super-Sized!) */}
             {/* ========================================================================= */}
-            <div className="w-[280px] sm:w-[340px] md:w-[390px] flex flex-col items-center justify-end z-30 relative">
+            <div className="w-[300px] sm:w-[370px] md:w-[440px] flex flex-col items-center justify-end z-30 relative">
               {/* SPOTLIGHT ANCHORED DIRECTLY TO 1ST PLACE CENTER COLUMN (100% Guaranteed Alignment) */}
               <AnimatePresence>
                 {spotlight && (
@@ -325,14 +325,14 @@ export function HostPodium({
                     {/* Direct Overhead Spotlight Cone */}
                     <motion.div
                       initial={{ opacity: 0, scaleY: 0.3 }}
-                      animate={{ opacity: 0.85, scaleY: 1 }}
+                      animate={{ opacity: 0.9, scaleY: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 1.0, ease: "easeOut" }}
-                      className="absolute -top-[55vh] left-1/2 -translate-x-1/2 w-[520px] sm:w-[680px] h-[130vh] origin-top pointer-events-none"
+                      transition={{ duration: 1.2, ease: "easeOut" }}
+                      className="absolute -top-[65vh] left-1/2 -translate-x-1/2 w-[580px] sm:w-[780px] md:w-[900px] h-[140vh] origin-top pointer-events-none"
                       style={{
                         background:
-                          "linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(254, 240, 138, 0.35) 40%, rgba(250, 204, 21, 0.12) 75%, transparent 100%)",
-                        clipPath: "polygon(42% 0%, 58% 0%, 100% 100%, 0% 100%)",
+                          "linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(254, 240, 138, 0.4) 40%, rgba(250, 204, 21, 0.15) 75%, transparent 100%)",
+                        clipPath: "polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)",
                       }}
                     />
 
@@ -342,16 +342,16 @@ export function HostPodium({
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
                       transition={{ duration: 1.2, ease: "easeOut" }}
-                      className="absolute top-[-30px] sm:top-[-45px] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[460px] sm:w-[560px] md:w-[640px] h-[460px] sm:h-[560px] md:h-[640px] rounded-full border-4 border-yellow-200/70 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.35)] flex items-center justify-center pointer-events-none"
+                      className="absolute top-[-50px] sm:top-[-70px] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] sm:w-[680px] md:w-[780px] h-[520px] sm:h-[680px] md:h-[780px] rounded-full border-4 border-yellow-200/80 shadow-[0_0_120px_45px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.4)] flex items-center justify-center pointer-events-none"
                       style={{
                         background:
-                          "radial-gradient(circle, rgba(255, 255, 255, 0.42) 0%, rgba(254, 240, 138, 0.3) 45%, rgba(250, 204, 21, 0.12) 75%, transparent 100%)",
+                          "radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, rgba(254, 240, 138, 0.32) 45%, rgba(250, 204, 21, 0.15) 75%, transparent 100%)",
                       }}
                     >
                       <motion.div
-                        animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
+                        animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.75, 1, 0.75] }}
                         transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
-                        className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl"
+                        className="w-3/4 h-3/4 rounded-full bg-white/25 blur-2xl"
                       />
                     </motion.div>
 
@@ -359,12 +359,12 @@ export function HostPodium({
                     <motion.div
                       initial={{ opacity: 0, scale: 0.6 }}
                       animate={{
-                        opacity: [0.7, 1, 0.85],
+                        opacity: [0.75, 1, 0.9],
                         scale: [0.96, 1.04, 0.98],
                       }}
                       exit={{ opacity: 0, scale: 0.7 }}
                       transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[480px] sm:w-[580px] h-[140px] sm:h-[180px] rounded-[100%] bg-amber-400/30 border-2 border-yellow-300/60 blur-xl shadow-[0_0_90px_rgba(251,191,36,0.7)]"
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[540px] sm:w-[680px] h-[160px] sm:h-[200px] rounded-[100%] bg-amber-400/35 border-2 border-yellow-300/70 blur-xl shadow-[0_0_100px_rgba(251,191,36,0.8)]"
                     />
                   </div>
                 )}
@@ -372,16 +372,16 @@ export function HostPodium({
 
               {first && p1Pillar ? (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: 60 }}
+                  initial={{ opacity: 0, scale: 0.8, y: 70 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   className="w-full flex flex-col items-center"
                 >
                   {/* Floating White Name Box + Champion Avatar & Crown */}
-                  <div className="h-56 flex flex-col items-center justify-end mb-3.5 relative">
+                  <div className="h-60 sm:h-64 flex flex-col items-center justify-end mb-4 relative">
                     {p1Details ? (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.3, y: 30 }}
+                        initial={{ opacity: 0, scale: 0.3, y: 35 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: "spring", stiffness: 240, damping: 15 }}
                         className="flex flex-col items-center relative pb-2"
@@ -391,51 +391,51 @@ export function HostPodium({
                           initial={{ opacity: 0, scale: 0.6, y: 10 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           transition={{ delay: 0.15, duration: 0.4 }}
-                          className="mb-2 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-6 py-1 rounded-full border-2 border-yellow-200 shadow-[0_6px_20px_rgba(251,191,36,0.6)] flex-shrink-0"
+                          className="mb-2.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-8 py-1.5 rounded-full border-2 border-yellow-200 shadow-[0_8px_25px_rgba(251,191,36,0.7)] flex-shrink-0"
                         >
-                          <span className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] block leading-none">
+                          <span className="text-xs sm:text-base font-black uppercase tracking-[0.25em] block leading-none">
                             Grand Champion
                           </span>
                         </motion.div>
 
                         {/* Floating Gold Crown */}
                         <motion.div
-                          animate={{ y: [-3, 3, -3], rotate: [-2, 2, -2] }}
+                          animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
                           transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
                           className="text-[#FFA602] mb-1"
                         >
-                          <Crown className="w-14 h-14 fill-[#FFA602] stroke-amber-200 drop-shadow-xl" />
+                          <Crown className="w-16 h-16 sm:w-20 sm:h-20 fill-[#FFA602] stroke-amber-200 drop-shadow-2xl" />
                         </motion.div>
 
-                        <span className="text-7xl sm:text-8xl mb-2 filter drop-shadow-lg select-none leading-none">
+                        <span className="text-8xl sm:text-9xl md:text-[115px] mb-2 filter drop-shadow-2xl select-none leading-none">
                           {first.avatar}
                         </span>
 
                         {/* Giant Solid White Name Plaque */}
-                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl px-8 py-3 rounded-2xl shadow-2xl border-2 border-amber-300 border-b-[6px] border-b-amber-400 truncate max-w-[290px] text-center">
+                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-4xl md:text-5xl px-10 sm:px-12 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-amber-300 border-b-[8px] border-b-amber-400 truncate max-w-[320px] sm:max-w-[400px] text-center">
                           {first.nickname}
                         </div>
                       </motion.div>
                     ) : (
                       /* Clean Glowing Suspense with Royal Centered Crown + '?' + Badge */
-                      <div className="h-52 flex flex-col items-center justify-center relative pb-3">
+                      <div className="h-56 flex flex-col items-center justify-center relative pb-3">
                         {/* Floating Golden Crown on Top */}
                         <motion.div
                           animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
                           transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-                          className="text-[#FFA602] mb-2 drop-shadow-[0_8px_20px_rgba(255,166,2,0.85)]"
+                          className="text-[#FFA602] mb-2 drop-shadow-[0_8px_25px_rgba(255,166,2,0.9)]"
                         >
-                          <Crown className="w-16 h-16 fill-[#FFA602] stroke-yellow-200" />
+                          <Crown className="w-18 h-18 sm:w-22 sm:h-22 fill-[#FFA602] stroke-yellow-200" />
                         </motion.div>
 
                         {/* Giant Centered Gold Question Mark */}
-                        <span className="text-8xl sm:text-9xl font-black text-yellow-300 animate-pulse drop-shadow-[0_0_35px_rgba(250,204,21,0.95)] leading-none my-1">
+                        <span className="text-8xl sm:text-9xl md:text-[110px] font-black text-yellow-300 animate-pulse drop-shadow-[0_0_40px_rgba(250,204,21,0.95)] leading-none my-1">
                           ?
                         </span>
 
                         {/* Golden Subtitle Badge */}
-                        <div className="bg-[#33106B]/90 backdrop-blur-md border-2 border-yellow-400/60 px-5 py-1.5 rounded-full shadow-lg mt-2">
-                          <span className="text-xs sm:text-sm uppercase tracking-widest font-black text-yellow-300 block leading-none">
+                        <div className="bg-[#33106B]/90 backdrop-blur-md border-2 border-yellow-400/60 px-6 py-2 rounded-full shadow-lg mt-2">
+                          <span className="text-xs sm:text-base uppercase tracking-widest font-black text-yellow-300 block leading-none">
                             1st Place • Grand Champion
                           </span>
                         </div>
@@ -443,19 +443,19 @@ export function HostPodium({
                     )}
                   </div>
 
-                  {/* 1st Center Pillar (Taller 470px) */}
+                  {/* 1st Center Pillar (Extra-Tall 490px) */}
                   <motion.div
                     initial={{ height: 0 }}
-                    animate={{ height: "470px" }}
-                    transition={{ duration: 0.9, ease: "easeOut" }}
-                    className="w-full bg-[#240B4D] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 pb-6 border-2 border-[#33106B] border-b-[8px] border-b-[#1D083E] relative"
+                    animate={{ height: "490px" }}
+                    transition={{ duration: 1.0, ease: "easeOut" }}
+                    className="w-full bg-[#240B4D] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-7 border-2 border-[#33106B] border-b-[10px] border-b-[#1D083E] relative"
                   >
                     {/* Gold Shield */}
-                    <div className="relative mb-3 flex-shrink-0">
-                      <svg viewBox="0 0 100 110" className="w-20 h-22 fill-[#FFA602] filter drop-shadow-xl">
+                    <div className="relative mb-4 flex-shrink-0">
+                      <svg viewBox="0 0 100 110" className="w-22 h-24 sm:w-26 sm:h-28 fill-[#FFA602] filter drop-shadow-2xl">
                         <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
                       </svg>
-                      <span className="absolute inset-0 flex items-center justify-center font-black text-4xl text-slate-950">
+                      <span className="absolute inset-0 flex items-center justify-center font-black text-5xl text-slate-950">
                         1
                       </span>
                     </div>
@@ -463,15 +463,15 @@ export function HostPodium({
                     {/* Score & Correct Count */}
                     {p1Details && (
                       <motion.div
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.35 }}
                         className="flex flex-col items-center text-center mt-1 flex-shrink-0"
                       >
-                        <span className="text-3xl sm:text-4xl font-black text-[#FFA602] tabular-nums tracking-tight block drop-shadow-md">
+                        <span className="text-4xl sm:text-5xl md:text-6xl font-black text-[#FFA602] tabular-nums tracking-tight block drop-shadow-md">
                           {first.score.toLocaleString()}
                         </span>
-                        <span className="text-xs sm:text-sm font-black uppercase text-yellow-300 tracking-wider mt-1.5 block bg-[#1D083E] px-3.5 py-1 rounded-full border border-yellow-500/40 shadow-inner">
+                        <span className="text-xs sm:text-base font-black uppercase text-yellow-300 tracking-wider mt-2 block bg-[#1D083E] px-4 py-1 rounded-full border border-yellow-500/40 shadow-inner">
                           {first.correctCount ?? 0} out of {totalQ}
                         </span>
                       </motion.div>
@@ -486,51 +486,51 @@ export function HostPodium({
             {/* ========================================================================= */}
             {/* COLUMN 3: 3RD PLACE (BRONZE) - Right Slot */}
             {/* ========================================================================= */}
-            <div className="w-[240px] sm:w-[280px] md:w-[320px] flex flex-col items-center justify-end z-20">
+            <div className="w-[260px] sm:w-[320px] md:w-[370px] flex flex-col items-center justify-end z-20">
               {third && p3Pillar ? (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                  initial={{ opacity: 0, scale: 0.8, y: 60 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   className="w-full flex flex-col items-center"
                 >
                   {/* Floating White Name Box + Avatar */}
-                  <div className="h-44 flex flex-col items-center justify-end mb-2.5">
+                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3">
                     {p3Details ? (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.3, y: 25 }}
+                        initial={{ opacity: 0, scale: 0.3, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: "spring", stiffness: 260, damping: 16 }}
                         className="flex flex-col items-center"
                       >
-                        <span className="text-6xl sm:text-7xl mb-1.5 filter drop-shadow-md select-none">
+                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-md select-none">
                           {third.avatar}
                         </span>
                         {/* Solid White Name Plaque */}
-                        <div className="bg-white text-slate-950 font-black text-xl sm:text-2xl px-6 py-2.5 rounded-2xl shadow-xl border-2 border-slate-200 border-b-[5px] border-b-amber-700 truncate max-w-[240px] text-center">
+                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-10 py-3 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-amber-700 truncate max-w-[280px] sm:max-w-[320px] text-center">
                           {third.nickname}
                         </div>
                       </motion.div>
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-[#240B4D] border-2 border-[#1D083E] flex items-center justify-center text-3xl font-black text-yellow-300 animate-pulse shadow-lg">
+                      <div className="w-20 h-20 rounded-full bg-[#240B4D] border-4 border-[#1D083E] flex items-center justify-center text-4xl font-black text-yellow-300 animate-pulse shadow-2xl">
                         ?
                       </div>
                     )}
                   </div>
 
-                  {/* 3rd Pillar (270px) */}
+                  {/* 3rd Pillar (Taller 295px) */}
                   <motion.div
                     initial={{ height: 0 }}
-                    animate={{ height: "270px" }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-6 pb-5 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative"
+                    animate={{ height: "295px" }}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
+                    className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative"
                   >
                     {/* Bronze Shield */}
-                    <div className="relative mb-3 flex-shrink-0">
-                      <svg viewBox="0 0 100 110" className="w-18 h-20 fill-[#CD7F32] filter drop-shadow-lg">
+                    <div className="relative mb-3.5 flex-shrink-0">
+                      <svg viewBox="0 0 100 110" className="w-20 h-22 sm:w-22 sm:h-24 fill-[#CD7F32] filter drop-shadow-xl">
                         <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
                       </svg>
-                      <span className="absolute inset-0 flex items-center justify-center font-black text-3xl text-white">
+                      <span className="absolute inset-0 flex items-center justify-center font-black text-4xl text-white">
                         3
                       </span>
                     </div>
@@ -538,15 +538,15 @@ export function HostPodium({
                     {/* Score & Correct Count */}
                     {p3Details && (
                       <motion.div
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.35 }}
                         className="flex flex-col items-center text-center mt-1 flex-shrink-0"
                       >
-                        <span className="text-2xl sm:text-3xl font-black text-white tabular-nums tracking-tight block">
+                        <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight block">
                           {third.score.toLocaleString()}
                         </span>
-                        <span className="text-xs font-black uppercase text-amber-200 tracking-wider mt-1 block bg-[#240B4D] px-3 py-0.5 rounded-full border border-amber-500/30">
+                        <span className="text-xs font-black uppercase text-amber-200 tracking-wider mt-1.5 block bg-[#240B4D] px-3.5 py-1 rounded-full border border-amber-500/30">
                           {third.correctCount ?? 0} out of {totalQ}
                         </span>
                       </motion.div>
