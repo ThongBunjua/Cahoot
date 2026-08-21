@@ -18,6 +18,65 @@ interface HostPodiumProps {
   onEndGame?: () => void;
 }
 
+// Particle Sparkles Generator for Podium Ranks (Every rank gets rich celebratory particles!)
+function RankParticles({
+  color,
+  count = 20,
+  spread = 130,
+}: {
+  color: "gold" | "silver" | "bronze";
+  count?: number;
+  spread?: number;
+}) {
+  const colorMap = {
+    gold: ["bg-yellow-300", "bg-amber-400", "bg-amber-200", "bg-white", "bg-yellow-200"],
+    silver: ["bg-slate-200", "bg-cyan-200", "bg-slate-300", "bg-white", "bg-sky-300"],
+    bronze: ["bg-amber-500", "bg-orange-400", "bg-amber-300", "bg-amber-600", "bg-yellow-400"],
+  };
+  const colors = colorMap[color];
+
+  const particles = Array.from({ length: count }, (_, i) => {
+    const angle = (i / count) * 2 * Math.PI;
+    const distance = 40 + (i % 3) * (spread / 3) + Math.sin(i * 1.5) * 20;
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+    const size = 5 + (i % 4) * 3;
+    const duration = 1.3 + (i % 3) * 0.4;
+    const delay = (i % 5) * 0.15;
+    const col = colors[i % colors.length];
+
+    return (
+      <motion.div
+        key={i}
+        initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+        animate={{
+          x: [0, x, x * 1.15],
+          y: [0, y, y - 25],
+          scale: [0, 1.4, 0],
+          opacity: [1, 1, 0],
+          rotate: [0, 180, 360],
+        }}
+        transition={{
+          duration,
+          delay,
+          repeat: Infinity,
+          repeatDelay: 0.2 + (i % 4) * 0.2,
+          ease: "easeOut",
+        }}
+        className={`absolute rounded-full pointer-events-none ${col} shadow-[0_0_12px_rgba(255,255,255,0.8)]`}
+        style={{
+          width: size,
+          height: size,
+          left: "50%",
+          top: "50%",
+        }}
+      />
+    );
+  });
+
+  return <div className="absolute inset-0 pointer-events-none flex items-center justify-center -z-10">{particles}</div>;
+}
+
 export function HostPodium({
   quiz,
   players,
@@ -106,7 +165,7 @@ export function HostPodium({
       {/* Confetti Cascade on Champion Finale */}
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
-      {/* Full-Stage Deep Dark Stage Dimming when Spotlight is active */}
+      {/* Deep Dark Stage Dimming when 1st Place Spotlight is active (Surroundings pitch dark!) */}
       <AnimatePresence>
         {spotlight && (
           <motion.div
@@ -114,7 +173,7 @@ export function HostPodium({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.0 }}
-            className="fixed inset-0 z-20 pointer-events-none bg-[#040108]/90 backdrop-blur-[2px]"
+            className="fixed inset-0 z-20 pointer-events-none bg-[#030107]/90 backdrop-blur-[3px]"
           />
         )}
       </AnimatePresence>
@@ -180,7 +239,7 @@ export function HostPodium({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN STAGE: ROCK-SOLID 3-COLUMN PODIUM WITH LOCKED SPOTLIGHT */}
+      {/* 2. MAIN STAGE: 3-COLUMN OLYMPIC PODIUM WITH DEDICATED LIGHTING & PARTICLES */}
       {/* ========================================================================= */}
       {showFullScoreboard ? (
         <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col justify-center py-4 z-30">
@@ -237,7 +296,7 @@ export function HostPodium({
         </div>
       ) : (
         <div className="flex-1 flex flex-col justify-end items-center relative z-20 pb-1 overflow-visible">
-          {/* Permanent 3-Column Olympic Podium Layout (Always Present in DOM to Guarantee Center Alignment) */}
+          {/* Permanent 3-Column Olympic Podium Layout */}
           <div className="w-full max-w-7xl mx-auto flex-1 flex items-end justify-center gap-4 sm:gap-8 md:gap-10 pb-1 relative z-10">
             {/* ========================================================================= */}
             {/* COLUMN 1: 2ND PLACE (SILVER) - Left Slot */}
@@ -248,18 +307,27 @@ export function HostPodium({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: p2Pillar ? 1 : 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full flex flex-col items-center"
+                  className="w-full flex flex-col items-center relative"
                 >
-                  {/* Floating White Name Box + Avatar */}
-                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3">
+                  {/* Floating White Name Box + Avatar + Silver Particles & Glow */}
+                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3 relative">
+                    {p2Details && (
+                      <>
+                        {/* Silver Halo Glow Aura */}
+                        <div className="absolute inset-0 -top-6 rounded-full bg-slate-300/35 blur-3xl -z-20 pointer-events-none" />
+                        {/* Silver Sparkling Diamond Particles (26 Particles) */}
+                        <RankParticles color="silver" count={26} spread={130} />
+                      </>
+                    )}
+
                     {p2Details ? (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.3, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: "spring", stiffness: 260, damping: 16 }}
-                        className="flex flex-col items-center"
+                        className="flex flex-col items-center relative"
                       >
-                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-md select-none">
+                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-[0_10px_20px_rgba(203,213,225,0.7)] select-none">
                           {second.avatar}
                         </span>
                         {/* Solid White Name Plaque */}
@@ -276,7 +344,7 @@ export function HostPodium({
                     )}
                   </div>
 
-                  {/* 2nd Pillar (Taller 375px) */}
+                  {/* 2nd Pillar (375px) */}
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: p2Pillar ? "375px" : "0px" }}
@@ -315,70 +383,31 @@ export function HostPodium({
             </div>
 
             {/* ========================================================================= */}
-            {/* COLUMN 2: 1ST PLACE (GOLD CHAMPION) - Center Slot (Permanent Anchor!) */}
+            {/* COLUMN 2: 1ST PLACE (GOLD CHAMPION) - Center Slot (Full Stage Radiance & 50 Gold Particles!) */}
             {/* ========================================================================= */}
             <div className="w-[300px] sm:w-[370px] md:w-[440px] flex flex-col items-center justify-end z-30 relative flex-shrink-0">
-              {/* SPOTLIGHT ANCHORED PERMANENTLY TO 1ST PLACE CENTER COLUMN */}
-              <AnimatePresence>
-                {spotlight && (
-                  <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center -z-10">
-                    {/* Direct Overhead Spotlight Cone */}
-                    <motion.div
-                      initial={{ opacity: 0, scaleY: 0.3 }}
-                      animate={{ opacity: 0.95, scaleY: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 1.2, ease: "easeOut" }}
-                      className="absolute -top-[65vh] left-1/2 -translate-x-1/2 w-[580px] sm:w-[780px] md:w-[900px] h-[140vh] origin-top pointer-events-none"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(254, 240, 138, 0.45) 40%, rgba(250, 204, 21, 0.15) 75%, transparent 100%)",
-                        clipPath: "polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)",
-                      }}
-                    />
-
-                    {/* Glowing Circular Spotlight Disk Anchored directly over 1st Place Avatar / Plaque */}
-                    <motion.div
-                      initial={{ scale: 0.7, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 1.2, ease: "easeOut" }}
-                      className="absolute top-[-50px] sm:top-[-70px] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] sm:w-[680px] md:w-[780px] h-[520px] sm:h-[680px] md:h-[780px] rounded-full border-4 border-yellow-200/80 shadow-[0_0_130px_50px_rgba(255,255,255,0.5),_inset_0_0_80px_rgba(255,255,255,0.4)] flex items-center justify-center pointer-events-none"
-                      style={{
-                        background:
-                          "radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(254, 240, 138, 0.35) 45%, rgba(250, 204, 21, 0.15) 75%, transparent 100%)",
-                      }}
-                    >
-                      <motion.div
-                        animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.75, 1, 0.75] }}
-                        transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
-                        className="w-3/4 h-3/4 rounded-full bg-white/25 blur-2xl"
-                      />
-                    </motion.div>
-
-                    {/* Floor Spotlight Disk at base of 1st place pillar */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.6 }}
-                      animate={{
-                        opacity: [0.75, 1, 0.9],
-                        scale: [0.96, 1.04, 0.98],
-                      }}
-                      exit={{ opacity: 0, scale: 0.7 }}
-                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[540px] sm:w-[680px] h-[160px] sm:h-[200px] rounded-[100%] bg-amber-400/35 border-2 border-yellow-300/70 blur-xl shadow-[0_0_100px_rgba(251,191,36,0.8)]"
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
-
               {first && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: p1Pillar ? 1 : 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full flex flex-col items-center"
+                  className="w-full flex flex-col items-center relative"
                 >
-                  {/* Floating White Name Box + Champion Avatar & Crown */}
+                  {/* Floating White Name Box + Champion Avatar & Crown + Massive Gold Radiance Halo & 50 Stars */}
                   <div className="h-60 sm:h-64 flex flex-col items-center justify-end mb-4 relative">
+                    {/* Grand Sun-Halo Radiance Circle directly centered behind Grand Champion */}
+                    {spotlight && (
+                      <motion.div
+                        initial={{ scale: 0.6, opacity: 0 }}
+                        animate={{ scale: [1, 1.08, 1], opacity: [0.85, 1, 0.85] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute -top-10 left-1/2 -translate-x-1/2 w-[420px] sm:w-[540px] md:w-[620px] h-[420px] sm:h-[540px] md:h-[620px] rounded-full bg-gradient-to-b from-yellow-300/60 via-amber-400/40 to-yellow-500/20 blur-2xl border-4 border-yellow-300/80 shadow-[0_0_140px_60px_rgba(250,204,21,0.85)] -z-20 pointer-events-none"
+                      />
+                    )}
+
+                    {/* Shower of 50 Golden Star Particles Bursting around the Champion */}
+                    {p1Details && <RankParticles color="gold" count={50} spread={190} />}
+
                     {p1Details ? (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.3, y: 35 }}
@@ -391,7 +420,7 @@ export function HostPodium({
                           initial={{ opacity: 0, scale: 0.6, y: 10 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           transition={{ delay: 0.15, duration: 0.4 }}
-                          className="mb-2.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-8 py-1.5 rounded-full border-2 border-yellow-200 shadow-[0_8px_25px_rgba(251,191,36,0.7)] flex-shrink-0"
+                          className="mb-2.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-8 py-1.5 rounded-full border-2 border-yellow-200 shadow-[0_8px_25px_rgba(251,191,36,0.9)] flex-shrink-0"
                         >
                           <span className="text-xs sm:text-base font-black uppercase tracking-[0.25em] block leading-none">
                             Grand Champion
@@ -404,15 +433,15 @@ export function HostPodium({
                           transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
                           className="text-[#FFA602] mb-1"
                         >
-                          <Crown className="w-16 h-16 sm:w-20 sm:h-20 fill-[#FFA602] stroke-amber-200 drop-shadow-2xl" />
+                          <Crown className="w-16 h-16 sm:w-20 sm:h-20 fill-[#FFA602] stroke-amber-200 drop-shadow-[0_0_30px_rgba(251,191,36,0.95)]" />
                         </motion.div>
 
-                        <span className="text-8xl sm:text-9xl md:text-[115px] mb-2 filter drop-shadow-2xl select-none leading-none">
+                        <span className="text-8xl sm:text-9xl md:text-[115px] mb-2 filter drop-shadow-[0_15px_30px_rgba(250,204,21,0.9)] select-none leading-none">
                           {first.avatar}
                         </span>
 
                         {/* Giant Solid White Name Plaque */}
-                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-4xl md:text-5xl px-10 sm:px-12 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-amber-300 border-b-[8px] border-b-amber-400 truncate max-w-[320px] sm:max-w-[400px] text-center">
+                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-4xl md:text-5xl px-10 sm:px-12 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] border-2 border-amber-300 border-b-[8px] border-b-amber-400 truncate max-w-[320px] sm:max-w-[400px] text-center">
                           {first.nickname}
                         </div>
                       </motion.div>
@@ -445,7 +474,7 @@ export function HostPodium({
                     )}
                   </div>
 
-                  {/* 1st Center Pillar (Extra-Tall 490px) */}
+                  {/* 1st Center Pillar (490px) */}
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: p1Pillar ? "490px" : "0px" }}
@@ -492,18 +521,27 @@ export function HostPodium({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: p3Pillar ? 1 : 0 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full flex flex-col items-center"
+                  className="w-full flex flex-col items-center relative"
                 >
-                  {/* Floating White Name Box + Avatar */}
-                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3">
+                  {/* Floating White Name Box + Avatar + Bronze Particles & Glow */}
+                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3 relative">
+                    {p3Details && (
+                      <>
+                        {/* Bronze Halo Glow Aura */}
+                        <div className="absolute inset-0 -top-6 rounded-full bg-amber-600/35 blur-3xl -z-20 pointer-events-none" />
+                        {/* Bronze Sparkling Particles (18 Particles) */}
+                        <RankParticles color="bronze" count={18} spread={120} />
+                      </>
+                    )}
+
                     {p3Details ? (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.3, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: "spring", stiffness: 260, damping: 16 }}
-                        className="flex flex-col items-center"
+                        className="flex flex-col items-center relative"
                       >
-                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-md select-none">
+                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-[0_10px_20px_rgba(217,119,6,0.7)] select-none">
                           {third.avatar}
                         </span>
                         {/* Solid White Name Plaque */}
@@ -520,7 +558,7 @@ export function HostPodium({
                     )}
                   </div>
 
-                  {/* 3rd Pillar (Taller 295px) */}
+                  {/* 3rd Pillar (295px) */}
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: p3Pillar ? "295px" : "0px" }}
