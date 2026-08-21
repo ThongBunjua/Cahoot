@@ -131,7 +131,7 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
               className="w-[560px] h-[560px] sm:w-[720px] sm:h-[720px] rounded-full bg-white/20 shadow-[0_0_200px_rgba(255,255,255,0.75)] border-4 border-white/40 flex flex-col items-center justify-start pt-12"
             >
               <span className="text-3xl sm:text-5xl font-black text-yellow-300 uppercase tracking-widest animate-pulse drop-shadow-2xl">
-                👑 Grand Champion 👑
+                Grand Champion
               </span>
             </motion.div>
           </motion.div>

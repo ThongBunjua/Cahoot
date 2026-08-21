@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { KahootShape } from "@/components/ui/KahootShapes";
-import { Check } from "lucide-react";
+import { Check, Loader2, Sparkles, EyeOff } from "lucide-react";
 
 interface PlayerGameButtonsProps {
   onSelect: (choiceIndex: number) => void;
@@ -87,78 +87,111 @@ export function PlayerGameButtons({
         </span>
       </div>
 
-      {/* Answer Submitted Floating Banner (Compact) */}
-      {hasAnswered && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#26890C] text-white py-1.5 px-3 rounded-xl border border-[#1B6108] text-center shadow-md flex items-center justify-center gap-1.5 flex-shrink-0 w-full"
-        >
-          <Check className="w-4 h-4 stroke-[3.5]" />
-          <span className="text-xs sm:text-sm font-black">
-            Answer submitted! Look at the big screen...
-          </span>
-        </motion.div>
-      )}
-
       {/* ========================================================================= */}
-      {/* 2. CENTER: 2X2 GEOMETRIC ANSWER BUTTONS (Exact Classic Kahoot Look) */}
+      {/* 2. CENTER STAGE: 4 Answer Buttons OR Minimalist Waiting Spinner */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 grid-rows-2 gap-2 sm:gap-3 flex-1 w-full h-full min-h-0">
-        {BUTTON_CONFIGS.map((btn) => {
-          const isSelected = selectedAnswer === btn.index;
-          const isDimmed = hasAnswered && !isSelected;
-          const rawChoice = safeChoices[btn.index];
-          const choiceText = typeof rawChoice === "string" ? rawChoice : (rawChoice as any)?.text ? String((rawChoice as any).text) : "";
+      <AnimatePresence mode="wait">
+        {!hasAnswered ? (
+          /* State A: 4 Big Color Choice Buttons */
+          <motion.div
+            key="buttons-grid"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+            className="grid grid-cols-2 grid-rows-2 gap-2 sm:gap-3 flex-1 w-full h-full min-h-0"
+          >
+            {BUTTON_CONFIGS.map((btn) => {
+              const rawChoice = safeChoices[btn.index];
+              const choiceText =
+                typeof rawChoice === "string"
+                  ? rawChoice
+                  : (rawChoice as any)?.text
+                  ? String((rawChoice as any).text)
+                  : "";
 
-          return (
-            <motion.button
-              key={btn.index}
-              disabled={hasAnswered}
-              whileTap={!hasAnswered ? { scale: 0.97 } : {}}
-              onClick={() => onSelect(btn.index)}
-              className={`relative w-full h-full rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col justify-between transition-all cursor-pointer shadow-lg overflow-hidden ${
-                btn.bgClass
-              } ${btn.borderClass} ${
-                isSelected
-                  ? "ring-4 ring-white scale-[1.02] z-10 shadow-2xl"
-                  : isDimmed
-                  ? "opacity-35 grayscale-[30%] cursor-default"
-                  : "active:translate-y-1"
-              }`}
-            >
-              {/* Top Row: Geometric Shape Icon + Checkmark */}
-              <div className="w-full flex items-center justify-between flex-shrink-0">
-                <div className="p-1 rounded-xl text-white">
-                  <KahootShape shape={btn.shape} size={36} className="drop-shadow-md" />
-                </div>
-
-                {isSelected && (
-                  <div className="bg-white text-slate-950 p-1.5 rounded-full shadow-lg">
-                    <Check className="w-4 h-4 stroke-[3.5]" />
+              return (
+                <motion.button
+                  key={btn.index}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => onSelect(btn.index)}
+                  className={`relative w-full h-full rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col justify-between transition-all cursor-pointer shadow-lg overflow-hidden ${btn.bgClass} ${btn.borderClass} active:translate-y-1`}
+                >
+                  {/* Top: Geometric Shape Icon */}
+                  <div className="w-full flex items-center justify-between flex-shrink-0">
+                    <div className="p-1 rounded-xl text-white">
+                      <KahootShape shape={btn.shape} size={36} className="drop-shadow-md" />
+                    </div>
                   </div>
-                )}
-              </div>
 
-              {/* Bottom Row: Unified White Text with Word Break */}
-              <div className="w-full text-left mt-1 flex-1 flex items-end overflow-hidden">
-                {choiceText ? (
-                  <p
-                    className={`font-black text-white text-xs sm:text-base md:text-lg leading-snug break-words line-clamp-3 ${btn.textShadow}`}
-                  >
-                    {choiceText}
-                  </p>
-                ) : (
-                  <span className="text-xs font-bold opacity-0">Option</span>
-                )}
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
+                  {/* Bottom: Choice Text */}
+                  <div className="w-full text-left mt-1 flex-1 flex items-end overflow-hidden">
+                    {choiceText ? (
+                      <p
+                        className={`font-black text-white text-xs sm:text-base md:text-lg leading-snug break-words line-clamp-3 ${btn.textShadow}`}
+                      >
+                        {choiceText}
+                      </p>
+                    ) : (
+                      <span className="text-xs font-bold opacity-0">Option</span>
+                    )}
+                  </div>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        ) : (
+          /* State B: Sleek Minimalist Loading / Waiting Spinner (Anti-Cheating / Anti-Peeking) */
+          <motion.div
+            key="loading-spinner-stage"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+            className="flex-1 w-full flex flex-col items-center justify-center text-center p-6 bg-[#33106B]/80 backdrop-blur-xl rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-2xl relative overflow-hidden"
+          >
+            {/* Ambient Background Glow Ring */}
+            <div className="absolute w-60 h-60 rounded-full bg-purple-600/20 blur-3xl pointer-events-none animate-pulse" />
+
+            {/* Hypnotic Minimal Spinner Orb */}
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 mb-6 flex items-center justify-center">
+              {/* Rotating Dashed Ring */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+                className="absolute inset-0 rounded-full border-4 border-dashed border-yellow-400"
+              />
+
+              {/* Inner Pulsing Check / Shape Badge */}
+              <motion.div
+                animate={{ scale: [0.9, 1.08, 0.9] }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-[#26890C] to-[#34d399] flex items-center justify-center shadow-xl border-2 border-white/60"
+              >
+                <Check className="w-10 h-10 sm:w-12 sm:h-12 text-white stroke-[4]" />
+              </motion.div>
+            </div>
+
+            {/* Answer Locked Title */}
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2"
+            >
+              Answer Locked In!
+            </motion.h2>
+
+            {/* Minimal Subtitle */}
+            <p className="text-xs sm:text-sm font-bold text-purple-200 tracking-wide flex items-center gap-1.5 bg-black/25 px-4 py-1.5 rounded-full border border-white/10">
+              <EyeOff className="w-4 h-4 text-yellow-400" />
+              <span>Hidden for secrecy • Look at the host screen</span>
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM BAR: Avatar & Name (Left) + Score Badge (Right) [Image 2 Style] */}
+      {/* 3. BOTTOM BAR: Avatar & Name (Left) + Score Badge (Right) */}
       {/* ========================================================================= */}
       <div className="flex items-center justify-between bg-white text-slate-950 px-3 sm:px-4 py-2 rounded-2xl shadow-md border-2 border-slate-200 border-b-[4px] border-b-slate-300 flex-shrink-0 w-full">
         {/* Left: Avatar & Nickname */}
@@ -176,7 +209,7 @@ export function PlayerGameButtons({
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. BOTTOM-MOST: FULL-WIDTH SLIM COUNTDOWN PROGRESS BAR (No Text Number) */}
+      {/* 4. BOTTOM-MOST: FULL-WIDTH SLIM COUNTDOWN PROGRESS BAR */}
       {/* ========================================================================= */}
       <div className="w-full h-2 sm:h-2.5 bg-[#240B4D] rounded-full overflow-hidden flex-shrink-0 shadow-inner">
         <motion.div
