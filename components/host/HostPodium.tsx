@@ -91,12 +91,16 @@ export function HostPodium({
   const second = sorted[1];
   const third = sorted[2];
 
-  // Manual Reveal Step Controlled by Host:
-  // 0 = Initial Stage
-  // 1 = 3rd Place Revealed
-  // 2 = 2nd Place Revealed
-  // 3 = 1st Place Grand Champion Revealed
+  // Manual Reveal Stages:
+  // 0 = Initial Screen (All pillars ready at baseline)
+  // 1 = 3rd Place rises in Center -> Reveals details
+  // 2 = 3rd Place moves to Right, 2nd Place rises in Center -> Reveals details
+  // 3 = 2nd Place moves to Left, 1st Place rises in Center with Dome Light -> Reveals Champion
   const [revealStep, setRevealStep] = useState<number>(0);
+  const [p3Details, setP3Details] = useState(false);
+  const [p2Details, setP2Details] = useState(false);
+  const [p1Details, setP1Details] = useState(false);
+
   const [triggerConfetti, setTriggerConfetti] = useState(false);
   const [showFullScoreboard, setShowFullScoreboard] = useState(false);
 
@@ -108,27 +112,33 @@ export function HostPodium({
     };
   }, []);
 
-  // Host manual next reveal handler
+  // Host Manual Next Reveal Step Controller (Slow Suspenseful Rise + Details Delayed)
   const handleNextReveal = () => {
-    if (revealStep === 0) {
-      // Step 1: Reveal 3rd Place
+    if (revealStep === 0 && third) {
+      // Step 1: Reveal 3rd Place in Center
       setRevealStep(1);
       sounds.playPillarRiser();
+      // Wait for pillar to rise (1.8s) before revealing Avatar & Name
       setTimeout(() => {
+        setP3Details(true);
         sounds.playPodiumBronzeReveal();
-      }, 700);
-    } else if (revealStep === 1) {
-      // Step 2: Reveal 2nd Place
+      }, 1800);
+    } else if (revealStep === 1 && second) {
+      // Step 2: 3rd moves right, 2nd rises in Center
       setRevealStep(2);
       sounds.playPillarRiser();
+      // Wait for 2nd pillar to rise (1.8s) before revealing Avatar & Name
       setTimeout(() => {
+        setP2Details(true);
         sounds.playPodiumSilverReveal();
-      }, 700);
-    } else if (revealStep === 2) {
-      // Step 3: Reveal 1st Place Champion
+      }, 1800);
+    } else if (revealStep === 2 && first) {
+      // Step 3: 2nd moves left, 1st rises in Center with Grand Spotlight Dome & Drumroll
       setRevealStep(3);
-      sounds.playDrumroll(2.2);
+      sounds.playDrumroll(2.4);
+      // Wait for 1st pillar to rise (2.2s) before Grand Champion Explodes into view!
       setTimeout(() => {
+        setP1Details(true);
         setTriggerConfetti(true);
         sounds.playChampionReveal();
       }, 2200);
@@ -145,16 +155,44 @@ export function HostPodium({
       {/* Confetti Cascade on Champion Finale */}
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
-      {/* Full-Stage Dark Stage Overlay when Step 3 is active */}
+      {/* ========================================================================= */}
+      {/* GRAND KAHOOT CIRCULAR SPOTLIGHT DOME (รูปภาพที่ 2 สไตล์ต้นฉบับ 100%) */}
+      {/* ========================================================================= */}
       <AnimatePresence>
         {revealStep >= 3 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.0 }}
-            className="fixed inset-0 z-20 pointer-events-none bg-[#030107]/90 backdrop-blur-[2px]"
-          />
+          <div className="fixed inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+            {/* 1. Ambient Stage Dimming Vignette (Purple Dark Tint) */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0 bg-[#070212]/85 backdrop-blur-[1.5px]"
+            />
+
+            {/* 2. Giant Kahoot Circular Spotlight Dome in Dead Center */}
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{
+                scale: [1, 1.03, 1],
+                opacity: [0.9, 1, 0.9],
+              }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[36%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] sm:w-[650px] md:w-[740px] h-[520px] sm:h-[650px] md:h-[740px] rounded-full border-4 border-yellow-200/50 shadow-[0_0_120px_45px_rgba(255,255,255,0.35),_inset_0_0_80px_rgba(255,255,255,0.3)] pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(255, 255, 255, 0.42) 0%, rgba(254, 240, 138, 0.25) 45%, rgba(147, 51, 234, 0.15) 75%, transparent 100%)",
+              }}
+            >
+              {/* Inner Soft Shimmering Core */}
+              <motion.div
+                animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
+                className="w-3/4 h-3/4 rounded-full bg-white/20 blur-2xl mx-auto my-auto"
+              />
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -239,7 +277,7 @@ export function HostPodium({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN STAGE: 3-COLUMN OLYMPIC PODIUM */}
+      {/* 2. MAIN STAGE: CENTER-FIRST GLIDING OLYMPIC PODIUM */}
       {/* ========================================================================= */}
       {showFullScoreboard ? (
         <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col justify-center py-4 z-30">
@@ -296,270 +334,292 @@ export function HostPodium({
         </div>
       ) : (
         <div className="flex-1 flex flex-col justify-end items-center relative z-20 pb-1 overflow-visible">
-          {/* Permanent 3-Column Olympic Podium Layout */}
-          <div className="w-full max-w-7xl mx-auto flex-1 flex items-end justify-center gap-4 sm:gap-8 md:gap-10 pb-1 relative z-10">
+          {/* Central Olympic Podium Anchor Container */}
+          <div className="relative w-full max-w-6xl mx-auto flex-1 flex items-end justify-center pb-1 z-10">
             {/* ========================================================================= */}
-            {/* COLUMN 1: 2ND PLACE (SILVER) - Left Slot */}
+            {/* 3RD PLACE (BRONZE) - Starts in Center (x:0) then Glides to Right (x:330) */}
             {/* ========================================================================= */}
-            <div className="w-[260px] sm:w-[320px] md:w-[370px] flex flex-col items-center justify-end z-20 flex-shrink-0">
-              {second && (
-                <div className="w-full flex flex-col items-center relative">
-                  {/* Floating White Name Box + Avatar + Silver Particles */}
-                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3 relative">
-                    {revealStep >= 2 ? (
-                      <>
-                        {/* Silver Particles (26 Particles) */}
-                        <RankParticles color="silver" count={26} spread={130} />
+            {third && revealStep >= 1 && (
+              <motion.div
+                initial={{ x: 0, opacity: 0 }}
+                animate={{
+                  x: revealStep === 1 ? 0 : 330,
+                  opacity: 1,
+                  zIndex: revealStep === 1 ? 30 : 15,
+                }}
+                transition={{
+                  x: { type: "spring", stiffness: 150, damping: 20, duration: 1.0 },
+                  opacity: { duration: 0.3 },
+                }}
+                className="absolute bottom-0 w-[260px] sm:w-[310px] md:w-[350px] flex flex-col items-center"
+              >
+                {/* Floating White Name Box + Avatar + Bronze Particles */}
+                <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3 relative">
+                  {p3Details ? (
+                    <>
+                      {/* Bronze Sparkling Particles */}
+                      <RankParticles color="bronze" count={18} spread={120} />
 
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.3, y: 30 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          transition={{ type: "spring", stiffness: 260, damping: 16 }}
-                          className="flex flex-col items-center relative"
-                        >
-                          <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-[0_10px_20px_rgba(203,213,225,0.7)] select-none">
-                            {second.avatar}
-                          </span>
-                          {/* Solid White Name Plaque */}
-                          <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-10 py-3 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-400 truncate max-w-[280px] sm:max-w-[320px] text-center">
-                            {second.nickname}
-                          </div>
-                        </motion.div>
-                      </>
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-[#240B4D] border-4 border-[#1D083E] flex items-center justify-center text-4xl font-black text-yellow-300 animate-pulse shadow-2xl">
-                        ?
-                      </div>
-                    )}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.3, y: 30 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 16 }}
+                        className="flex flex-col items-center relative"
+                      >
+                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-[0_10px_20px_rgba(217,119,6,0.7)] select-none">
+                          {third.avatar}
+                        </span>
+                        {/* Solid White Name Plaque */}
+                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-10 py-3 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-amber-700 truncate max-w-[280px] sm:max-w-[320px] text-center">
+                          {third.nickname}
+                        </div>
+                      </motion.div>
+                    </>
+                  ) : (
+                    /* Suspense Question Mark while Pillar rises */
+                    <div className="w-20 h-20 rounded-full bg-[#240B4D] border-4 border-[#1D083E] flex items-center justify-center text-4xl font-black text-yellow-300 animate-pulse shadow-2xl">
+                      ?
+                    </div>
+                  )}
+                </div>
+
+                {/* 3rd Pillar (Taller 295px - Suspenseful Rising Ease 1.8s) */}
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "295px" }}
+                  transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative overflow-hidden"
+                >
+                  {/* Bronze Shield */}
+                  <div className="relative mb-3.5 flex-shrink-0">
+                    <svg viewBox="0 0 100 110" className="w-20 h-22 sm:w-22 sm:h-24 fill-[#CD7F32] filter drop-shadow-xl">
+                      <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center font-black text-4xl text-white">
+                      3
+                    </span>
                   </div>
 
-                  {/* 2nd Pillar (375px) */}
-                  <motion.div
-                    initial={{ height: "60px" }}
-                    animate={{ height: revealStep >= 2 ? "375px" : "60px" }}
-                    transition={{ duration: 0.85, ease: "easeOut" }}
-                    className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative overflow-hidden"
-                  >
-                    {/* Silver Shield */}
-                    <div className="relative mb-3.5 flex-shrink-0">
-                      <svg viewBox="0 0 100 110" className="w-20 h-22 sm:w-22 sm:h-24 fill-[#94A3B8] filter drop-shadow-xl">
-                        <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#CBD5E1" strokeWidth="4" />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center font-black text-4xl text-white">
-                        2
+                  {/* Score & Correct Count */}
+                  {p3Details && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35 }}
+                      className="flex flex-col items-center text-center mt-1 flex-shrink-0"
+                    >
+                      <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight block">
+                        {third.score.toLocaleString()}
                       </span>
-                    </div>
+                      <span className="text-xs sm:text-sm font-black uppercase text-amber-200 tracking-wider mt-1.5 block bg-[#240B4D] px-3.5 py-1 rounded-full border border-amber-500/30">
+                        {third.correctCount ?? 0} out of {totalQ}
+                      </span>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
 
-                    {/* Score & Correct Count */}
-                    {revealStep >= 2 && (
+            {/* ========================================================================= */}
+            {/* 2ND PLACE (SILVER) - Starts in Center (x:0) then Glides to Left (x:-330) */}
+            {/* ========================================================================= */}
+            {second && revealStep >= 2 && (
+              <motion.div
+                initial={{ x: 0, opacity: 0 }}
+                animate={{
+                  x: revealStep === 2 ? 0 : -330,
+                  opacity: 1,
+                  zIndex: revealStep === 2 ? 35 : 20,
+                }}
+                transition={{
+                  x: { type: "spring", stiffness: 150, damping: 20, duration: 1.0 },
+                  opacity: { duration: 0.3 },
+                }}
+                className="absolute bottom-0 w-[260px] sm:w-[310px] md:w-[350px] flex flex-col items-center"
+              >
+                {/* Floating White Name Box + Avatar + Silver Particles */}
+                <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3 relative">
+                  {p2Details ? (
+                    <>
+                      {/* Silver Sparkling Diamond Particles */}
+                      <RankParticles color="silver" count={26} spread={130} />
+
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35 }}
-                        className="flex flex-col items-center text-center mt-1 flex-shrink-0"
+                        initial={{ opacity: 0, scale: 0.3, y: 30 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 16 }}
+                        className="flex flex-col items-center relative"
                       >
-                        <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight block">
-                          {second.score.toLocaleString()}
+                        <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-[0_10px_20px_rgba(203,213,225,0.7)] select-none">
+                          {second.avatar}
                         </span>
-                        <span className="text-xs sm:text-sm font-black uppercase text-slate-300 tracking-wider mt-1.5 block bg-[#240B4D] px-3.5 py-1 rounded-full border border-slate-500/30">
-                          {second.correctCount ?? 0} out of {totalQ}
-                        </span>
+                        {/* Solid White Name Plaque */}
+                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-10 py-3 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-slate-400 truncate max-w-[280px] sm:max-w-[320px] text-center">
+                          {second.nickname}
+                        </div>
                       </motion.div>
-                    )}
-                  </motion.div>
+                    </>
+                  ) : (
+                    /* Suspense Question Mark while Pillar rises */
+                    <div className="w-20 h-20 rounded-full bg-[#240B4D] border-4 border-[#1D083E] flex items-center justify-center text-4xl font-black text-yellow-300 animate-pulse shadow-2xl">
+                      ?
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* 2nd Pillar (Taller 375px - Suspenseful Rising Ease 1.8s) */}
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "375px" }}
+                  transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative overflow-hidden"
+                >
+                  {/* Silver Shield */}
+                  <div className="relative mb-3.5 flex-shrink-0">
+                    <svg viewBox="0 0 100 110" className="w-20 h-22 sm:w-22 sm:h-24 fill-[#94A3B8] filter drop-shadow-xl">
+                      <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#CBD5E1" strokeWidth="4" />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center font-black text-4xl text-white">
+                      2
+                    </span>
+                  </div>
+
+                  {/* Score & Correct Count */}
+                  {p2Details && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35 }}
+                      className="flex flex-col items-center text-center mt-1 flex-shrink-0"
+                    >
+                      <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight block">
+                        {second.score.toLocaleString()}
+                      </span>
+                      <span className="text-xs sm:text-sm font-black uppercase text-slate-300 tracking-wider mt-1.5 block bg-[#240B4D] px-3.5 py-1 rounded-full border border-slate-500/30">
+                        {second.correctCount ?? 0} out of {totalQ}
+                      </span>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
 
             {/* ========================================================================= */}
-            {/* COLUMN 2: 1ST PLACE (GOLD CHAMPION) - Center Slot */}
+            {/* 1ST PLACE (GOLD CHAMPION) - Rises in Center (x:0) with Full Grandeur */}
             {/* ========================================================================= */}
-            <div className="w-[300px] sm:w-[370px] md:w-[440px] flex flex-col items-center justify-end z-30 relative flex-shrink-0">
-              {first && (
-                <div className="w-full flex flex-col items-center relative">
-                  {/* Floating White Name Box + Champion Avatar & Crown + 50 Gold Stars */}
-                  <div className="h-60 sm:h-64 flex flex-col items-center justify-end mb-4 relative">
-                    {revealStep >= 3 ? (
-                      <>
-                        {/* Shower of 50 Golden Star Particles Bursting around the Champion */}
-                        <RankParticles color="gold" count={50} spread={180} />
+            {first && revealStep >= 3 && (
+              <motion.div
+                initial={{ x: 0, opacity: 0 }}
+                animate={{ x: 0, opacity: 1, zIndex: 40 }}
+                className="absolute bottom-0 w-[300px] sm:w-[360px] md:w-[420px] flex flex-col items-center"
+              >
+                {/* Floating White Name Box + Champion Avatar & Crown + 50 Gold Stars */}
+                <div className="h-60 sm:h-64 flex flex-col items-center justify-end mb-4 relative">
+                  {p1Details ? (
+                    <>
+                      {/* Shower of 50 Golden Star Particles Bursting around the Champion */}
+                      <RankParticles color="gold" count={50} spread={180} />
 
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.3, y: 35 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 240, damping: 15 }}
+                        className="flex flex-col items-center relative pb-2"
+                      >
+                        {/* Grand Champion Glowing Gold Banner */}
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.3, y: 35 }}
+                          initial={{ opacity: 0, scale: 0.6, y: 10 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
-                          transition={{ type: "spring", stiffness: 240, damping: 15 }}
-                          className="flex flex-col items-center relative pb-2"
+                          transition={{ delay: 0.15, duration: 0.4 }}
+                          className="mb-2.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-8 py-1.5 rounded-full border-2 border-yellow-200 shadow-[0_8px_25px_rgba(251,191,36,0.9)] flex-shrink-0"
                         >
-                          {/* Grand Champion Glowing Gold Banner */}
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.6, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            transition={{ delay: 0.15, duration: 0.4 }}
-                            className="mb-2.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-8 py-1.5 rounded-full border-2 border-yellow-200 shadow-[0_8px_25px_rgba(251,191,36,0.9)] flex-shrink-0"
-                          >
-                            <span className="text-xs sm:text-base font-black uppercase tracking-[0.25em] block leading-none">
-                              Grand Champion
-                            </span>
-                          </motion.div>
-
-                          {/* Floating Gold Crown */}
-                          <motion.div
-                            animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
-                            transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-                            className="text-[#FFA602] mb-1"
-                          >
-                            <Crown className="w-16 h-16 sm:w-20 sm:h-20 fill-[#FFA602] stroke-amber-200 drop-shadow-[0_0_30px_rgba(251,191,36,0.95)]" />
-                          </motion.div>
-
-                          <span className="text-8xl sm:text-9xl md:text-[115px] mb-2 filter drop-shadow-[0_15px_30px_rgba(250,204,21,0.9)] select-none leading-none">
-                            {first.avatar}
+                          <span className="text-xs sm:text-base font-black uppercase tracking-[0.25em] block leading-none">
+                            Grand Champion
                           </span>
-
-                          {/* Giant Solid White Name Plaque with Golden Glow */}
-                          <div className="bg-white text-slate-950 font-black text-2xl sm:text-4xl md:text-5xl px-10 sm:px-12 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] border-4 border-amber-300 border-b-[8px] border-b-amber-400 truncate max-w-[320px] sm:max-w-[400px] text-center">
-                            {first.nickname}
-                          </div>
                         </motion.div>
-                      </>
-                    ) : (
-                      /* Clean Glowing Suspense with Royal Centered Crown + '?' + Badge */
-                      <div className="h-56 flex flex-col items-center justify-center relative pb-3">
-                        {/* Floating Golden Crown on Top */}
+
+                        {/* Floating Gold Crown */}
                         <motion.div
                           animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
                           transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-                          className="text-[#FFA602] mb-2 drop-shadow-[0_8px_25px_rgba(255,166,2,0.9)]"
+                          className="text-[#FFA602] mb-1"
                         >
-                          <Crown className="w-18 h-18 sm:w-22 sm:h-22 fill-[#FFA602] stroke-yellow-200" />
+                          <Crown className="w-16 h-16 sm:w-20 sm:h-20 fill-[#FFA602] stroke-amber-200 drop-shadow-[0_0_30px_rgba(251,191,36,0.95)]" />
                         </motion.div>
 
-                        {/* Giant Centered Gold Question Mark */}
-                        <span className="text-8xl sm:text-9xl md:text-[110px] font-black text-yellow-300 animate-pulse drop-shadow-[0_0_40px_rgba(250,204,21,0.95)] leading-none my-1">
-                          ?
+                        <span className="text-8xl sm:text-9xl md:text-[115px] mb-2 filter drop-shadow-[0_15px_30px_rgba(250,204,21,0.9)] select-none leading-none">
+                          {first.avatar}
                         </span>
 
-                        {/* Golden Subtitle Badge */}
-                        <div className="bg-[#33106B]/90 backdrop-blur-md border-2 border-yellow-400/60 px-6 py-2 rounded-full shadow-lg mt-2">
-                          <span className="text-xs sm:text-base uppercase tracking-widest font-black text-yellow-300 block leading-none">
-                            1st Place • Grand Champion
-                          </span>
+                        {/* Giant Solid White Name Plaque with Golden Glow */}
+                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-4xl md:text-5xl px-10 sm:px-12 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] border-4 border-amber-300 border-b-[8px] border-b-amber-400 truncate max-w-[320px] sm:max-w-[400px] text-center">
+                          {first.nickname}
                         </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 1st Center Pillar (490px) */}
-                  <motion.div
-                    initial={{ height: "70px" }}
-                    animate={{ height: revealStep >= 3 ? "490px" : "70px" }}
-                    transition={{ duration: 1.0, ease: "easeOut" }}
-                    className={`w-full bg-[#240B4D] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-7 border-2 border-[#33106B] border-b-[10px] border-b-[#1D083E] relative overflow-hidden transition-all ${
-                      revealStep >= 3 ? "shadow-[0_0_60px_rgba(251,191,36,0.6)] border-yellow-400" : ""
-                    }`}
-                  >
-                    {/* Gold Shield */}
-                    <div className="relative mb-4 flex-shrink-0">
-                      <svg viewBox="0 0 100 110" className="w-22 h-24 sm:w-26 sm:h-28 fill-[#FFA602] filter drop-shadow-2xl">
-                        <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center font-black text-5xl text-slate-950">
-                        1
-                      </span>
-                    </div>
-
-                    {/* Score & Correct Count */}
-                    {revealStep >= 3 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35 }}
-                        className="flex flex-col items-center text-center mt-1 flex-shrink-0"
-                      >
-                        <span className="text-4xl sm:text-5xl md:text-6xl font-black text-[#FFA602] tabular-nums tracking-tight block drop-shadow-md">
-                          {first.score.toLocaleString()}
-                        </span>
-                        <span className="text-xs sm:text-base font-black uppercase text-yellow-300 tracking-wider mt-2 block bg-[#1D083E] px-4 py-1 rounded-full border border-yellow-500/40 shadow-inner">
-                          {first.correctCount ?? 0} out of {totalQ}
-                        </span>
                       </motion.div>
-                    )}
-                  </motion.div>
-                </div>
-              )}
-            </div>
+                    </>
+                  ) : (
+                    /* Clean Glowing Suspense with Royal Centered Crown + '?' + Badge */
+                    <div className="h-56 flex flex-col items-center justify-center relative pb-3">
+                      {/* Floating Golden Crown on Top */}
+                      <motion.div
+                        animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
+                        transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+                        className="text-[#FFA602] mb-2 drop-shadow-[0_8px_25px_rgba(255,166,2,0.9)]"
+                      >
+                        <Crown className="w-18 h-18 sm:w-22 sm:h-22 fill-[#FFA602] stroke-yellow-200" />
+                      </motion.div>
 
-            {/* ========================================================================= */}
-            {/* COLUMN 3: 3RD PLACE (BRONZE) - Right Slot */}
-            {/* ========================================================================= */}
-            <div className="w-[260px] sm:w-[320px] md:w-[370px] flex flex-col items-center justify-end z-20 flex-shrink-0">
-              {third && (
-                <div className="w-full flex flex-col items-center relative">
-                  {/* Floating White Name Box + Avatar + Bronze Particles */}
-                  <div className="h-48 sm:h-52 flex flex-col items-center justify-end mb-3 relative">
-                    {revealStep >= 1 ? (
-                      <>
-                        {/* Bronze Particles (18 Particles) */}
-                        <RankParticles color="bronze" count={18} spread={120} />
-
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.3, y: 30 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          transition={{ type: "spring", stiffness: 260, damping: 16 }}
-                          className="flex flex-col items-center relative"
-                        >
-                          <span className="text-7xl sm:text-8xl md:text-9xl mb-2 filter drop-shadow-[0_10px_20px_rgba(217,119,6,0.7)] select-none">
-                            {third.avatar}
-                          </span>
-                          {/* Solid White Name Plaque */}
-                          <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-10 py-3 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[6px] border-b-amber-700 truncate max-w-[280px] sm:max-w-[320px] text-center">
-                            {third.nickname}
-                          </div>
-                        </motion.div>
-                      </>
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-[#240B4D] border-4 border-[#1D083E] flex items-center justify-center text-4xl font-black text-yellow-300 animate-pulse shadow-2xl">
+                      {/* Giant Centered Gold Question Mark */}
+                      <span className="text-8xl sm:text-9xl md:text-[110px] font-black text-yellow-300 animate-pulse drop-shadow-[0_0_40px_rgba(250,204,21,0.95)] leading-none my-1">
                         ?
+                      </span>
+
+                      {/* Golden Subtitle Badge */}
+                      <div className="bg-[#33106B]/90 backdrop-blur-md border-2 border-yellow-400/60 px-6 py-2 rounded-full shadow-lg mt-2">
+                        <span className="text-xs sm:text-base uppercase tracking-widest font-black text-yellow-300 block leading-none">
+                          1st Place • Grand Champion
+                        </span>
                       </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+
+                {/* 1st Center Pillar (Extra-Tall 490px - Heavy Dramatic Rising Ease 2.2s) */}
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "490px" }}
+                  transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full bg-[#240B4D] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-7 border-2 border-[#33106B] border-b-[10px] border-b-[#1D083E] relative overflow-hidden shadow-[0_0_60px_rgba(251,191,36,0.6)] border-yellow-400"
+                >
+                  {/* Gold Shield */}
+                  <div className="relative mb-4 flex-shrink-0">
+                    <svg viewBox="0 0 100 110" className="w-22 h-24 sm:w-26 sm:h-28 fill-[#FFA602] filter drop-shadow-2xl">
+                      <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center font-black text-5xl text-white drop-shadow-md">
+                      1
+                    </span>
                   </div>
 
-                  {/* 3rd Pillar (295px) */}
-                  <motion.div
-                    initial={{ height: "50px" }}
-                    animate={{ height: revealStep >= 1 ? "295px" : "50px" }}
-                    transition={{ duration: 0.85, ease: "easeOut" }}
-                    className="w-full bg-[#1D083E] rounded-t-3xl shadow-2xl flex flex-col items-center justify-start pt-7 pb-6 border-2 border-[#240B4D] border-b-[8px] border-b-[#130526] relative overflow-hidden"
-                  >
-                    {/* Bronze Shield */}
-                    <div className="relative mb-3.5 flex-shrink-0">
-                      <svg viewBox="0 0 100 110" className="w-20 h-22 sm:w-22 sm:h-24 fill-[#CD7F32] filter drop-shadow-xl">
-                        <polygon points="50,5 95,35 78,105 22,105 5,35" stroke="#FDE68A" strokeWidth="4" />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center font-black text-4xl text-white">
-                        3
+                  {/* Score & Correct Count */}
+                  {p1Details && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35 }}
+                      className="flex flex-col items-center text-center mt-1 flex-shrink-0"
+                    >
+                      <span className="text-4xl sm:text-5xl md:text-6xl font-black text-[#FFA602] tabular-nums tracking-tight block drop-shadow-md">
+                        {first.score.toLocaleString()}
                       </span>
-                    </div>
-
-                    {/* Score & Correct Count */}
-                    {revealStep >= 1 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35 }}
-                        className="flex flex-col items-center text-center mt-1 flex-shrink-0"
-                      >
-                        <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight block">
-                          {third.score.toLocaleString()}
-                        </span>
-                        <span className="text-xs sm:text-sm font-black uppercase text-amber-200 tracking-wider mt-1.5 block bg-[#240B4D] px-3.5 py-1 rounded-full border border-amber-500/30">
-                          {third.correctCount ?? 0} out of {totalQ}
-                        </span>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </div>
-              )}
-            </div>
+                      <span className="text-xs sm:text-base font-black uppercase text-yellow-300 tracking-wider mt-2 block bg-[#1D083E] px-4 py-1 rounded-full border border-yellow-500/40 shadow-inner">
+                        {first.correctCount ?? 0} out of {totalQ}
+                      </span>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
           </div>
         </div>
       )}

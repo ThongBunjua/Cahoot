@@ -163,7 +163,7 @@ export function HostQuestionIntro({
                   <svg viewBox="0 0 100 100" className="w-full h-full fill-[#FFA602] filter drop-shadow-[0_25px_60px_rgba(255,166,2,0.65)]">
                     <polygon points="50,8 95,88 5,88" stroke="#FEF08A" strokeWidth="3" />
                   </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-9xl sm:text-[140px] font-black text-slate-950 drop-shadow-2xl select-none pt-6">
+                  <span className="absolute inset-0 flex items-center justify-center text-9xl sm:text-[140px] font-black text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.6)] select-none pt-6">
                     1
                   </span>
                 </motion.div>
