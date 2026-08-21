@@ -183,25 +183,25 @@ export function HostPodium({
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
       {/* ========================================================================= */}
-      {/* GRAND KAHOOT CIRCULAR SPOTLIGHT DOME (Dead Center via margin, no transform conflicts!) */}
+      {/* GRAND KAHOOT STAGE: DEEP DARK VIGNETTE & SPOTLIGHT DOME */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {revealStep >= 3 && (
           <>
-            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Solid, Sharp, 0% Blur, Smooth 2.0s Fade) */}
+            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Smoothly turns purple background to deep dark stage black) */}
             <motion.div
               key="podium-dark-vignette"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 2.0, ease: "easeInOut" }}
-              className="fixed inset-0 z-30 pointer-events-none"
+              className="absolute inset-0 z-0 pointer-events-none"
               style={{
-                backgroundColor: "rgba(5, 1, 16, 0.94)",
+                backgroundColor: "#050110",
               }}
             />
 
-            {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.2s) */}
+            {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.2s behind Champion) */}
             {/* Using left:50% + negative margin instead of translateX to avoid Framer Motion transform override */}
             <motion.div
               key="podium-spotlight-dome"
@@ -212,7 +212,7 @@ export function HostPodium({
                 opacity: { duration: 1.2, delay: 1.2, ease: "easeOut" },
                 scale: { duration: 1.2, delay: 1.2, ease: "easeOut" },
               }}
-              className="fixed z-35 rounded-full border-4 border-yellow-200/70 pointer-events-none"
+              className="absolute z-10 rounded-full border-4 border-yellow-200/70 pointer-events-none"
               style={{
                 width: 460,
                 height: 460,
@@ -383,12 +383,14 @@ export function HostPodium({
                 initial={{ x: "-50%", opacity: 0 }}
                 animate={{
                   x: revealStep === 1 ? "-50%" : "calc(-50% + 370px)",
-                  opacity: 1,
+                  opacity: revealStep >= 3 ? 0.4 : 1,
+                  filter: revealStep >= 3 ? "brightness(0.5)" : "brightness(1)",
                   zIndex: revealStep === 1 ? 30 : 15,
                 }}
                 transition={{
                   x: { type: "spring", stiffness: 140, damping: 20, duration: 1.0 },
-                  opacity: { duration: 0.3 },
+                  opacity: { duration: 1.8, ease: "easeInOut" },
+                  filter: { duration: 1.8, ease: "easeInOut" },
                 }}
                 className="absolute bottom-0 left-1/2 w-[280px] sm:w-[340px] md:w-[390px] flex flex-col items-center"
               >
@@ -467,12 +469,14 @@ export function HostPodium({
                 initial={{ x: "-50%", opacity: 0 }}
                 animate={{
                   x: revealStep === 2 ? "-50%" : "calc(-50% - 370px)",
-                  opacity: 1,
+                  opacity: revealStep >= 3 ? 0.4 : 1,
+                  filter: revealStep >= 3 ? "brightness(0.5)" : "brightness(1)",
                   zIndex: revealStep === 2 ? 35 : 20,
                 }}
                 transition={{
                   x: { type: "spring", stiffness: 140, damping: 20, duration: 1.0 },
-                  opacity: { duration: 0.3 },
+                  opacity: { duration: 1.8, ease: "easeInOut" },
+                  filter: { duration: 1.8, ease: "easeInOut" },
                 }}
                 className="absolute bottom-0 left-1/2 w-[280px] sm:w-[340px] md:w-[390px] flex flex-col items-center"
               >
