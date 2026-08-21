@@ -100,6 +100,7 @@ export function HostPodium({
   const [p3Details, setP3Details] = useState(false);
   const [p2Details, setP2Details] = useState(false);
   const [p1Details, setP1Details] = useState(false);
+  const [isDarkStageActive, setIsDarkStageActive] = useState(false);
 
   const [triggerConfetti, setTriggerConfetti] = useState(false);
   const [showFullScoreboard, setShowFullScoreboard] = useState(false);
@@ -134,11 +135,17 @@ export function HostPodium({
       } else if (first) {
         // Only 1 player -> Go directly to 1st place
         setRevealStep(3);
+        setIsDarkStageActive(true);
         sounds.playDrumroll(2.4);
         setTimeout(() => {
           setP1Details(true);
           setTriggerConfetti(true);
           sounds.playChampionReveal();
+
+          // Hold dark spotlight for 5s, then return stage to normal for all TOP 3!
+          setTimeout(() => {
+            setIsDarkStageActive(false);
+          }, 5000);
         }, 2200);
       }
     } else if (revealStep === 1) {
@@ -152,22 +159,33 @@ export function HostPodium({
         }, 1800);
       } else if (first) {
         setRevealStep(3);
+        setIsDarkStageActive(true);
         sounds.playDrumroll(2.4);
         setTimeout(() => {
           setP1Details(true);
           setTriggerConfetti(true);
           sounds.playChampionReveal();
+
+          setTimeout(() => {
+            setIsDarkStageActive(false);
+          }, 5000);
         }, 2200);
       }
     } else if (revealStep === 2 && first) {
       // Step 3: 2nd moves left, 1st rises in Center with Grand Spotlight Dome & Drumroll
       setRevealStep(3);
+      setIsDarkStageActive(true);
       sounds.playDrumroll(2.4);
       // Wait for 1st pillar to rise (2.2s) before Grand Champion Explodes into view!
       setTimeout(() => {
         setP1Details(true);
         setTriggerConfetti(true);
         sounds.playChampionReveal();
+
+        // Hold dark spotlight for 5s, then return stage to normal for all TOP 3!
+        setTimeout(() => {
+          setIsDarkStageActive(false);
+        }, 5000);
       }, 2200);
     }
   };
@@ -183,10 +201,10 @@ export function HostPodium({
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
       {/* ========================================================================= */}
-      {/* GRAND KAHOOT STAGE: DEEP DARK VIGNETTE & SPOTLIGHT DOME */}
+      {/* GRAND KAHOOT STAGE: DEEP DARK VIGNETTE & SPOTLIGHT DOME (Holds 5s, then fades back to normal) */}
       {/* ========================================================================= */}
       <AnimatePresence>
-        {revealStep >= 3 && (
+        {isDarkStageActive && (
           <>
             {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Smoothly turns purple background to deep dark stage black) */}
             <motion.div
@@ -194,7 +212,7 @@ export function HostPodium({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 2.0, ease: "easeInOut" }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
               className="absolute inset-0 z-0 pointer-events-none"
               style={{
                 backgroundColor: "#050110",
@@ -207,10 +225,10 @@ export function HostPodium({
               key="podium-spotlight-dome"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              exit={{ scale: 0.7, opacity: 0 }}
               transition={{
-                opacity: { duration: 1.2, delay: 1.2, ease: "easeOut" },
-                scale: { duration: 1.2, delay: 1.2, ease: "easeOut" },
+                opacity: { duration: 1.2, delay: isDarkStageActive ? 1.2 : 0, ease: "easeOut" },
+                scale: { duration: 1.2, delay: isDarkStageActive ? 1.2 : 0, ease: "easeOut" },
               }}
               className="absolute z-10 rounded-full border-4 border-yellow-200/70 pointer-events-none"
               style={{
@@ -383,14 +401,14 @@ export function HostPodium({
                 initial={{ x: "-50%", opacity: 0 }}
                 animate={{
                   x: revealStep === 1 ? "-50%" : "calc(-50% + 370px)",
-                  opacity: revealStep >= 3 ? 0.4 : 1,
-                  filter: revealStep >= 3 ? "brightness(0.5)" : "brightness(1)",
+                  opacity: isDarkStageActive ? 0.4 : 1,
+                  filter: isDarkStageActive ? "brightness(0.5)" : "brightness(1)",
                   zIndex: revealStep === 1 ? 30 : 15,
                 }}
                 transition={{
                   x: { type: "spring", stiffness: 140, damping: 20, duration: 1.0 },
-                  opacity: { duration: 1.8, ease: "easeInOut" },
-                  filter: { duration: 1.8, ease: "easeInOut" },
+                  opacity: { duration: 1.5, ease: "easeInOut" },
+                  filter: { duration: 1.5, ease: "easeInOut" },
                 }}
                 className="absolute bottom-0 left-1/2 w-[280px] sm:w-[340px] md:w-[390px] flex flex-col items-center"
               >
@@ -469,14 +487,14 @@ export function HostPodium({
                 initial={{ x: "-50%", opacity: 0 }}
                 animate={{
                   x: revealStep === 2 ? "-50%" : "calc(-50% - 370px)",
-                  opacity: revealStep >= 3 ? 0.4 : 1,
-                  filter: revealStep >= 3 ? "brightness(0.5)" : "brightness(1)",
+                  opacity: isDarkStageActive ? 0.4 : 1,
+                  filter: isDarkStageActive ? "brightness(0.5)" : "brightness(1)",
                   zIndex: revealStep === 2 ? 35 : 20,
                 }}
                 transition={{
                   x: { type: "spring", stiffness: 140, damping: 20, duration: 1.0 },
-                  opacity: { duration: 1.8, ease: "easeInOut" },
-                  filter: { duration: 1.8, ease: "easeInOut" },
+                  opacity: { duration: 1.5, ease: "easeInOut" },
+                  filter: { duration: 1.5, ease: "easeInOut" },
                 }}
                 className="absolute bottom-0 left-1/2 w-[280px] sm:w-[340px] md:w-[390px] flex flex-col items-center"
               >
