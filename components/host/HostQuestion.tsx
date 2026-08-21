@@ -52,6 +52,9 @@ export function HostQuestion({
     };
   }, []);
 
+  const totalTime = question.time_limit || 20;
+  const timeProgressPercent = Math.max(0, Math.min(100, (timeRemaining / totalTime) * 100));
+
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-3 sm:p-4 md:p-6 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
@@ -143,7 +146,7 @@ export function HostQuestion({
       {/* ========================================================================= */}
       {/* 3. BOTTOM ZONE: SOLID 2X2 ANSWER GRID */}
       {/* ========================================================================= */}
-      <footer className="w-full max-w-[98vw] mx-auto grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 pb-1 sm:pb-2 z-20 flex-shrink-0">
+      <footer className="w-full max-w-[98vw] mx-auto grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 pb-2 sm:pb-3 z-20 flex-shrink-0">
         {question.choices.map((choice, idx) => {
           const config = CHOICE_CONFIGS[idx] || CHOICE_CONFIGS[0];
           return (
@@ -164,6 +167,22 @@ export function HostQuestion({
           );
         })}
       </footer>
+
+      {/* ========================================================================= */}
+      {/* 4. REALTIME SYNCED TIME PROGRESS BAR AT THE VERY BOTTOM OF SCREEN */}
+      {/* ========================================================================= */}
+      <div className="fixed bottom-0 left-0 right-0 h-2 sm:h-2.5 bg-black/40 z-30 overflow-hidden">
+        <motion.div
+          className={`h-full transition-all duration-300 ease-linear ${
+            timeRemaining <= 5
+              ? "bg-gradient-to-r from-red-500 via-rose-500 to-red-600 shadow-[0_0_12px_rgba(239,68,68,0.9)] animate-pulse"
+              : "bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]"
+          }`}
+          style={{
+            width: `${timeProgressPercent}%`,
+          }}
+        />
+      </div>
     </div>
   );
 }

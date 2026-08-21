@@ -81,6 +81,12 @@ export function HostLobby({
     sounds.stopLobbyMusic();
     sounds.playGameStartSplash();
 
+    // Automatically trigger Fullscreen (F11) for the Host on game start
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    }
+
     // 4.7s luxurious cinematic splash before transitioning to Question 1 (+2.5s extended)
     setTimeout(() => {
       onStartGame();
@@ -238,7 +244,7 @@ export function HostLobby({
             <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-500">
               Game PIN:
             </span>
-            <span className="text-6xl sm:text-8xl md:text-9xl lg:text-[110px] font-black font-mono tracking-widest text-slate-950 leading-none mt-1">
+            <span className="text-7xl sm:text-8xl md:text-9xl lg:text-[120px] font-black font-mono tracking-widest text-slate-950 leading-none mt-1 select-all drop-shadow-sm">
               {formatPin(pin)}
             </span>
           </div>
