@@ -195,7 +195,7 @@ export function HostPodium({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 2.0, ease: "easeInOut" }}
-              className="fixed inset-0 z-20 bg-[#050110]/92 backdrop-blur-[2px] pointer-events-none"
+              className="fixed inset-0 z-30 bg-[#050110]/92 backdrop-blur-[2px] pointer-events-none"
             />
 
             {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.2s) */}
@@ -209,7 +209,7 @@ export function HostPodium({
                 opacity: { duration: 1.2, delay: 1.2, ease: "easeOut" },
                 scale: { duration: 1.2, delay: 1.2, ease: "easeOut" },
               }}
-              className="fixed z-25 rounded-full border-4 border-yellow-200/60 shadow-[0_0_120px_40px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.35)] pointer-events-none"
+              className="fixed z-35 rounded-full border-4 border-yellow-200/60 shadow-[0_0_120px_40px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.35)] pointer-events-none"
               style={{
                 width: 460,
                 height: 460,
@@ -368,7 +368,7 @@ export function HostPodium({
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col justify-end items-center relative z-20 pb-0 overflow-visible w-full">
+        <div className="flex-1 flex flex-col justify-end items-center relative z-10 pb-0 overflow-visible w-full">
           {/* Central Olympic Podium Anchor Container (Pinned Horizontally to 50% Center!) */}
           <div className="relative w-full max-w-7xl mx-auto flex-1 flex items-end justify-center pb-0 z-10 h-full">
             {/* ========================================================================= */}
