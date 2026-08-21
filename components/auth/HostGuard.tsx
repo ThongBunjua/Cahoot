@@ -9,7 +9,7 @@ interface HostGuardProps {
   children: React.ReactNode;
 }
 
-const DEFAULT_PASSCODE = process.env.NEXT_PUBLIC_HOST_PASSCODE || "1234";
+const DEFAULT_PASSCODE = process.env.NEXT_PUBLIC_HOST_PASSCODE || "5555";
 const AUTH_STORAGE_KEY = "cahoot_host_authenticated";
 
 export function HostGuard({ children }: HostGuardProps) {
@@ -91,7 +91,7 @@ export function HostGuard({ children }: HostGuardProps) {
             {error && (
               <div className="flex items-center justify-center gap-1.5 text-red-400 text-xs font-bold animate-shake bg-red-500/10 py-2 rounded-xl border border-red-500/20">
                 <ShieldAlert className="w-4 h-4 flex-shrink-0" />
-                <span>Incorrect passcode. Default is 1234</span>
+                <span>Incorrect passcode. Please try again.</span>
               </div>
             )}
 
