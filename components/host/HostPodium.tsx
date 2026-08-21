@@ -46,44 +46,44 @@ export function HostPodium({
   const [showFullScoreboard, setShowFullScoreboard] = useState(false);
 
   useEffect(() => {
-    // 1. Initial fanfare on mount
+    // 1. Initial fanfare on mount (0.0s)
     sounds.playPodiumFanfare();
 
-    // 2. 3rd Place Reveal (Starts at 0.5s)
+    // 2. 3rd Place Reveal (Starts at 1.2s)
     const t1 = setTimeout(() => {
       setP3Pillar(true);
       sounds.playPillarRiser();
-    }, 500);
+    }, 1200);
 
     const t2 = setTimeout(() => {
       setP3Details(true);
-      sounds.playClick();
-    }, 1100);
+      sounds.playWinCheer();
+    }, 2200);
 
-    // 3. 2nd Place Reveal (Starts at 1.9s)
+    // 3. 2nd Place Reveal (Starts at 3.8s)
     const t3 = setTimeout(() => {
       setP2Pillar(true);
       sounds.playPillarRiser();
-    }, 1900);
+    }, 3800);
 
     const t4 = setTimeout(() => {
       setP2Details(true);
-      sounds.playClick();
-    }, 2500);
+      sounds.playWinCheer();
+    }, 4800);
 
-    // 4. 1st Place Suspense (Drumroll starts at 3.3s)
+    // 4. 1st Place Suspense (Drumroll starts at 6.4s)
     const t5 = setTimeout(() => {
       setP1Pillar(true);
       setSpotlight(true);
-      sounds.playDrumroll(2.2);
-    }, 3300);
+      sounds.playDrumroll(2.6);
+    }, 6400);
 
-    // 5. 1st Place Champion Reveal (At 5.5s)
+    // 5. 1st Place Champion Reveal (At 9.0s)
     const t6 = setTimeout(() => {
       setP1Details(true);
       setTriggerConfetti(true);
       sounds.playChampionReveal();
-    }, 5500);
+    }, 9000);
 
     return () => {
       clearTimeout(t1);
@@ -106,65 +106,16 @@ export function HostPodium({
       {/* Confetti Cascade on Champion Finale */}
       <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
-      {/* ========================================================================= */}
-      {/* CINEMATIC SPOTLIGHT: CENTER OVERHEAD BEAM & CIRCLING HALO */}
-      {/* ========================================================================= */}
+      {/* Full-Stage Ambient Dimming when Spotlight is active */}
       <AnimatePresence>
         {spotlight && (
-          <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden flex flex-col items-center justify-center">
-            {/* 1. Ambient Stage Dimming Vignette (Purple Dark Tint) */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
-              className="absolute inset-0 bg-[#0e041d]/75 backdrop-blur-[1.5px]"
-            />
-
-            {/* 2. Direct Center Overhead Spotlight Cone (ฉายตรงดิ่งลงมาจากเพดานตรงกลาง) */}
-            <motion.div
-              initial={{ opacity: 0, scaleY: 0.3 }}
-              animate={{ opacity: 0.85, scaleY: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] sm:w-[720px] h-[135vh] origin-top pointer-events-none"
-              style={{
-                background: "linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(254, 240, 138, 0.35) 40%, rgba(250, 204, 21, 0.12) 75%, transparent 100%)",
-                clipPath: "polygon(42% 0%, 58% 0%, 100% 100%, 0% 100%)",
-              }}
-            />
-
-            {/* 3. Glowing Circular Spotlight Disk Perfectly Centered over 1st Place Podium Slot */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[460px] sm:w-[580px] md:w-[660px] h-[460px] sm:h-[580px] md:h-[660px] rounded-full border-4 border-yellow-200/70 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.35)] flex items-center justify-center pointer-events-none"
-              style={{
-                background: "radial-gradient(circle, rgba(255, 255, 255, 0.42) 0%, rgba(254, 240, 138, 0.3) 45%, rgba(250, 204, 21, 0.12) 75%, transparent 100%)",
-              }}
-            >
-              {/* Inner Soft Shimmering Core */}
-              <motion.div
-                animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
-                className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl"
-              />
-            </motion.div>
-
-            {/* 4. Glowing Circular Stage Floor Spotlight at base of 1st Place Pillar */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{
-                opacity: [0.7, 1, 0.85],
-                scale: [0.96, 1.04, 0.98],
-              }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[520px] sm:w-[640px] h-[160px] sm:h-[200px] rounded-[100%] bg-amber-400/30 border-2 border-yellow-300/60 blur-xl shadow-[0_0_90px_rgba(251,191,36,0.7)]"
-            />
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-20 pointer-events-none bg-[#0e041d]/70 backdrop-blur-[1.5px]"
+          />
         )}
       </AnimatePresence>
 
@@ -229,7 +180,7 @@ export function HostPodium({
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN STAGE: ROCK-SOLID 3-COLUMN OLYMPIC PODIUM (0% Overlap Guaranteed!) */}
+      {/* 2. MAIN STAGE: 3-COLUMN OLYMPIC PODIUM WITH ANCHORED SPOTLIGHT */}
       {/* ========================================================================= */}
       {showFullScoreboard ? (
         <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col justify-center py-4 z-30">
@@ -289,7 +240,7 @@ export function HostPodium({
           {/* 3-Column Olympic Podium Layout: Column 1 = 2nd (Silver), Column 2 = 1st (Gold), Column 3 = 3rd (Bronze) */}
           <div className="w-full max-w-6xl mx-auto flex-1 flex items-end justify-center gap-3 sm:gap-6 md:gap-8 pb-1 relative z-10">
             {/* ========================================================================= */}
-            {/* COLUMN 1: 2ND PLACE (SILVER) - Left Side Slot */}
+            {/* COLUMN 1: 2ND PLACE (SILVER) - Left Slot */}
             {/* ========================================================================= */}
             <div className="w-[240px] sm:w-[280px] md:w-[320px] flex flex-col items-center justify-end z-20">
               {second && p2Pillar ? (
@@ -323,7 +274,7 @@ export function HostPodium({
                     )}
                   </div>
 
-                  {/* 2nd Pillar (Taller 350px) */}
+                  {/* 2nd Pillar (350px) */}
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: "350px" }}
@@ -364,9 +315,61 @@ export function HostPodium({
             </div>
 
             {/* ========================================================================= */}
-            {/* COLUMN 2: 1ST PLACE (GOLD CHAMPION) - Center Slot (Tallest & Largest) */}
+            {/* COLUMN 2: 1ST PLACE (GOLD CHAMPION) - Center Slot (Anchored Spotlight!) */}
             {/* ========================================================================= */}
-            <div className="w-[280px] sm:w-[330px] md:w-[370px] flex flex-col items-center justify-end z-30">
+            <div className="w-[280px] sm:w-[340px] md:w-[390px] flex flex-col items-center justify-end z-30 relative">
+              {/* SPOTLIGHT ANCHORED DIRECTLY TO 1ST PLACE CENTER COLUMN (100% Guaranteed Alignment) */}
+              <AnimatePresence>
+                {spotlight && (
+                  <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+                    {/* Direct Overhead Spotlight Cone */}
+                    <motion.div
+                      initial={{ opacity: 0, scaleY: 0.3 }}
+                      animate={{ opacity: 0.85, scaleY: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1.0, ease: "easeOut" }}
+                      className="absolute -top-[55vh] left-1/2 -translate-x-1/2 w-[520px] sm:w-[680px] h-[130vh] origin-top pointer-events-none"
+                      style={{
+                        background:
+                          "linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(254, 240, 138, 0.35) 40%, rgba(250, 204, 21, 0.12) 75%, transparent 100%)",
+                        clipPath: "polygon(42% 0%, 58% 0%, 100% 100%, 0% 100%)",
+                      }}
+                    />
+
+                    {/* Glowing Circular Spotlight Disk Anchored directly over 1st Place Avatar / Plaque */}
+                    <motion.div
+                      initial={{ scale: 0.7, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 1.2, ease: "easeOut" }}
+                      className="absolute top-[-30px] sm:top-[-45px] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[460px] sm:w-[560px] md:w-[640px] h-[460px] sm:h-[560px] md:h-[640px] rounded-full border-4 border-yellow-200/70 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.35)] flex items-center justify-center pointer-events-none"
+                      style={{
+                        background:
+                          "radial-gradient(circle, rgba(255, 255, 255, 0.42) 0%, rgba(254, 240, 138, 0.3) 45%, rgba(250, 204, 21, 0.12) 75%, transparent 100%)",
+                      }}
+                    >
+                      <motion.div
+                        animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
+                        className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl"
+                      />
+                    </motion.div>
+
+                    {/* Floor Spotlight Disk at base of 1st place pillar */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.6 }}
+                      animate={{
+                        opacity: [0.7, 1, 0.85],
+                        scale: [0.96, 1.04, 0.98],
+                      }}
+                      exit={{ opacity: 0, scale: 0.7 }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[480px] sm:w-[580px] h-[140px] sm:h-[180px] rounded-[100%] bg-amber-400/30 border-2 border-yellow-300/60 blur-xl shadow-[0_0_90px_rgba(251,191,36,0.7)]"
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
+
               {first && p1Pillar ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8, y: 60 }}
@@ -440,7 +443,7 @@ export function HostPodium({
                     )}
                   </div>
 
-                  {/* 1st Center Pillar (Extra Tall 470px) */}
+                  {/* 1st Center Pillar (Taller 470px) */}
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: "470px" }}
@@ -481,7 +484,7 @@ export function HostPodium({
             </div>
 
             {/* ========================================================================= */}
-            {/* COLUMN 3: 3RD PLACE (BRONZE) - Right Side Slot */}
+            {/* COLUMN 3: 3RD PLACE (BRONZE) - Right Slot */}
             {/* ========================================================================= */}
             <div className="w-[240px] sm:w-[280px] md:w-[320px] flex flex-col items-center justify-end z-20">
               {third && p3Pillar ? (
@@ -515,7 +518,7 @@ export function HostPodium({
                     )}
                   </div>
 
-                  {/* 3rd Pillar (Taller 270px) */}
+                  {/* 3rd Pillar (270px) */}
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: "270px" }}
