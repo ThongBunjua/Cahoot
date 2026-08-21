@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { KahootShape } from "@/components/ui/KahootShapes";
-import { Flame, Loader2, Check } from "lucide-react";
+import { Flame, Loader2, Check, Clock } from "lucide-react";
 
 interface PlayerGameButtonsProps {
   onSelect: (choiceIndex: number) => void;
@@ -14,6 +14,8 @@ interface PlayerGameButtonsProps {
   streak: number;
   questionIndex: number;
   totalQuestions: number;
+  questionText?: string;
+  choices?: string[];
 }
 
 const BUTTON_CONFIGS = [
@@ -21,33 +23,37 @@ const BUTTON_CONFIGS = [
     index: 0,
     shape: "triangle" as const,
     color: "red",
-    bgClass: "bg-kahoot-red hover:bg-[#c91835]",
-    shadowClass: "shadow-3d-red",
-    borderClass: "border-[#b8142f]",
+    bgClass: "bg-[#E21B3C] hover:bg-[#C91835]",
+    borderClass: "border-b-[6px] border-[#B0142D] active:border-b-[2px]",
+    textClass: "text-white",
+    iconColor: "white",
   },
   {
     index: 1,
     shape: "diamond" as const,
     color: "blue",
-    bgClass: "bg-kahoot-blue hover:bg-[#105cb7]",
-    shadowClass: "shadow-3d-blue",
-    borderClass: "border-[#0e4e9e]",
+    bgClass: "bg-[#1368CE] hover:bg-[#105CB7]",
+    borderClass: "border-b-[6px] border-[#0E4E9E] active:border-b-[2px]",
+    textClass: "text-white",
+    iconColor: "white",
   },
   {
     index: 2,
     shape: "circle" as const,
     color: "yellow",
-    bgClass: "bg-kahoot-yellow hover:bg-[#c08d00]",
-    shadowClass: "shadow-3d-yellow",
-    borderClass: "border-[#b28200]",
+    bgClass: "bg-[#FFA602] hover:bg-[#E59500]",
+    borderClass: "border-b-[6px] border-[#CC8400] active:border-b-[2px]",
+    textClass: "text-slate-950",
+    iconColor: "#0F172A",
   },
   {
     index: 3,
     shape: "square" as const,
     color: "green",
-    bgClass: "bg-kahoot-green hover:bg-[#20750a]",
-    shadowClass: "shadow-3d-green",
-    borderClass: "border-[#1d6b09]",
+    bgClass: "bg-[#26890C] hover:bg-[#20750A]",
+    borderClass: "border-b-[6px] border-[#1B6108] active:border-b-[2px]",
+    textClass: "text-white",
+    iconColor: "white",
   },
 ];
 
@@ -56,31 +62,40 @@ export function PlayerGameButtons({
   selectedAnswer,
   hasAnswered,
   timeRemaining,
+  timeLimit,
   streak,
   questionIndex,
   totalQuestions,
+  questionText,
+  choices = [],
 }: PlayerGameButtonsProps) {
+  const safeTimeLimit = timeLimit > 0 ? timeLimit : 20;
+  const progressPercent = Math.max(0, Math.min(100, (timeRemaining / safeTimeLimit) * 100));
+  const isUrgent = timeRemaining <= 5 && timeRemaining > 0;
+
   return (
-    <div className="w-full h-full flex flex-col justify-between p-3 sm:p-4 max-w-lg mx-auto">
-      {/* Top Status Header */}
-      <div className="flex items-center justify-between bg-slate-900/60 backdrop-blur-md rounded-2xl px-4 py-2.5 border border-white/10 mb-3 shadow-lg">
+    <div className="w-full h-full flex flex-col justify-between p-3 sm:p-4 max-w-xl mx-auto font-sans select-none">
+      {/* ========================================================================= */}
+      {/* 1. TOP STATUS HEADER: Question Counter, Streak & Timer */}
+      {/* ========================================================================= */}
+      <div className="flex items-center justify-between bg-[#33106B] rounded-2xl px-4 py-2 border-2 border-[#240B4D] border-b-[4px] border-b-[#1D083E] shadow-lg mb-2.5 flex-shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-black uppercase tracking-wider text-slate-300">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-yellow-400">
             Q {questionIndex + 1}/{totalQuestions}
           </span>
           {streak > 1 && (
-            <div className="flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-black px-2 py-0.5 rounded-full">
-              <Flame className="w-3.5 h-3.5 fill-amber-400" />
-              <span>{streak}</span>
+            <div className="flex items-center gap-1 bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-xs font-black px-2.5 py-0.5 rounded-full shadow-sm">
+              <Flame className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
+              <span>{streak} Streak</span>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-bold text-slate-400">Time:</span>
+          <Clock className={`w-4 h-4 ${isUrgent ? "text-red-400 animate-pulse" : "text-slate-300"}`} />
           <span
-            className={`font-black text-sm tabular-nums ${
-              timeRemaining <= 5 ? "text-red-400 animate-pulse font-extrabold text-base" : "text-white"
+            className={`font-black text-sm sm:text-base tabular-nums ${
+              isUrgent ? "text-red-400 animate-pulse font-black text-lg" : "text-white"
             }`}
           >
             {timeRemaining}s
@@ -88,53 +103,120 @@ export function PlayerGameButtons({
         </div>
       </div>
 
+      {/* ========================================================================= */}
+      {/* 2. QUESTION TEXT BOX ON PLAYER DEVICE (โจทย์คำถามบนหน้าจอมือถือ) */}
+      {/* ========================================================================= */}
+      {questionText && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white text-slate-900 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 text-center flex flex-col justify-center min-h-[64px] sm:min-h-[76px] mb-2.5 flex-shrink-0"
+        >
+          <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight leading-snug line-clamp-3">
+            {questionText}
+          </h2>
+        </motion.div>
+      )}
+
       {/* Answer Submitted Floating Banner */}
       {hasAnswered && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-kahoot-purple text-white p-3 rounded-2xl border-2 border-white/30 text-center shadow-2xl mb-3 flex items-center justify-center gap-2"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-[#26890C] text-white py-2 px-4 rounded-2xl border-2 border-[#1B6108] text-center shadow-lg mb-2.5 flex items-center justify-center gap-2 flex-shrink-0"
         >
-          <Loader2 className="w-4 h-4 animate-spin text-yellow-300" />
-          <span className="text-sm font-black tracking-wide">
+          <Check className="w-4 h-4 stroke-[3]" />
+          <span className="text-xs sm:text-sm font-black tracking-wide">
             Answer submitted! Look at the big screen...
           </span>
         </motion.div>
       )}
 
-      {/* 2x2 Big Kahoot Color/Shape Buttons (NO question text to focus on Host) */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 flex-1 pb-2">
+      {/* ========================================================================= */}
+      {/* 3. 2x2 GEOMETRIC ANSWER BUTTONS WITH TEXT (ปุ่ม 4 สีพร้อมรูปทรงและข้อความคำตอบ) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 flex-1 pb-2">
         {BUTTON_CONFIGS.map((btn) => {
           const isSelected = selectedAnswer === btn.index;
           const isDimmed = hasAnswered && !isSelected;
+          const choiceText = choices[btn.index] || "";
 
           return (
             <motion.button
               key={btn.index}
               disabled={hasAnswered}
-              whileTap={!hasAnswered ? { scale: 0.94, translateY: 4 } : {}}
+              whileTap={!hasAnswered ? { scale: 0.96, translateY: 3 } : {}}
               onClick={() => onSelect(btn.index)}
-              className={`relative w-full h-full min-h-[140px] sm:min-h-[180px] rounded-3xl flex items-center justify-center transition-all ${
+              className={`relative w-full h-full min-h-[110px] sm:min-h-[140px] rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col justify-between transition-all cursor-pointer shadow-lg ${
                 btn.bgClass
-              } ${btn.shadowClass} ${
+              } ${btn.borderClass} ${
                 isSelected
-                  ? "ring-4 ring-white scale-[1.02] z-10"
+                  ? "ring-4 ring-white scale-[1.02] z-10 shadow-2xl"
                   : isDimmed
-                  ? "opacity-30 grayscale-[50%]"
-                  : "active:translate-y-1.5"
+                  ? "opacity-35 grayscale-[40%] cursor-default"
+                  : "active:translate-y-1"
               }`}
             >
-              <div className="flex flex-col items-center justify-center gap-2 text-white">
-                <KahootShape shape={btn.shape} size={64} className="drop-shadow-md" />
+              {/* Top Row: Shape Icon + Selected Badge */}
+              <div className="w-full flex items-center justify-between">
+                <div className="p-1 rounded-lg">
+                  <KahootShape shape={btn.shape} size={32} className="drop-shadow-md" />
+                </div>
+
                 {isSelected && (
-                  <div className="absolute top-3 right-3 bg-white text-slate-900 p-1.5 rounded-full shadow-lg">
+                  <div className="bg-white text-slate-950 p-1.5 rounded-full shadow-md">
                     <Check className="w-4 h-4 stroke-[3]" />
                   </div>
+                )}
+              </div>
+
+              {/* Bottom: Answer Text (ข้อความตัวเลือกคำตอบ) */}
+              <div className="w-full text-left mt-1">
+                {choiceText ? (
+                  <p
+                    className={`font-black text-xs sm:text-sm md:text-base leading-snug line-clamp-3 ${btn.textClass}`}
+                  >
+                    {choiceText}
+                  </p>
+                ) : (
+                  <span className="text-xs font-bold opacity-0">Option</span>
                 )}
               </div>
             </motion.button>
           );
         })}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. BOTTOM COUNTDOWN PROGRESS BAR & DIGITAL TIMER (แถบนับเวลาถอยหลัง) */}
+      {/* ========================================================================= */}
+      <div className="w-full flex flex-col gap-1.5 pt-1.5 flex-shrink-0">
+        {/* Progress Track */}
+        <div className="w-full h-3 sm:h-3.5 bg-[#240B4D] rounded-full border-2 border-[#1D083E] overflow-hidden p-0.5 shadow-inner">
+          <motion.div
+            style={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.3, ease: "linear" }}
+            className={`h-full rounded-full transition-all duration-300 ${
+              isUrgent
+                ? "bg-[#E21B3C] shadow-[0_0_12px_#E21B3C]"
+                : timeRemaining <= 10
+                ? "bg-[#FFA602]"
+                : "bg-[#26890C]"
+            }`}
+          />
+        </div>
+
+        {/* Timer Label */}
+        <div className="flex items-center justify-between text-[11px] sm:text-xs font-black text-slate-300 px-1">
+          <span className="uppercase tracking-wider text-slate-400">Time Remaining</span>
+          <span
+            className={`tabular-nums font-black ${
+              isUrgent ? "text-red-400 text-sm font-extrabold animate-pulse" : "text-yellow-400"
+            }`}
+          >
+            {timeRemaining} / {safeTimeLimit}s
+          </span>
+        </div>
       </div>
     </div>
   );
