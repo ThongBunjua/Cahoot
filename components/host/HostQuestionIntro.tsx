@@ -43,16 +43,16 @@ export function HostQuestionIntro({
       sounds.playGetReadyPulse(1);
     }, 1800);
 
-    // 2.7s: Stage Phone Pop-up in Center Stage
+    // 2.7s: Stage Phone Pop-up in Center Stage (0.9s snappy presence)
     const tPhone = setTimeout(() => {
       setStage("phone_center");
       sounds.playClick();
     }, 2700);
 
-    // 4.2s: Stage Morph upwards above Question Box (3.0s reading time)
+    // 3.6s: Stage Morph upwards above Question Box (3.6s generous reading time)
     const tPreview = setTimeout(() => {
       setStage("question_preview");
-    }, 4200);
+    }, 3600);
 
     return () => {
       clearTimeout(t2);
@@ -62,11 +62,11 @@ export function HostQuestionIntro({
     };
   }, []);
 
-  // 3.0-second smooth reading progress bar (Total = 2.7s + 1.5s + 3.0s = 7.2s)
+  // 3.6-second smooth reading progress bar (Total = 2.7s + 0.9s + 3.6s = 7.2s)
   useEffect(() => {
     if (stage !== "question_preview") return;
 
-    const totalDurationMs = 3000;
+    const totalDurationMs = 3600;
     const intervalMs = 25;
     const increment = (intervalMs / totalDurationMs) * 100;
 
@@ -183,7 +183,7 @@ export function HostQuestionIntro({
                 ? { y: 0, scale: 1, opacity: 1 }
                 : { y: -220, scale: 0.38, opacity: 1 }
             }
-            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             className="w-80 h-[500px] sm:w-96 sm:h-[580px] bg-slate-950 rounded-[52px] p-5 border-4 border-slate-700 border-b-[12px] border-b-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.85)] flex flex-col justify-between absolute z-30 origin-center pointer-events-none"
           >
             {/* Phone Speaker Notch & Front Camera */}
