@@ -32,15 +32,16 @@ export function PlayerGetReady({ questionIndex }: PlayerGetReadyProps) {
         Question {questionIndex + 1}
       </h1>
 
-      {/* 2. Center Stage: Authentic Rotating Pie Clock Countdown Disk */}
+      {/* 2. Center Stage: Rotating Pie Clock Countdown Disk (Rotates synchronously upon each count tick) */}
       <div className="relative w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center mb-10 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)]">
-        {/* Continuous 1-Second Rotating Conic-Gradient Pie Wheel (GPU Animated) */}
-        <div
-          className="absolute inset-0 rounded-full overflow-hidden shadow-2xl animate-spin"
+        {/* Animated Pie Disk that rotates on each number tick */}
+        <motion.div
+          key={`pie-rotation-${count}`}
+          initial={{ rotate: 0 }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 rounded-full overflow-hidden shadow-2xl"
           style={{
-            animationDuration: "1000ms",
-            animationTimingFunction: "linear",
-            animationIterationCount: "infinite",
             background: "conic-gradient(#FFFFFF 0% 50%, #9084BE 50% 100%)",
           }}
         />
