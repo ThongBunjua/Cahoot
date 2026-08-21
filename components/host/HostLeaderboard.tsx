@@ -239,7 +239,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
               >
                 {/* Left Section: Energetic Bouncy 3D Rank Badge + Avatar + Nickname */}
                 <div className="flex items-center gap-6 md:gap-8 min-w-0">
-                  {/* Dynamic 3D Rank Badge that pulses as it crosses each rank */}
+                  {/* Dynamic 3D Rank Badge with authentic Olympic/Medal emotional hierarchy */}
                   <motion.div
                     animate={
                       isCrossing
@@ -251,14 +251,14 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
                       duration: 0.25,
                       ease: "easeInOut",
                     }}
-                    className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-black text-2xl md:text-3xl shadow-sm flex-shrink-0 transition-all duration-200 tabular-nums ${
+                    className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-black text-2xl md:text-3xl flex-shrink-0 transition-all duration-200 tabular-nums ${
                       dynamicRank === 1
-                        ? "bg-[#FFA602] border-b-4 border-[#CC8400] text-slate-950 scale-105"
+                        ? "bg-gradient-to-b from-[#FFE55C] via-[#FFA602] to-[#E68A00] border-2 border-yellow-200 border-b-4 border-b-[#B86E00] text-slate-950 shadow-[0_4px_16px_rgba(255,166,2,0.65)] scale-105"
                         : dynamicRank === 2
-                        ? "bg-[#94A3B8] border-b-4 border-[#64748B] text-white"
+                        ? "bg-gradient-to-b from-[#F8FAFC] via-[#CBD5E1] to-[#94A3B8] border-2 border-white border-b-4 border-b-[#64748B] text-slate-800 shadow-[0_4px_14px_rgba(148,163,184,0.5)]"
                         : dynamicRank === 3
-                        ? "bg-[#D97706] border-b-4 border-[#92400E] text-white"
-                        : "bg-[#33106B] border-b-4 border-[#240B4D] text-white"
+                        ? "bg-gradient-to-b from-[#FDBA74] via-[#D97706] to-[#B45309] border-2 border-amber-200 border-b-4 border-b-[#78350F] text-white shadow-[0_4px_14px_rgba(217,119,6,0.5)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+                        : "bg-gradient-to-b from-[#3E147A] to-[#240B4D] border-2 border-purple-400/30 border-b-4 border-b-[#15042E] text-purple-100 shadow-sm"
                     }`}
                   >
                     {dynamicRank}

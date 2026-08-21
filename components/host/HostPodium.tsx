@@ -161,29 +161,29 @@ export function HostPodium({
       <AnimatePresence>
         {revealStep >= 3 && (
           <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden">
-            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Gradual Slow Cinematic Fade 2.2s) */}
+            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Fades in smoothly 0s - 1.8s) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 2.2, ease: "easeInOut" }}
-              className="absolute inset-0 bg-[#050110]/90 backdrop-blur-[2px]"
+              transition={{ duration: 1.8, ease: "easeInOut" }}
+              className="absolute inset-0 bg-[#050110]/92 backdrop-blur-[2.5px]"
             />
 
-            {/* 2. Compact Kahoot Circular Spotlight Dome */}
+            {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.0s) */}
             {/* Using left:50% + negative margin instead of translateX to avoid Framer Motion transform override */}
             <motion.div
-              initial={{ scale: 0.7, opacity: 0 }}
+              initial={{ scale: 0.5, opacity: 0 }}
               animate={{
                 scale: [1, 1.04, 1],
-                opacity: [0.9, 1, 0.9],
+                opacity: [0.95, 1, 0.95],
               }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{
-                opacity: { duration: 1.8, ease: "easeInOut" },
-                scale: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+                opacity: { duration: 1.4, delay: 1.0, ease: "easeOut" },
+                scale: { duration: 2.5, delay: 1.0, repeat: Infinity, ease: "easeInOut" },
               }}
-              className="absolute rounded-full border-4 border-yellow-200/60 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.3)] pointer-events-none"
+              className="absolute rounded-full border-4 border-yellow-200/60 shadow-[0_0_120px_40px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.35)] pointer-events-none"
               style={{
                 width: 460,
                 height: 460,
@@ -191,13 +191,13 @@ export function HostPodium({
                 left: "50%",
                 marginLeft: -230,
                 background:
-                  "radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, rgba(254, 240, 138, 0.28) 45%, rgba(147, 51, 234, 0.12) 75%, transparent 100%)",
+                  "radial-gradient(circle, rgba(255, 255, 255, 0.48) 0%, rgba(254, 240, 138, 0.3) 45%, rgba(147, 51, 234, 0.12) 75%, transparent 100%)",
               }}
             >
               {/* Inner Soft Shimmering Core */}
               <motion.div
                 animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2.0, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 2.0, delay: 1.0, repeat: Infinity, ease: "easeInOut" }}
                 className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl mx-auto mt-[12.5%]"
               />
             </motion.div>
