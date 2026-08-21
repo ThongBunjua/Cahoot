@@ -85,26 +85,26 @@ export function HostQuestion({
       {/* ========================================================================= */}
       {/* 2. QUESTION ZONE: SPACIOUS & LOWERED DOWN (Optimized for Thai Typography) */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-[96vw] mx-auto px-2 sm:px-4 z-20 flex-shrink-0 mt-3 sm:mt-5 mb-1 sm:mb-2">
+      <div className="w-full max-w-[98vw] mx-auto px-2 sm:px-4 z-20 flex-shrink-0 mt-3 sm:mt-5 mb-1 sm:mb-2">
         <motion.header
           layoutId="host-question-banner"
           transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full bg-white text-slate-900 rounded-2xl sm:rounded-3xl min-h-[90px] sm:min-h-[110px] py-4 sm:py-5 px-6 sm:px-12 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 relative overflow-visible"
+          className="w-full bg-white text-slate-900 rounded-2xl sm:rounded-3xl min-h-[110px] sm:min-h-[135px] md:min-h-[145px] py-5 sm:py-7 px-6 sm:px-12 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 relative overflow-visible"
         >
           {/* Left: Question Counter Badge */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl border-2 border-[#240B4D] shadow-sm">
+            <span className="text-xs sm:text-base md:text-lg font-black uppercase tracking-wider bg-[#33106B] text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl border-2 border-[#240B4D] shadow-sm">
               {questionIndex + 1} / {totalQuestions}
             </span>
           </div>
 
           {/* Center: Large Thai-Friendly Question Text (Generous line-height so tone marks never clip) */}
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 leading-normal sm:leading-relaxed tracking-tight text-center flex-1 px-3 py-1 break-words">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 leading-normal sm:leading-relaxed tracking-tight text-center flex-1 px-3 py-1 break-words">
             {question.question_text}
           </h1>
 
           {/* Right: Balance placeholder matching left badge width */}
-          <div className="w-16 sm:w-24 flex-shrink-0" />
+          <div className="w-16 sm:w-28 flex-shrink-0" />
         </motion.header>
       </div>
 

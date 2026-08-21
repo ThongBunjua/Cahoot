@@ -217,7 +217,7 @@ export function HostQuestionIntro({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, y: 30 }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-[1100px] bg-white text-slate-900 shadow-2xl flex items-center justify-center min-h-[90px] sm:min-h-[110px] py-5 sm:py-7 px-8 sm:px-14 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 z-30 overflow-visible"
+            className="w-full max-w-[1300px] bg-white text-slate-900 shadow-2xl flex items-center justify-center min-h-[110px] sm:min-h-[135px] md:min-h-[145px] py-6 sm:py-9 px-8 sm:px-16 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 z-30 overflow-visible"
           >
             <h1 className="font-black text-slate-900 leading-normal sm:leading-relaxed tracking-tight text-center flex-1 px-3 py-1 break-words text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
               {question.question_text}

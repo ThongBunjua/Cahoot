@@ -77,9 +77,9 @@ export function HostResults({
       {/* ========================================================================= */}
       {/* 2. QUESTION ZONE: SPACIOUS & LOWERED DOWN (Thai Safe Typography) */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-[96vw] mx-auto px-2 sm:px-4 z-20 flex-shrink-0 mt-3 sm:mt-5 mb-1 sm:mb-2">
-        <div className="w-full bg-white text-slate-900 min-h-[90px] sm:min-h-[110px] px-6 sm:px-12 py-4 sm:py-5 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-2xl flex items-center justify-center overflow-visible">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 text-center tracking-tight leading-normal sm:leading-relaxed break-words w-full py-1">
+      <div className="w-full max-w-[98vw] mx-auto px-2 sm:px-4 z-20 flex-shrink-0 mt-3 sm:mt-5 mb-1 sm:mb-2">
+        <div className="w-full bg-white text-slate-900 min-h-[110px] sm:min-h-[135px] md:min-h-[145px] px-8 sm:px-14 py-5 sm:py-7 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-2xl flex items-center justify-center overflow-visible">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 text-center tracking-tight leading-normal sm:leading-relaxed break-words w-full py-1">
             {question.question_text}
           </h2>
         </div>
