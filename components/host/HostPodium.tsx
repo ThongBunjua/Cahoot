@@ -456,14 +456,28 @@ export function HostPodium({ quiz, players, onPlayAgain, onEndGame }: HostPodium
                       </div>
                     </motion.div>
                   ) : (
-                    /* Clean Glowing Suspense '👑 ?' without weird border box */
-                    <div className="h-36 flex flex-col items-center justify-center">
-                      <span className="text-8xl sm:text-9xl font-black text-yellow-300 animate-pulse drop-shadow-[0_0_35px_rgba(250,204,21,0.9)]">
-                        👑 ?
+                    /* Clean Glowing Suspense with Royal Centered Crown + '?' + Badge */
+                    <div className="h-44 flex flex-col items-center justify-center relative">
+                      {/* Floating Golden Crown on Top */}
+                      <motion.div
+                        animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
+                        transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+                        className="text-[#FFA602] mb-1 drop-shadow-[0_10px_25px_rgba(255,166,2,0.85)]"
+                      >
+                        <Crown className="w-14 h-14 sm:w-16 sm:h-16 fill-[#FFA602] stroke-yellow-200" />
+                      </motion.div>
+
+                      {/* Giant Centered Gold Question Mark */}
+                      <span className="text-7xl sm:text-8xl md:text-9xl font-black text-yellow-300 animate-pulse drop-shadow-[0_0_35px_rgba(250,204,21,0.95)] leading-none">
+                        ?
                       </span>
-                      <span className="text-xs uppercase tracking-widest font-black text-yellow-300/80 mt-1">
-                        1st Place
-                      </span>
+
+                      {/* Golden Subtitle Badge */}
+                      <div className="bg-yellow-400/20 border border-yellow-300/40 px-3.5 py-0.5 rounded-full mt-2">
+                        <span className="text-xs uppercase tracking-widest font-black text-yellow-300">
+                          1st Place • Grand Champion
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
