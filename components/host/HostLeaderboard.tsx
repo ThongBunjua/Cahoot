@@ -129,7 +129,7 @@ export function HostLeaderboard({
   const smoothSlideP = easeInOutCubic(slideProgress);
 
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-10 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
@@ -144,35 +144,18 @@ export function HostLeaderboard({
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
             onClick={onNext}
-            className="px-5 py-1.5 sm:px-6 sm:py-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-emerald-300 border-b-3 border-emerald-800 active:border-b active:translate-y-0.5"
+            className="px-5 py-1.5 sm:px-6 sm:py-2 bg-[#26890C] hover:bg-[#20750A] text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#1D6B09] border-b-3 border-[#124206] active:border-b active:translate-y-0.5"
           >
-            <span>{isLastQuestion ? "Final Podium 🏆" : "Next Question"}</span>
+            <span>{isLastQuestion ? "Final Podium 🏆" : "Next"}</span>
             <ArrowRight className="w-4 h-4 stroke-[3]" />
           </motion.button>
         }
       />
 
-      {/* Leaderboard Title Badge */}
-      <div className="w-full max-w-[96vw] mx-auto px-4 z-20 flex items-center justify-between mt-2 sm:mt-3 flex-shrink-0">
-        <div className="flex items-center gap-3 bg-[#33106B] px-6 py-2 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-xl">
-          <div className="p-2 bg-[#FFA602] border-b-3 border-[#CC8400] rounded-xl text-slate-950 shadow-sm">
-            <Trophy className="w-5 h-5 stroke-[2.5]" />
-          </div>
-          <div>
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#FFA602] block leading-none">
-              Standings
-            </span>
-            <h1 className="text-lg sm:text-xl font-black text-white leading-tight mt-0.5">
-              Leaderboard
-            </h1>
-          </div>
-        </div>
-      </div>
-
       {/* ========================================================================= */}
       {/* 2. MAIN CENTER: REAL-TIME PHYSICAL SLOT CROSSING RANK RUNNER */}
       {/* ========================================================================= */}
-      <main className="w-full max-w-[96vw] mx-auto flex-1 flex flex-col justify-center my-auto py-2 z-10">
+      <main className="w-full max-w-5xl mx-auto flex-1 flex flex-col justify-center my-auto py-4 z-10 px-4">
         <div
           className="relative w-full"
           style={{ height: `${5 * SLOT_STEP}px` }}

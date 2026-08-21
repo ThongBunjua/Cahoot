@@ -66,7 +66,7 @@ export function HostResults({
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
             onClick={onNext}
-            className="px-5 py-1.5 sm:px-6 sm:py-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-emerald-300 border-b-3 border-emerald-800 active:border-b active:translate-y-0.5"
+            className="px-5 py-1.5 sm:px-6 sm:py-2 bg-[#26890C] hover:bg-[#20750A] text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#1D6B09] border-b-3 border-[#124206] active:border-b active:translate-y-0.5"
           >
             <span>{isLastQuestion ? "Final Podium 🏆" : "Next"}</span>
             <ArrowRight className="w-4 h-4 stroke-[3]" />

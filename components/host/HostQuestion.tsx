@@ -123,26 +123,19 @@ export function HostQuestion({
           </span>
         </div>
 
-        {/* Center: Full-Canvas Media Display */}
-        <div className="flex-1 h-full max-h-[42vh] lg:max-h-[46vh] bg-[#33106B]/90 rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-2xl flex items-center justify-center mx-3 sm:mx-6 md:mx-8 relative">
-          {question.media_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
+        {/* Center: Full-Canvas Media Display (Only rendered when question has an image, otherwise completely open) */}
+        {question.media_url ? (
+          <div className="flex-1 h-full max-h-[42vh] lg:max-h-[46vh] bg-[#33106B]/90 rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-2xl flex items-center justify-center mx-3 sm:mx-6 md:mx-8 relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={question.media_url}
               alt="Question visual"
               className="w-full h-full object-contain bg-black/40"
             />
-          ) : (
-            <div className="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
-              <div className="w-16 h-16 md:w-24 md:h-24 rounded-3xl bg-[#240B4D] border-2 border-[#1D083E] flex items-center justify-center text-3xl md:text-5xl shadow-md mb-2 animate-pulse">
-                💡
-              </div>
-              <p className="text-sm md:text-lg font-black uppercase tracking-widest text-[#FFA602]">
-                Look closely at the question!
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
 
         {/* Right: Giant Live Answers Counter Box */}
         <div className="w-20 h-20 sm:w-26 sm:h-26 md:w-32 md:h-32 bg-[#33106B] rounded-3xl border-2 border-[#240B4D] border-b-[8px] border-b-[#1D083E] flex flex-col items-center justify-center shadow-xl flex-shrink-0">
