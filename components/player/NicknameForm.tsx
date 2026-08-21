@@ -35,7 +35,7 @@ export function NicknameForm({ pin, onSubmit, onBack }: NicknameFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanName = nickname.trim();
+    const cleanName = nickname.trim().replace(/[<>]/g, "");
     if (!cleanName) {
       setError("Please enter a nickname");
       sounds.playWrong();

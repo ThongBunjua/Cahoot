@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Player } from "@/lib/realtime/types";
 import { AudioControl } from "@/components/ui/AudioControl";
@@ -52,6 +52,8 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
   const [isComplete, setIsComplete] = useState(false);
 
   const prevRanksRef = useRef<{ [key: string]: number }>({});
+  const slideIntervalRef = useRef<any>(null);
+  const slideTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     sounds.playLeaderboard();
@@ -76,7 +78,7 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
         setScoreProgress(1);
 
         // 2. Physical Slot Crossing Slide Phase (1.4s - 3.2s)
-        setTimeout(() => {
+        slideTimeoutRef.current = setTimeout(() => {
           setIsSliding(true);
           sounds.playClick();
 
@@ -84,13 +86,14 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
           const slideSteps = slideDurationMs / intervalMs;
           let slStep = 0;
 
-          const slideInterval = setInterval(() => {
+          slideIntervalRef.current = setInterval(() => {
             slStep++;
             const sp = Math.min(1, slStep / slideSteps);
             setSlideProgress(sp);
 
             if (slStep >= slideSteps) {
-              clearInterval(slideInterval);
+              if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
+              slideIntervalRef.current = null;
               setSlideProgress(1);
               setIsComplete(true);
             }
@@ -101,6 +104,8 @@ export function HostLeaderboard({ players, isLastQuestion, onNext }: HostLeaderb
 
     return () => {
       clearInterval(scoreInterval);
+      if (slideTimeoutRef.current) clearTimeout(slideTimeoutRef.current);
+      if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
     };
   }, []);
 

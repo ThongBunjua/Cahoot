@@ -211,36 +211,38 @@ export function useGamePlayer(initialPin: string = "") {
 
       // 3. Question Start
       if (payload.event === "QUESTION_START") {
-        const { question, questionIndex, totalQuestions } = eventData;
+        const { question, questionIndex, totalQuestions, choices, questionText, timeLimit } = eventData;
         const qObj = question || {};
-        const limit = typeof qObj.time_limit === "number" && qObj.time_limit > 0 ? qObj.time_limit : 20;
+        const rawLimit = typeof timeLimit === "number" && timeLimit > 0
+          ? timeLimit
+          : typeof qObj.time_limit === "number" && qObj.time_limit > 0
+          ? qObj.time_limit
+          : 20;
 
-        let normalizedChoices: string[] = [];
-        if (Array.isArray(qObj.choices)) {
-          normalizedChoices = qObj.choices.map((c: any) =>
-            typeof c === "string" ? c : c?.text || ""
-          );
-        }
+        const rawChoices = Array.isArray(choices) ? choices : Array.isArray(qObj.choices) ? qObj.choices : [];
+        const normalizedChoices: string[] = rawChoices.map((c: any) =>
+          typeof c === "string" ? c : c?.text || ""
+        );
 
-        const questionText = qObj.question_text || qObj.question || "";
+        const text = questionText || qObj.question_text || qObj.question || "";
 
         setState((prev) => ({
           ...prev,
           phase: "question",
           currentQuestionIndex: typeof questionIndex === "number" ? questionIndex : prev.currentQuestionIndex,
           totalQuestions: totalQuestions || prev.totalQuestions,
-          questionText: typeof questionText === "string" ? questionText : "",
+          questionText: typeof text === "string" ? text : "",
           choices: normalizedChoices,
           selectedAnswer: null,
           hasAnswered: false,
           isCorrect: null,
-          timeLimit: limit,
-          timeRemaining: limit,
+          timeLimit: rawLimit,
+          timeRemaining: rawLimit,
         }));
 
         // Accurate Wall-Clock Countdown Timer
         const startAt = Date.now();
-        const endAt = startAt + limit * 1000;
+        const endAt = startAt + rawLimit * 1000;
 
         timerRef.current = setInterval(() => {
           const now = Date.now();

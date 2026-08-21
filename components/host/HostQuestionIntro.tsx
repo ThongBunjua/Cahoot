@@ -57,7 +57,7 @@ export function HostQuestionIntro({
     };
   }, []);
 
-  // Reading progress bar -> then morph
+  // Reading progress bar -> then morph -> then switch to HostQuestion
   useEffect(() => {
     if (stage !== "question_preview") return;
 
@@ -71,10 +71,10 @@ export function HostQuestionIntro({
         if (next >= 100) {
           clearInterval(interval);
           setStage("morph_to_top");
-          // Wait for the layout animation to finish before switching phase
+          // Smooth 650ms morph animation before handing over to HostQuestion
           setTimeout(() => {
             onIntroComplete();
-          }, 600);
+          }, 650);
           return 100;
         }
         return next;
@@ -87,83 +87,14 @@ export function HostQuestionIntro({
   const isShapeCountdown =
     stage === "countdown_3" || stage === "countdown_2" || stage === "countdown_1";
   const isMorphing = stage === "morph_to_top";
+  const isQuestionVisible = stage === "question_preview" || isMorphing;
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-3 sm:p-4 md:p-5 select-none overflow-hidden font-sans relative">
       <GameBackground />
 
-      {/* ========================================================================= */}
-      {/* SHARED layoutId QUESTION BANNER (Same ID as HostQuestion header!) */}
-      {/* When morph_to_top: this occupies the exact same position/size/style as HostQuestion's header */}
-      {/* When HostQuestion mounts with same layoutId, Framer Motion cross-fades seamlessly */}
-      {/* ========================================================================= */}
-      {(stage === "question_preview" || isMorphing) && (
-        <motion.div
-          layoutId="host-question-banner"
-          className="w-full max-w-[98vw] mx-auto bg-white text-slate-900 rounded-2xl sm:rounded-3xl py-2.5 sm:py-3.5 px-4 sm:px-8 shadow-xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 flex items-center justify-between gap-4 z-20 flex-shrink-0"
-          style={
-            !isMorphing
-              ? {
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  maxWidth: "1100px",
-                  padding: "28px 40px",
-                  borderRadius: "28px",
-                  borderBottomWidth: "8px",
-                  minHeight: "130px",
-                }
-              : {}
-          }
-          transition={{ type: "spring", stiffness: 220, damping: 26 }}
-        >
-          {/* Left: Question Counter Badge (only visible when morphed to top) */}
-          <div
-            className="flex items-center gap-2 flex-shrink-0"
-            style={{ opacity: isMorphing ? 1 : 0, transition: "opacity 0.3s" }}
-          >
-            <span className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-3.5 py-1.5 rounded-xl border-2 border-[#240B4D]">
-              {questionIndex + 1} / {totalQuestions}
-            </span>
-          </div>
-
-          {/* Center: Question Text */}
-          <h1
-            className={`font-black text-slate-900 leading-snug tracking-tight text-center flex-1 px-3 break-words ${
-              isMorphing
-                ? "text-xl sm:text-2xl md:text-3xl lg:text-4xl"
-                : "text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
-            }`}
-            style={{ transition: "font-size 0.4s ease" }}
-          >
-            {question.question_text}
-          </h1>
-
-          {/* Right: Audio Control (only visible when morphed to top) */}
-          <div
-            className="flex items-center gap-2.5 flex-shrink-0"
-            style={{ opacity: isMorphing ? 1 : 0, transition: "opacity 0.3s" }}
-          >
-            <AudioControl />
-          </div>
-        </motion.div>
-      )}
-
-      {/* Top Header (only during countdown/phone stages) */}
-      {isShapeCountdown && (
-        <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
-          <div className="bg-[#33106B] px-6 py-2 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
-            <span className="text-sm md:text-base font-black uppercase tracking-wider text-[#FFA602]">
-              Question {questionIndex + 1} of {totalQuestions}
-            </span>
-          </div>
-          <AudioControl />
-        </header>
-      )}
-
-      {/* Phone center stage header */}
-      {stage === "phone_center" && (
+      {/* Top Header Badge (during countdown & phone stages only) */}
+      {(isShapeCountdown || stage === "phone_center") && (
         <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
           <div className="bg-[#33106B] px-6 py-2 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
             <span className="text-sm md:text-base font-black uppercase tracking-wider text-[#FFA602]">
@@ -231,17 +162,19 @@ export function HostQuestionIntro({
           )}
         </AnimatePresence>
 
-        {/* PART B: PHONE MOCKUP */}
-        {(stage === "phone_center" || stage === "question_preview") && (
+        {/* PART B: PHONE MOCKUP (Smoothly elevates when question appears, fades out on morph) */}
+        {(stage === "phone_center" || stage === "question_preview" || isMorphing) && (
           <motion.div
             initial={{ y: 80, scale: 0.5, opacity: 0 }}
             animate={
-              stage === "phone_center"
+              isMorphing
+                ? { y: -380, scale: 0.25, opacity: 0 }
+                : stage === "phone_center"
                 ? { y: 0, scale: 1, opacity: 1 }
-                : { y: -220, scale: 0.38, opacity: 1 }
+                : { y: -200, scale: 0.38, opacity: 1 }
             }
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="w-80 h-[500px] sm:w-96 sm:h-[580px] bg-slate-950 rounded-[52px] p-5 border-4 border-slate-700 border-b-[12px] border-b-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.85)] flex flex-col justify-between absolute z-30 origin-center pointer-events-none"
+            className="w-80 h-[500px] sm:w-96 sm:h-[580px] bg-slate-950 rounded-[52px] p-5 border-4 border-slate-700 border-b-[12px] border-b-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.85)] flex flex-col justify-between absolute z-20 origin-center pointer-events-none"
           >
             <div className="flex items-center justify-center gap-2 mb-3 flex-shrink-0">
               <div className="w-24 h-4 bg-slate-800 rounded-full" />
@@ -275,11 +208,77 @@ export function HostQuestionIntro({
           </motion.div>
         )}
 
-        {/* PART C: Reading Progress (Below the layoutId question card, only in preview stage) */}
+        {/* PART C: QUESTION CARD WITH SMOOTH MORPH UPWARD */}
+        {isQuestionVisible && (
+          <motion.div
+            layoutId="host-question-banner"
+            initial={{ opacity: 0, y: 120, scale: 0.9 }}
+            animate={
+              isMorphing
+                ? {
+                    y: -360,
+                    scale: 1,
+                    opacity: 1,
+                  }
+                : {
+                    y: 60,
+                    scale: 1,
+                    opacity: 1,
+                  }
+            }
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            className={`w-full bg-white text-slate-900 shadow-2xl flex items-center justify-between z-30 transition-all ${
+              isMorphing
+                ? "max-w-[98vw] py-2.5 sm:py-3.5 px-4 sm:px-8 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 gap-4"
+                : "max-w-[1100px] py-7 sm:py-9 px-8 sm:px-14 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300"
+            }`}
+          >
+            {/* Left: Badge during morph */}
+            {isMorphing && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.25 }}
+                className="flex items-center gap-2 flex-shrink-0"
+              >
+                <span className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-3.5 py-1.5 rounded-xl border-2 border-[#240B4D]">
+                  {questionIndex + 1} / {totalQuestions}
+                </span>
+              </motion.div>
+            )}
+
+            {/* Center: Question Text */}
+            <h1
+              className={`font-black text-slate-900 leading-snug tracking-tight text-center flex-1 px-3 break-words ${
+                isMorphing
+                  ? "text-xl sm:text-2xl md:text-3xl lg:text-4xl"
+                  : "text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
+              }`}
+            >
+              {question.question_text}
+            </h1>
+
+            {/* Right: Audio during morph */}
+            {isMorphing && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.25 }}
+                className="flex items-center gap-2.5 flex-shrink-0"
+              >
+                <AudioControl />
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+
+        {/* PART D: Reading Progress Track (Centered below Question Card) */}
         {stage === "question_preview" && (
           <motion.div
-            initial={{ opacity: 0, y: 80 }}
-            animate={{ opacity: 1, y: 200 }}
+            initial={{ opacity: 0, y: 160 }}
+            animate={{ opacity: 1, y: 180 }}
+            exit={{ opacity: 0, y: 220 }}
+            transition={{ duration: 0.35 }}
             className="w-full max-w-2xl flex flex-col items-center absolute z-20"
           >
             <div className="w-full h-4 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">

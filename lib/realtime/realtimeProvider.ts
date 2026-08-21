@@ -88,31 +88,33 @@ export class RealtimeChannelBridge {
     this.startHeartbeat();
   }
 
+  // Bound event handlers for proper cleanup
+  private handleVisibilityChange = () => {
+    if (document.visibilityState === "visible" && !this.isDestroyed) {
+      if (!this.isConnected) {
+        this.init();
+      }
+    }
+  };
+
+  private handleOnline = () => {
+    if (!this.isDestroyed) {
+      this.init();
+    }
+  };
+
+  private handleFocus = () => {
+    if (!this.isConnected && !this.isDestroyed) {
+      this.init();
+    }
+  };
+
   private setupNetworkAndVisibilityListeners() {
     if (typeof window === "undefined") return;
 
-    // When phone wakes up or switches back from background / other app
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && !this.isDestroyed) {
-        if (!this.isConnected) {
-          this.init();
-        }
-      }
-    });
-
-    // When network comes back online (e.g. WiFi reconnect or 4G recover)
-    window.addEventListener("online", () => {
-      if (!this.isDestroyed) {
-        this.init();
-      }
-    });
-
-    // Also wake up on touch/focus for mobile browsers
-    window.addEventListener("focus", () => {
-      if (!this.isConnected && !this.isDestroyed) {
-        this.init();
-      }
-    });
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
+    window.addEventListener("online", this.handleOnline);
+    window.addEventListener("focus", this.handleFocus);
   }
 
   private scheduleReconnect() {
@@ -238,6 +240,9 @@ export class RealtimeChannelBridge {
 
     if (typeof window !== "undefined") {
       window.removeEventListener("storage", this.handleStorageEvent);
+      window.removeEventListener("online", this.handleOnline);
+      window.removeEventListener("focus", this.handleFocus);
+      document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     }
 
     if (this.supabaseChannel) {

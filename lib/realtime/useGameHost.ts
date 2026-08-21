@@ -180,16 +180,21 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
       // 1. Player Joins Lobby
       if (payload.event === "PLAYER_JOIN") {
-        const { id, nickname, avatar } = payload.data;
+        const data = payload.data || {};
+        const rawNickname = typeof data.nickname === "string" ? data.nickname : "Player";
+        const cleanNickname = rawNickname.trim().replace(/[<>]/g, "").slice(0, 15) || "Player";
+        const cleanId = String(data.id || `player_${Date.now()}`);
+        const cleanAvatar = typeof data.avatar === "string" ? data.avatar : "🦊";
+
         const exists = currentState.players.some(
-          (p) => p.id === id || p.nickname.toLowerCase() === nickname.toLowerCase()
+          (p) => p.id === cleanId || p.nickname.toLowerCase() === cleanNickname.toLowerCase()
         );
 
         if (!exists) {
           const newPlayer: Player = {
-            id,
-            nickname,
-            avatar: avatar || "🦊",
+            id: cleanId,
+            nickname: cleanNickname,
+            avatar: cleanAvatar,
             score: 0,
             previousScore: 0,
             streak: 0,
