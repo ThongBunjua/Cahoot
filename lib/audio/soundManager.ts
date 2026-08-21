@@ -639,6 +639,20 @@ class SoundManager {
     });
   }
 
+  // 6b. Bronze Podium Reveal (Chime + Single Firework + Crowd Cheer)
+  public playPodiumBronzeReveal() {
+    this.playWinCheer();
+    this.playFireworks(1);
+    this.playCrowdCheer(3.0);
+  }
+
+  // 6c. Silver Podium Reveal (Chime + Double Fireworks + Crowd Cheer)
+  public playPodiumSilverReveal() {
+    this.playWinCheer();
+    this.playFireworks(2);
+    this.playCrowdCheer(3.5);
+  }
+
   // 7. Classic Podium Fanfare
   public playPodiumFanfare() {
     if (this.isMuted) return;
