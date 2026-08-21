@@ -188,14 +188,17 @@ export function HostPodium({
       <AnimatePresence>
         {revealStep >= 3 && (
           <>
-            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Fades in smoothly 0s - 2.0s) */}
+            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Solid, Sharp, 0% Blur, Smooth 2.0s Fade) */}
             <motion.div
               key="podium-dark-vignette"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 2.0, ease: "easeInOut" }}
-              className="fixed inset-0 z-30 bg-[#050110]/92 backdrop-blur-[2px] pointer-events-none"
+              className="fixed inset-0 z-30 pointer-events-none"
+              style={{
+                backgroundColor: "rgba(5, 1, 16, 0.94)",
+              }}
             />
 
             {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.2s) */}
@@ -209,15 +212,16 @@ export function HostPodium({
                 opacity: { duration: 1.2, delay: 1.2, ease: "easeOut" },
                 scale: { duration: 1.2, delay: 1.2, ease: "easeOut" },
               }}
-              className="fixed z-35 rounded-full border-4 border-yellow-200/60 shadow-[0_0_120px_40px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.35)] pointer-events-none"
+              className="fixed z-35 rounded-full border-4 border-yellow-200/70 pointer-events-none"
               style={{
                 width: 460,
                 height: 460,
                 top: "18%",
                 left: "50%",
                 marginLeft: -230,
+                boxShadow: "0 0 120px 45px rgba(255, 255, 255, 0.45), inset 0 0 80px rgba(255, 255, 255, 0.35)",
                 background:
-                  "radial-gradient(circle, rgba(255, 255, 255, 0.48) 0%, rgba(254, 240, 138, 0.3) 45%, rgba(147, 51, 234, 0.12) 75%, transparent 100%)",
+                  "radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(254, 240, 138, 0.32) 45%, rgba(147, 51, 234, 0.12) 75%, transparent 100%)",
               }}
             >
               {/* Inner Soft Shimmering Core */}
