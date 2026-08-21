@@ -32,14 +32,19 @@ export function useGamePlayer(initialPin: string = "") {
   const timerRef = useRef<any>(null);
   const joinHandshakeIntervalRef = useRef<any>(null);
 
-  // Restore session from localStorage only if the room actually exists
+  // Restore session only if user explicitly scanned QR or has ?pin=, or if the room is actively alive
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlPin = urlParams.get("pin");
+
       const saved = localStorage.getItem("cahoot_player_session");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.pin && parsed.player) {
+          // If user loaded a specific PIN in URL or has saved session, verify with live Host
           SyncBridge.verifyRoomExists(parsed.pin).then((res) => {
             if (res.exists) {
               setState((prev) => ({
@@ -50,7 +55,7 @@ export function useGamePlayer(initialPin: string = "") {
                 streak: parsed.player.streak || 0,
               }));
             } else {
-              // Stale room -> delete cache so user stays on clean PIN screen
+              // Stale/Closed room -> purge cache immediately so user lands on clean PIN screen
               localStorage.removeItem("cahoot_player_session");
             }
           }).catch(() => {
@@ -65,6 +70,7 @@ export function useGamePlayer(initialPin: string = "") {
 
   // Join Room function
   const joinRoom = useCallback((pin: string, nickname: string, avatar: string = "🦊") => {
+    const cleanPin = pin.replace(/\s+/g, "").trim();
     const playerId = `player_${Math.random().toString(36).slice(2, 9)}_${Date.now()}`;
     const playerObj: Player = {
       id: playerId,
@@ -82,138 +88,104 @@ export function useGamePlayer(initialPin: string = "") {
 
     setState((prev) => ({
       ...prev,
-      pin,
+      pin: cleanPin,
       player: playerObj,
       phase: "lobby",
     }));
 
     try {
-      localStorage.setItem("cahoot_player_session", JSON.stringify({ pin, player: playerObj }));
+      localStorage.setItem("cahoot_player_session", JSON.stringify({ pin: cleanPin, player: playerObj }));
     } catch (e) {}
 
     // 1. Send Realtime WebSocket Broadcast
-    const channel = getRealtimeChannel(pin);
+    const channel = getRealtimeChannel(cleanPin);
     channel.broadcast("PLAYER_JOIN", {
       id: playerId,
       nickname,
       avatar,
     });
 
-    // 2. Dual-Path: Register in Supabase DB
-    SyncBridge.playerJoinRoom(pin, playerObj);
+    // 2. Dual Backup: Register with Supabase DB
+    SyncBridge.playerJoinRoom(cleanPin, playerObj).catch(() => {});
+
+    // 3. Reliable Handshake: Periodically announce presence until Host acknowledges
+    if (joinHandshakeIntervalRef.current) clearInterval(joinHandshakeIntervalRef.current);
+    let attempts = 0;
+    joinHandshakeIntervalRef.current = setInterval(() => {
+      attempts++;
+      if (attempts > 5) {
+        clearInterval(joinHandshakeIntervalRef.current);
+        joinHandshakeIntervalRef.current = null;
+        return;
+      }
+      channel.broadcast("PLAYER_JOIN", {
+        id: playerId,
+        nickname,
+        avatar,
+      });
+    }, 1500);
   }, []);
 
-  // Submit Answer function
-  const submitAnswer = useCallback((answerIndex: number) => {
-    const currentState = stateRef.current;
-    if (currentState.hasAnswered || currentState.phase !== "question" || !currentState.player) {
-      return;
-    }
+  // Submit Answer
+  const submitAnswer = useCallback(
+    (choiceIndex: number) => {
+      const { player, pin, hasAnswered, timeRemaining, timeLimit, currentQuestionIndex } =
+        stateRef.current;
 
-    sounds.playClick();
+      if (!player || !pin || hasAnswered) return;
 
-    setState((prev) => ({
-      ...prev,
-      selectedAnswer: answerIndex,
-      hasAnswered: true,
-    }));
+      sounds.playClick();
 
-    const channel = getRealtimeChannel(currentState.pin);
-    channel.broadcast("SUBMIT_ANSWER", {
-      playerId: currentState.player.id,
-      nickname: currentState.player.nickname,
-      answerIndex,
-      clientTimestamp: Date.now(),
-    });
-  }, []);
+      // Kahoot Formula: Up to 1000 pts scaled by response speed
+      const effectiveTime = Math.max(0.5, timeRemaining);
+      const limit = Math.max(1, timeLimit);
+      const speedRatio = effectiveTime / limit;
+      const basePoints = Math.round(500 + 500 * speedRatio);
 
-  // Realtime Event Listeners & Auto-Handshake
+      setState((prev) => ({
+        ...prev,
+        selectedAnswer: choiceIndex,
+        hasAnswered: true,
+      }));
+
+      // Broadcast answer to Host immediately
+      const channel = getRealtimeChannel(pin);
+      channel.broadcast("SUBMIT_ANSWER", {
+        id: player.id,
+        nickname: player.nickname,
+        avatar: player.avatar,
+        choiceIndex,
+        timeRemaining: effectiveTime,
+        points: basePoints,
+        questionIndex: currentQuestionIndex,
+      });
+    },
+    []
+  );
+
+  // Subscribe to Realtime Host Events
   useEffect(() => {
     if (!state.pin) return;
 
     const channel = getRealtimeChannel(state.pin);
 
-    // Continuous Join Handshake: Resend PLAYER_JOIN every 2s while in lobby
-    if (joinHandshakeIntervalRef.current) {
-      clearInterval(joinHandshakeIntervalRef.current);
-      joinHandshakeIntervalRef.current = null;
-    }
-
-    if (state.player && state.phase === "lobby") {
-      const announce = () => {
-        if (stateRef.current.player && stateRef.current.phase === "lobby") {
-          channel.broadcast("PLAYER_JOIN", {
-            id: stateRef.current.player.id,
-            nickname: stateRef.current.player.nickname,
-            avatar: stateRef.current.player.avatar,
-          });
-          SyncBridge.playerJoinRoom(stateRef.current.pin, stateRef.current.player);
-        }
-      };
-
-      announce();
-      joinHandshakeIntervalRef.current = setInterval(announce, 2000);
-    }
-
     const unsubscribe = channel.subscribe((payload) => {
-      if (!payload || payload.pin !== stateRef.current.pin) return;
-      const eventData = payload.data || {};
+      if (payload.pin !== state.pin) return;
 
+      const eventData = payload.data || {};
       const myId = stateRef.current.player?.id;
       const myNickname = stateRef.current.player?.nickname?.toLowerCase();
 
-      // 1. Lobby Sync
-      if (payload.event === "LOBBY_SYNC") {
-        const { totalQuestions, players } = eventData;
-        const me = Array.isArray(players)
-          ? players.find(
-              (p: any) =>
-                p.id === myId ||
-                (p.nickname && p.nickname.toLowerCase() === myNickname)
-            )
-          : null;
-
-        if (me) {
-          if (joinHandshakeIntervalRef.current) {
-            clearInterval(joinHandshakeIntervalRef.current);
-            joinHandshakeIntervalRef.current = null;
-          }
-          if (stateRef.current.player && stateRef.current.player.id !== me.id) {
-            stateRef.current.player.id = me.id;
-          }
-        }
-
-        setState((prev) => ({
-          ...prev,
-          totalQuestions: totalQuestions || prev.totalQuestions,
-          totalPlayers: Array.isArray(players) ? players.length : prev.totalPlayers,
-          currentRank: me ? me.rank : prev.currentRank,
-        }));
+      // 1. Kick Event
+      if (payload.event === "PLAYER_KICK" && eventData.playerId === myId) {
+        localStorage.removeItem("cahoot_player_session");
+        setState((prev) => ({ ...prev, player: null, pin: "", phase: "lobby" }));
+        return;
       }
 
-      // 2. Kicked by Host
-      if (payload.event === "PLAYER_KICK") {
-        if (eventData.playerId === myId) {
-          localStorage.removeItem("cahoot_player_session");
-          setState((prev) => ({
-            ...prev,
-            player: null,
-            phase: "lobby",
-          }));
-          alert("You were removed from the game by the host.");
-        }
-      }
-
-      // 3. Get Ready Phase
+      // 2. Start Game / Question Intro
       if (payload.event === "GET_READY") {
-        if (joinHandshakeIntervalRef.current) {
-          clearInterval(joinHandshakeIntervalRef.current);
-          joinHandshakeIntervalRef.current = null;
-        }
-        if (timerRef.current) clearInterval(timerRef.current);
-
         const { questionIndex, totalQuestions } = eventData;
-
         setState((prev) => ({
           ...prev,
           phase: "get_ready",
@@ -226,26 +198,20 @@ export function useGamePlayer(initialPin: string = "") {
         }));
       }
 
-      // 4. Question Started
+      // 3. Question Start
       if (payload.event === "QUESTION_START") {
-        if (joinHandshakeIntervalRef.current) {
-          clearInterval(joinHandshakeIntervalRef.current);
-          joinHandshakeIntervalRef.current = null;
+        const { question, questionIndex, totalQuestions } = eventData;
+        const qObj = question || {};
+        const limit = typeof qObj.time_limit === "number" && qObj.time_limit > 0 ? qObj.time_limit : 20;
+
+        let normalizedChoices: string[] = [];
+        if (Array.isArray(qObj.choices)) {
+          normalizedChoices = qObj.choices.map((c: any) =>
+            typeof c === "string" ? c : c?.text || ""
+          );
         }
-        if (timerRef.current) clearInterval(timerRef.current);
 
-        const { questionIndex, totalQuestions, timeLimit, questionText, choices } = eventData;
-
-        const limit = typeof timeLimit === "number" && timeLimit > 0 ? timeLimit : 20;
-
-        // Normalize choices so it is ALWAYS an array of pure strings
-        const normalizedChoices: string[] = Array.isArray(choices)
-          ? choices.map((c: any) => {
-              if (typeof c === "string") return c;
-              if (c && typeof c.text === "string") return c.text;
-              return "";
-            })
-          : [];
+        const questionText = qObj.question_text || qObj.question || "";
 
         setState((prev) => ({
           ...prev,
@@ -261,7 +227,7 @@ export function useGamePlayer(initialPin: string = "") {
           timeRemaining: limit,
         }));
 
-        // Accurate Wall-Clock Countdown Timer (survives mobile throttle & phase transitions)
+        // Accurate Wall-Clock Countdown Timer
         const startAt = Date.now();
         const endAt = startAt + limit * 1000;
 
@@ -278,7 +244,7 @@ export function useGamePlayer(initialPin: string = "") {
         }, 250);
       }
 
-      // 5. Question Results
+      // 4. Question Results
       if (payload.event === "QUESTION_END") {
         if (timerRef.current) {
           clearInterval(timerRef.current);
@@ -335,7 +301,7 @@ export function useGamePlayer(initialPin: string = "") {
         }
       }
 
-      // 6. Leaderboard
+      // 5. Leaderboard
       if (payload.event === "SHOW_LEADERBOARD") {
         const { topPlayers } = eventData;
         const topArray = Array.isArray(topPlayers) ? topPlayers : [];
@@ -351,8 +317,9 @@ export function useGamePlayer(initialPin: string = "") {
         }));
       }
 
-      // 7. Game Over / Podium
+      // 6. Game Over / Podium -> IMMEDIATELY PURGE STORAGE
       if (payload.event === "GAME_OVER") {
+        localStorage.removeItem("cahoot_player_session");
         const { allPlayers } = eventData;
         const allArray = Array.isArray(allPlayers) ? allPlayers : [];
         const me = allArray.find(

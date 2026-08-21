@@ -43,7 +43,7 @@ export class SessionManager {
     }
   }
 
-  // Unregister host session
+  // Unregister host session immediately on game finish or host exit
   static unregisterHost(pin: string) {
     if (typeof window === "undefined") return;
 
@@ -71,48 +71,12 @@ export class SessionManager {
     }
   }
 
-  // Check if a room with the given PIN is currently active with a live Host
+  // Check if a room with the given PIN is currently live with an active Host
   static async checkRoomExists(pin: string): Promise<boolean> {
     const cleanPin = pin.replace(/\s+/g, "").trim();
     if (!cleanPin) return false;
 
-    // 1. Check Local Active Sessions Storage (valid for 2 hours)
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem(SESSIONS_KEY);
-        if (stored) {
-          const sessions: Record<string, ActiveSessionInfo> = JSON.parse(stored);
-          const session = sessions[cleanPin];
-          if (session && session.status !== "finished") {
-            const isFresh = Date.now() - session.lastHeartbeat < 2 * 60 * 60 * 1000;
-            if (isFresh) return true;
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    // 2. Check Supabase DB if configured
-    if (isSupabaseConfigured()) {
-      const supabase = getSupabaseClient();
-      if (supabase) {
-        try {
-          const { data } = await supabase
-            .from("game_sessions")
-            .select("id, status")
-            .eq("pin", cleanPin)
-            .neq("status", "finished")
-            .single();
-
-          if (data) return true;
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
-
-    // 3. Ping over Realtime Channel
+    // 1. Ping over Realtime WebSocket Channel to see if Host is actively listening
     return new Promise<boolean>((resolve) => {
       const channel = getRealtimeChannel(cleanPin);
       let answered = false;
@@ -127,9 +91,43 @@ export class SessionManager {
 
       channel.broadcast("CHECK_ROOM", { pin: cleanPin });
 
+      // If no live Host responds within 700ms, check database fallback
       setTimeout(() => {
         if (!answered) {
           unsubscribe();
+
+          // 2. Check Supabase DB fallback
+          if (isSupabaseConfigured()) {
+            const supabase = getSupabaseClient();
+            if (supabase) {
+              supabase
+                .from("game_sessions")
+                .select("id, status")
+                .eq("pin", cleanPin)
+                .neq("status", "finished")
+                .single()
+                .then(({ data }) => {
+                  resolve(Boolean(data));
+                }, () => resolve(false));
+              return;
+            }
+          }
+
+          // 3. Check local active sessions as final fallback (within 30 mins)
+          if (typeof window !== "undefined") {
+            try {
+              const stored = localStorage.getItem(SESSIONS_KEY);
+              if (stored) {
+                const sessions: Record<string, ActiveSessionInfo> = JSON.parse(stored);
+                const s = sessions[cleanPin];
+                if (s && s.status !== "finished" && Date.now() - s.lastHeartbeat < 30 * 60 * 1000) {
+                  resolve(true);
+                  return;
+                }
+              }
+            } catch (e) {}
+          }
+
           resolve(false);
         }
       }, 700);

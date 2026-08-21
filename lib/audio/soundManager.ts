@@ -467,36 +467,83 @@ class SoundManager {
     });
   }
 
-  // 4. Grand Champion Grand Finale (Fanfare + Fireworks + Roaring Cheer)
-  public playChampionReveal() {
-    this.playPodiumFanfare();
-    this.playFireworks(4);
-    this.playCrowdCheer(4.0);
+  // 4. Pillar Rising Whoosh / Riser Sound
+  public playPillarRiser() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(80, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(520, ctx.currentTime + 0.6);
+
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.4);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.65);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.65);
   }
 
-  // 5. Classic Podium Fanfare
+  // 5. Grand Champion Grand Finale (Fanfare + Fireworks + Roaring Cheer + Chime)
+  public playChampionReveal() {
+    this.playPodiumFanfare();
+    this.playFireworks(6);
+    this.playCrowdCheer(6.0);
+    this.playWinCheer();
+  }
+
+  // 6. Win celebratory chime chords
+  public playWinCheer() {
+    if (this.isMuted) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    const chords = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+    chords.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 1.2);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.08);
+      osc.stop(ctx.currentTime + i * 0.08 + 1.2);
+    });
+  }
+
+  // 7. Classic Podium Fanfare
   public playPodiumFanfare() {
     if (this.isMuted) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
-    const chords = [
-      { notes: [261.63, 329.63, 392.0], start: 0.0, dur: 0.28 },
-      { notes: [293.66, 369.99, 440.0], start: 0.32, dur: 0.28 },
-      { notes: [329.63, 415.3, 493.88], start: 0.65, dur: 0.28 },
-      { notes: [523.25, 659.25, 783.99, 1046.5], start: 0.98, dur: 1.8 },
+    const fanfareChords = [
+      { notes: [261.63, 329.63, 392.0], delay: 0.0, dur: 0.3 },
+      { notes: [261.63, 329.63, 392.0], delay: 0.35, dur: 0.3 },
+      { notes: [261.63, 329.63, 392.0], delay: 0.7, dur: 0.3 },
+      { notes: [349.23, 440.0, 523.25], delay: 1.05, dur: 0.9 },
+      { notes: [392.0, 493.88, 587.33], delay: 1.95, dur: 0.4 },
+      { notes: [523.25, 659.25, 783.99, 1046.5], delay: 2.35, dur: 2.2 },
     ];
 
-    chords.forEach((chord) => {
+    fanfareChords.forEach((chord) => {
+      const startTime = ctx.currentTime + chord.delay;
       chord.notes.forEach((freq) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        const startTime = ctx.currentTime + chord.start;
-
-        osc.type = "triangle";
+        osc.type = "sawtooth";
         osc.frequency.setValueAtTime(freq, startTime);
 
-        gain.gain.setValueAtTime(0.24, startTime);
+        gain.gain.setValueAtTime(0.1, startTime);
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + chord.dur);
 
         osc.connect(gain);

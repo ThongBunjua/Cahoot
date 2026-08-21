@@ -48,53 +48,56 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
 
   useEffect(() => {
     // =========================================================================
-    // EXTENDED SUSPENSEFUL TIMELINE WITH GENEROUS DELAYS BETWEEN RANKINGS
+    // EXTENDED SUSPENSEFUL TIMELINE WITH THRILLING SFX & PAUSES
     // =========================================================================
 
-    // 1. STEP 1: 3RD PLACE SUSPENSE & REVEAL (1.0s -> 3.8s)
+    // 1. STEP 1: 3RD PLACE SUSPENSE & REVEAL (1.0s -> 4.0s)
     const t3Pillar = setTimeout(() => {
       setP3Pillar(true);
-      sounds.playDrumroll(2.6);
+      sounds.playDrumroll(2.8);
+      sounds.playPillarRiser();
     }, 1000);
 
     const t3Details = setTimeout(() => {
       setP3Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(2.5);
-    }, 3800);
+      sounds.playCrowdCheer(2.6);
+    }, 4000);
 
-    // [GENEROUS 4.4 SECONDS DELAY / CELEBRATION PAUSE AFTER 3RD PLACE]
+    // [GENEROUS 4.5 SECONDS PAUSE / CELEBRATION AFTER 3RD PLACE]
 
-    // 2. STEP 2: 2ND PLACE SUSPENSE & REVEAL (8.2s -> 11.4s)
+    // 2. STEP 2: 2ND PLACE SUSPENSE & REVEAL (8.5s -> 12.0s)
     const t2Pillar = setTimeout(() => {
       setP2Pillar(true);
-      sounds.playDrumroll(3.0);
-    }, 8200);
+      sounds.playDrumroll(3.2);
+      sounds.playPillarRiser();
+    }, 8500);
 
     const t2Details = setTimeout(() => {
       setP2Details(true);
       sounds.playCorrect();
-      sounds.playCrowdCheer(2.8);
-    }, 11400);
+      sounds.playCrowdCheer(3.0);
+    }, 12000);
 
-    // [GENEROUS 5.0 SECONDS DELAY / CELEBRATION PAUSE AFTER 2ND PLACE]
+    // [GENEROUS 5.0 SECONDS PAUSE / CELEBRATION AFTER 2ND PLACE]
 
-    // 3. STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (16.4s -> 21.2s)
+    // 3. STEP 3: 1ST PLACE ULTIMATE CHAMPION SUSPENSE & GRAND FINALE (17.0s -> 22.0s)
     const tSpot = setTimeout(() => {
       setSpotlight(true);
-      sounds.playDrumroll(4.6); // 4.6s grand finale drumroll building maximum tension!
-    }, 16400);
+      sounds.playDrumroll(4.8); // 4.8s intense grand finale drumroll!
+    }, 17000);
 
     const t1Pillar = setTimeout(() => {
       setP1Pillar(true);
-    }, 18000);
+      sounds.playPillarRiser();
+    }, 18800);
 
     const t1Details = setTimeout(() => {
       setP1Details(true);
       setSpotlight(false);
       setTriggerConfetti(true);
-      sounds.playChampionReveal(); // Fanfare + Multi-Fireworks Booms + Roaring Stadium Cheers & Applause!
-    }, 21200);
+      sounds.playChampionReveal(); // Fanfare + Multi-Fireworks Booms + Roaring Stadium Cheers & Chimes!
+    }, 22000);
 
     return () => {
       clearTimeout(t3Pillar);
@@ -115,14 +118,14 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
       <GameBackground />
 
       {/* Confetti Cascade on Champion Finale */}
-      <ConfettiEffect trigger={triggerConfetti} duration={15000} />
+      <ConfettiEffect trigger={triggerConfetti} duration={16000} />
 
       {/* ========================================================================= */}
       {/* HYBRID CINEMATIC STAGE LIGHTING: CIRCULAR SPOTLIGHT + PURPLE & GOLD BEAMS */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {spotlight && (
-          <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden flex flex-col items-center justify-center">
+          <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden flex flex-col items-center justify-center">
             {/* 1. Ambient Stage Dimming */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -157,35 +160,23 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
               transition={{ duration: 1.2, ease: "easeOut" }}
               className="w-[520px] h-[520px] sm:w-[680px] sm:h-[680px] rounded-full bg-gradient-to-b from-white/20 via-yellow-300/10 to-purple-600/10 shadow-[0_0_150px_rgba(255,255,255,0.65)] border-4 border-yellow-300/30 flex flex-col items-center justify-start pt-10"
             />
-
-            {/* 5. Grand Champion Floating Banner */}
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-              className="absolute top-24 sm:top-28 left-1/2 -translate-x-1/2 flex flex-col items-center text-center z-40"
-            >
-              <span className="text-xs sm:text-base font-black uppercase tracking-[0.3em] text-yellow-400 bg-black/70 px-8 py-2.5 rounded-full border-2 border-yellow-400/50 shadow-2xl backdrop-blur-md">
-                Grand Champion
-              </span>
-            </motion.div>
           </div>
         )}
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER */}
+      {/* 1. TOP HEADER (Highest z-50 to ensure clean visibility without overlaps) */}
       {/* ========================================================================= */}
-      <header className="relative z-40 flex items-center justify-between bg-[#33106B] px-6 sm:px-8 py-4 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-2xl w-full max-w-[96vw] mx-auto">
+      <header className="relative z-50 flex items-center justify-between bg-[#33106B] px-6 sm:px-8 py-3.5 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-2xl w-full max-w-[96vw] mx-auto mb-2 flex-shrink-0">
         <div className="flex items-center gap-3.5">
-          <div className="p-2.5 bg-[#FFA602] border-b-4 border-[#CC8400] rounded-2xl text-slate-950 shadow-sm">
-            <Trophy className="w-7 h-7 stroke-[2.5]" />
+          <div className="p-2 bg-[#FFA602] border-b-4 border-[#CC8400] rounded-2xl text-slate-950 shadow-sm flex-shrink-0">
+            <Trophy className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
           </div>
           <div>
             <span className="text-xs font-black uppercase tracking-widest text-yellow-400 block leading-none">
               Grand Finale • {quiz.title}
             </span>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight mt-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight mt-0.5">
               Final Podium
             </h1>
           </div>
@@ -215,7 +206,7 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
       {/* ========================================================================= */}
       {/* 2. MAIN STAGE: THE 3 PODIUM PILLARS WITH SPRING SUSPENSE PHYSICS */}
       {/* ========================================================================= */}
-      <main className="flex-1 flex flex-col items-center justify-end relative z-20 pb-4">
+      <main className="flex-1 flex flex-col items-center justify-end relative z-30 pb-4">
         {!showFullScoreboard ? (
           <div className="relative w-full max-w-6xl h-[620px] flex items-end justify-center">
             {/* ========================================================================= */}
@@ -393,7 +384,7 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
                 className="absolute flex flex-col items-center w-[330px] sm:w-[360px] bottom-0"
               >
                 {/* Floating White Name Box + Champion Avatar & Crown */}
-                <div className="h-52 flex flex-col items-center justify-end mb-3 relative">
+                <div className="h-56 flex flex-col items-center justify-end mb-3 relative">
                   {p1Details ? (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.3, y: 40 }}
@@ -401,16 +392,28 @@ export function HostPodium({ quiz, players }: HostPodiumProps) {
                       transition={{ type: "spring", stiffness: 240, damping: 15 }}
                       className="flex flex-col items-center relative"
                     >
-                      {/* Floating Gold Crown */}
+                      {/* Grand Champion Glowing Gold Banner (Floats right above the Crown!) */}
                       <motion.div
-                        animate={{ y: [-6, 6, -6], rotate: [-4, 4, -4] }}
-                        transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-                        className="absolute -top-16 text-[#FFA602]"
+                        initial={{ opacity: 0, scale: 0.6, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                        className="mb-2 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 px-6 py-1.5 rounded-full border-2 border-yellow-200 shadow-[0_10px_30px_rgba(251,191,36,0.6)]"
                       >
-                        <Crown className="w-20 h-20 fill-[#FFA602] stroke-amber-200 drop-shadow-2xl" />
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-[0.25em]">
+                          Grand Champion
+                        </span>
                       </motion.div>
 
-                      <span className="text-8xl sm:text-9xl md:text-[105px] mb-2 mt-4 filter drop-shadow-lg select-none">
+                      {/* Floating Gold Crown */}
+                      <motion.div
+                        animate={{ y: [-4, 4, -4], rotate: [-3, 3, -3] }}
+                        transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+                        className="text-[#FFA602] mb-1"
+                      >
+                        <Crown className="w-16 h-16 fill-[#FFA602] stroke-amber-200 drop-shadow-2xl" />
+                      </motion.div>
+
+                      <span className="text-8xl sm:text-9xl md:text-[105px] mb-2 filter drop-shadow-lg select-none">
                         {first.avatar}
                       </span>
 
