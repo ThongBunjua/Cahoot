@@ -68,13 +68,26 @@ function KahootPlayerContent() {
     initialPinParam ? "nickname" : "pin"
   );
 
-  const { state, joinRoom, submitAnswer, leaveRoom } = useGamePlayer(enteredPin);
+  const { state, joinRoom, submitAnswer, leaveRoom } = useGamePlayer(initialPinParam);
+
+  // If user visits "/" with no ?pin=, ALWAYS start at clean PIN form and wipe any stale cached session
+  useEffect(() => {
+    if (!initialPinParam) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("cahoot_player_session");
+      }
+      setStep("pin");
+      setEnteredPin("");
+    }
+  }, [initialPinParam]);
 
   useEffect(() => {
-    if (state.player) {
+    if (state.player && state.pin) {
       setStep("game");
+    } else if (!state.player && !initialPinParam) {
+      setStep("pin");
     }
-  }, [state.player]);
+  }, [state.player, state.pin, initialPinParam]);
 
   const handlePinSubmit = (pin: string) => {
     setEnteredPin(pin);
@@ -87,149 +100,149 @@ function KahootPlayerContent() {
   };
 
   const handleBackToPin = () => {
+    leaveRoom();
     setStep("pin");
+    setEnteredPin("");
   };
 
   const handlePlayAgain = () => {
     leaveRoom();
     setStep("pin");
     setEnteredPin("");
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
+    }
   };
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] text-white flex flex-col justify-between items-center p-2 sm:p-4 md:p-6 overflow-hidden select-none">
-      {/* Material / Paper-Cut Purple Gradient Background */}
+    <div className="fixed inset-0 w-full h-[100dvh] bg-[#46178F] text-white flex flex-col items-center justify-center p-4 overflow-hidden font-sans select-none">
+      {/* Background Graphic */}
       <PaperCutBackground />
 
-      {/* Main Center Floating Card Area */}
-      <main className="relative z-20 w-full h-full flex-1 flex flex-col items-center justify-center my-auto overflow-hidden">
-        {step !== "game" && (
+      <AnimatePresence mode="wait">
+        {step === "pin" && (
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="mb-6 sm:mb-8 text-center px-4"
+            key="pin-form"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-sm relative z-10"
           >
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tighter text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] flex items-center justify-center">
-              Cahoot<span className="text-yellow-400">!</span>
-            </h1>
-            <p className="text-[10px] sm:text-xs font-black text-white/90 uppercase tracking-[0.25em] mt-1.5 drop-shadow-md">
-              LIVE MULTIPLAYER TRIVIA
-            </p>
+            <PinForm onSubmit={handlePinSubmit} />
           </motion.div>
         )}
 
-        <AnimatePresence mode="wait">
-          {step === "pin" && (
-            <PinForm
-              key="pin-form"
-              initialPin={enteredPin}
-              onSubmit={handlePinSubmit}
-            />
-          )}
-
-          {step === "nickname" && (
+        {step === "nickname" && (
+          <motion.div
+            key="nickname-form"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-sm relative z-10"
+          >
             <NicknameForm
-              key="nickname-form"
               pin={enteredPin}
               onSubmit={handleNicknameSubmit}
               onBack={handleBackToPin}
             />
-          )}
+          </motion.div>
+        )}
 
-          {step === "game" && (
-            <motion.div
-              key="game-view"
-              layout
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="w-full h-full flex-1 flex flex-col items-center justify-center overflow-hidden"
-            >
-              {(!state.player || state.phase === "lobby") && (
-                <PlayerLobby
-                  player={state.player || { id: "temp", nickname: "Player", avatar: "🦊", score: 0, streak: 0, lastPoints: 0, lastCorrect: null, lastAnswerIndex: null, rank: 1, joinedAt: Date.now() }}
-                  pin={state.pin || enteredPin}
-                  onLeave={handlePlayAgain}
-                />
-              )}
+        {step === "game" && (
+          <motion.div
+            key="game-play-zone"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full h-full flex flex-col items-center justify-center relative z-10"
+          >
+            {(!state.player || state.phase === "lobby") && (
+              <PlayerLobby
+                player={state.player || { id: "temp", nickname: "Player", avatar: "🦊", score: 0, streak: 0, lastPoints: 0, lastCorrect: null, lastAnswerIndex: null, rank: 1, joinedAt: Date.now() }}
+                pin={state.pin || enteredPin}
+                onLeave={handleBackToPin}
+              />
+            )}
 
-              {state.player && state.phase === "get_ready" && (
-                <PlayerGetReady
-                  questionIndex={state.currentQuestionIndex}
-                  totalQuestions={Math.max(1, state.totalQuestions)}
-                />
-              )}
+            {state.player && state.phase === "get_ready" && (
+              <PlayerGetReady
+                questionIndex={state.currentQuestionIndex}
+                totalQuestions={state.totalQuestions}
+              />
+            )}
 
-              {state.player && state.phase === "question" && (
-                <PlayerGameButtons
-                  onSelect={submitAnswer}
-                  selectedAnswer={state.selectedAnswer}
-                  hasAnswered={state.hasAnswered}
-                  timeRemaining={state.timeRemaining}
-                  timeLimit={state.timeLimit}
-                  questionIndex={state.currentQuestionIndex}
-                  totalQuestions={Math.max(1, state.totalQuestions)}
-                  choices={state.choices || []}
-                  nickname={state.player?.nickname}
-                  avatar={state.player?.avatar}
-                  score={state.currentScore || 0}
-                />
-              )}
+            {state.player && state.phase === "question" && (
+              <PlayerGameButtons
+                onSelect={submitAnswer}
+                hasAnswered={state.hasAnswered}
+                selectedAnswer={state.selectedAnswer}
+                timeRemaining={state.timeRemaining}
+                timeLimit={state.timeLimit}
+                questionIndex={state.currentQuestionIndex}
+                totalQuestions={Math.max(1, state.totalQuestions)}
+                choices={state.choices || []}
+                nickname={state.player?.nickname}
+                avatar={state.player?.avatar}
+                score={state.currentScore || 0}
+              />
+            )}
 
-              {state.player && state.phase === "question_results" && (
-                <PlayerFeedback
-                  isCorrect={state.isCorrect}
-                  pointsEarned={state.pointsEarned || 0}
-                  currentScore={state.currentScore || 0}
-                  streak={state.streak || 0}
-                  currentRank={state.currentRank || 1}
-                  totalPlayers={Math.max(1, state.totalPlayers)}
-                  isLastQuestion={state.currentQuestionIndex + 1 >= state.totalQuestions && state.totalQuestions > 0}
-                />
-              )}
+            {state.player && state.phase === "question_results" && (
+              <PlayerFeedback
+                isCorrect={state.isCorrect}
+                pointsEarned={state.pointsEarned || 0}
+                currentScore={state.currentScore || 0}
+                streak={state.streak || 0}
+                currentRank={state.currentRank || 1}
+                totalPlayers={Math.max(1, state.totalPlayers)}
+                isLastQuestion={state.currentQuestionIndex + 1 >= state.totalQuestions && state.totalQuestions > 0}
+              />
+            )}
 
-              {state.player && state.phase === "leaderboard" && (
-                <div className="flex flex-col items-center justify-center text-center p-6 bg-slate-900/80 backdrop-blur-md rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl">
-                  <span className="text-5xl mb-3">📊</span>
-                  <h2 className="text-2xl font-black text-white mb-1">Scoreboard</h2>
-                  <p className="text-sm font-bold text-slate-300 mb-4">
-                    Look at the big screen!
-                  </p>
-                  <div className="bg-white/10 px-6 py-3 rounded-2xl border border-white/15">
-                    <span className="text-xs uppercase font-bold text-slate-400 block">
-                      Your Current Rank
-                    </span>
-                    <span className="text-3xl font-black text-yellow-400">
-                      #{state.currentRank || 1}
-                    </span>
-                  </div>
+            {state.player && state.phase === "leaderboard" && (
+              <div className="flex flex-col items-center justify-center text-center p-6 bg-slate-900/80 backdrop-blur-md rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl">
+                <span className="text-5xl mb-3">📊</span>
+                <h2 className="text-2xl font-black text-white mb-1">Scoreboard</h2>
+                <p className="text-sm font-bold text-slate-300 mb-4">
+                  Look at the big screen!
+                </p>
+                <div className="bg-white/10 px-6 py-3 rounded-2xl border border-white/15">
+                  <span className="text-xs uppercase font-bold text-slate-400 block">
+                    Your Current Rank
+                  </span>
+                  <span className="text-3xl font-black text-yellow-400">
+                    #{state.currentRank || 1}
+                  </span>
                 </div>
-              )}
+              </div>
+            )}
 
-              {state.player && state.phase === "podium" && (
-                <PlayerPodium
-                  score={state.currentScore || 0}
-                  nickname={state.player?.nickname}
-                  avatar={state.player?.avatar}
-                  onPlayAgain={handlePlayAgain}
-                />
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+            {state.player && state.phase === "podium" && (
+              <PlayerPodium
+                score={state.currentScore || 0}
+                nickname={state.player?.nickname}
+                avatar={state.player?.avatar}
+                onPlayAgain={handlePlayAgain}
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-export default function KahootPlayerPage() {
+export default function Home() {
   return (
     <PlayerErrorBoundary>
       <Suspense
         fallback={
-          <div className="fixed inset-0 bg-[#1b0738] text-white flex items-center justify-center">
-            <p className="text-xl font-bold">Loading Cahoot!...</p>
+          <div className="fixed inset-0 w-full h-[100dvh] bg-[#46178F] flex items-center justify-center">
+            <span className="text-3xl font-black text-white animate-pulse">
+              Cahoot<span className="text-yellow-400">!</span>
+            </span>
           </div>
         }
       >

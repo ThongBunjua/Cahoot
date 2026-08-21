@@ -91,20 +91,22 @@ export class SessionManager {
 
       channel.broadcast("CHECK_ROOM", { pin: cleanPin });
 
-      // If no live Host responds within 700ms, check database fallback
+      // If no live Host responds within 700ms, check database fallback with strict 10-minute freshness
       setTimeout(() => {
         if (!answered) {
           unsubscribe();
 
-          // 2. Check Supabase DB fallback
+          // 2. Check Supabase DB fallback with strict freshness check
           if (isSupabaseConfigured()) {
             const supabase = getSupabaseClient();
             if (supabase) {
+              const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
               supabase
                 .from("game_sessions")
-                .select("id, status")
+                .select("id, status, created_at")
                 .eq("pin", cleanPin)
                 .neq("status", "finished")
+                .gt("created_at", tenMinutesAgo)
                 .single()
                 .then(({ data }) => {
                   resolve(Boolean(data));
@@ -113,14 +115,14 @@ export class SessionManager {
             }
           }
 
-          // 3. Check local active sessions as final fallback (within 30 mins)
+          // 3. Check local active sessions as final fallback (within 10 mins)
           if (typeof window !== "undefined") {
             try {
               const stored = localStorage.getItem(SESSIONS_KEY);
               if (stored) {
                 const sessions: Record<string, ActiveSessionInfo> = JSON.parse(stored);
                 const s = sessions[cleanPin];
-                if (s && s.status !== "finished" && Date.now() - s.lastHeartbeat < 30 * 60 * 1000) {
+                if (s && s.status !== "finished" && Date.now() - s.lastHeartbeat < 10 * 60 * 1000) {
                   resolve(true);
                   return;
                 }

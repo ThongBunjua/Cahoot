@@ -32,7 +32,7 @@ export function useGamePlayer(initialPin: string = "") {
   const timerRef = useRef<any>(null);
   const joinHandshakeIntervalRef = useRef<any>(null);
 
-  // Restore session only if user explicitly scanned QR or has ?pin=, or if the room is actively alive
+  // Restore session only if user explicitly scanned QR or has ?pin= in URL matching saved PIN
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -43,8 +43,15 @@ export function useGamePlayer(initialPin: string = "") {
       const saved = localStorage.getItem("cahoot_player_session");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.pin && parsed.player) {
-          // If user loaded a specific PIN in URL or has saved session, verify with live Host
+
+        // If user loaded the site directly without ?pin=, ALWAYS purge old session to start at clean PIN screen!
+        if (!urlPin) {
+          localStorage.removeItem("cahoot_player_session");
+          return;
+        }
+
+        // If user loaded a specific PIN in URL, verify if it matches saved session
+        if (parsed && parsed.pin && parsed.player && parsed.pin === urlPin) {
           SyncBridge.verifyRoomExists(parsed.pin).then((res) => {
             if (res.exists) {
               setState((prev) => ({
@@ -55,12 +62,14 @@ export function useGamePlayer(initialPin: string = "") {
                 streak: parsed.player.streak || 0,
               }));
             } else {
-              // Stale/Closed room -> purge cache immediately so user lands on clean PIN screen
+              // Stale/Closed room -> purge cache immediately
               localStorage.removeItem("cahoot_player_session");
             }
           }).catch(() => {
             localStorage.removeItem("cahoot_player_session");
           });
+        } else {
+          localStorage.removeItem("cahoot_player_session");
         }
       }
     } catch (e) {
