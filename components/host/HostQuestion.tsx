@@ -64,7 +64,7 @@ export function HostQuestion({
       <motion.header
         layoutId="host-question-banner"
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
-        className="w-full max-w-[96vw] mx-auto bg-white text-slate-900 rounded-3xl py-4 md:py-6 px-6 md:px-10 shadow-xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-4 z-20"
+        className="w-full max-w-[96vw] mx-auto bg-white text-slate-900 rounded-3xl py-5 md:py-7 px-6 md:px-12 shadow-xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-center justify-between gap-6 z-20 min-h-[110px] md:min-h-[130px]"
       >
         {/* Left: Question Counter Badge */}
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -74,7 +74,7 @@ export function HostQuestion({
         </div>
 
         {/* Center: Giant Question Text */}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-slate-900 leading-tight tracking-tight text-center flex-1 px-4 line-clamp-3">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 leading-snug tracking-tight text-center flex-1 px-4 break-words">
           {question.question_text}
         </h1>
 

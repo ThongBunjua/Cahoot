@@ -20,47 +20,29 @@ export function HostQuestionIntro({
   totalQuestions,
   onIntroComplete,
 }: HostQuestionIntroProps) {
-  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_popup" -> "question_preview"
-  const [stage, setStage] = useState<
-    "countdown_3" | "countdown_2" | "countdown_1" | "phone_popup" | "question_preview"
-  >("countdown_3");
-
+  // Stages: "phone_popup" (1.5s) -> "question_preview" (3.5s) = 5.0s Total!
+  const [stage, setStage] = useState<"phone_popup" | "question_preview">("phone_popup");
   const [readingProgress, setReadingProgress] = useState(0);
 
-  // Exact-beat sequence timer
   useEffect(() => {
-    // 0.0s: Stage 3 (Countdown 3 - Red Triangle)
     sounds.playGetReadyPulse(3);
 
-    // 0.8s: Stage 2 (Countdown 2 - Blue Diamond)
-    const t2 = setTimeout(() => {
-      setStage("countdown_2");
-      sounds.playGetReadyPulse(2);
-    }, 800);
-
-    // 1.6s: Stage 1 (Countdown 1 - Yellow Circle)
-    const t1 = setTimeout(() => {
-      setStage("countdown_1");
-      sounds.playGetReadyPulse(1);
-    }, 1600);
-
-    // 2.4s: Stage Question Preview (Host shows question for exactly 3 seconds)
+    // 1.5s: Transition from Phone Popup to Question Preview
     const tPreview = setTimeout(() => {
       setStage("question_preview");
-    }, 2400);
+      sounds.playClick();
+    }, 1500);
 
     return () => {
-      clearTimeout(t2);
-      clearTimeout(t1);
       clearTimeout(tPreview);
     };
   }, []);
 
-  // Exactly 3-second smooth reading progress bar on Host screen
+  // 3.5-second smooth reading progress bar (1.5s + 3.5s = exactly 5.0s total intro!)
   useEffect(() => {
     if (stage !== "question_preview") return;
 
-    const totalDurationMs = 3000;
+    const totalDurationMs = 3500;
     const intervalMs = 25;
     const increment = (intervalMs / totalDurationMs) * 100;
 
@@ -92,195 +74,59 @@ export function HostQuestionIntro({
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <AudioControl />
-        </div>
+        <AudioControl />
       </header>
 
-      {/* 2. Center Stage Area */}
-      <main className="flex-1 flex flex-col items-center justify-center max-w-7xl mx-auto w-full my-auto px-4 z-10 relative">
-        {/* ========================================================================= */}
-        {/* STEP 1: COUNTDOWN 3-2-1 WITH SOLID GEOMETRIC SHAPES */}
-        {/* ========================================================================= */}
-        {stage === "countdown_3" && (
+      {/* 2. Main Stage: Phone Popup or Question Preview */}
+      <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-6xl mx-auto">
+        {stage === "phone_popup" ? (
           <motion.div
-            key="count-3"
-            initial={{ scale: 0.1, opacity: 0, rotate: -25 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            exit={{ scale: 0.2, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 450, damping: 22 }}
-            className="flex flex-col items-center justify-center"
-          >
-            <div className="relative w-72 h-72 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center">
-              <svg viewBox="0 0 100 100" className="w-full h-full text-[#E21B3C] fill-current">
-                <polygon points="50,6 96,94 4,94" />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center pt-8 sm:pt-12 text-8xl sm:text-[140px] md:text-[170px] font-black text-white">
-                3
-              </span>
-            </div>
-          </motion.div>
-        )}
-
-        {stage === "countdown_2" && (
-          <motion.div
-            key="count-2"
-            initial={{ scale: 0.1, opacity: 0, rotate: 25 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            exit={{ scale: 0.2, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 450, damping: 22 }}
-            className="flex flex-col items-center justify-center"
-          >
-            <div className="relative w-72 h-72 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center">
-              <svg viewBox="0 0 100 100" className="w-full h-full text-[#1368CE] fill-current">
-                <polygon points="50,4 96,50 50,96 4,50" />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-8xl sm:text-[140px] md:text-[170px] font-black text-white">
-                2
-              </span>
-            </div>
-          </motion.div>
-        )}
-
-        {stage === "countdown_1" && (
-          <motion.div
-            key="count-1"
-            initial={{ scale: 0.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.2, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 450, damping: 22 }}
-            className="flex flex-col items-center justify-center"
-          >
-            <div className="relative w-72 h-72 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] flex items-center justify-center rounded-full bg-[#FFA602] border-[10px] md:border-[14px] border-amber-300 shadow-xl">
-              <span className="text-8xl sm:text-[140px] md:text-[170px] font-black text-slate-950">
-                1
-              </span>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* STEP 2: PHONE POP-UP GRAPHIC WITH ICONIC CAHOOT! TITLE */}
-        {/* ========================================================================= */}
-        {stage === "phone_popup" && (
-          <motion.div
-            key="phone-popup"
-            initial={{ scale: 0.2, y: 100, opacity: 0 }}
+            initial={{ scale: 0.5, y: 50, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 20 }}
-            className="flex flex-col items-center justify-center"
+            transition={{ type: "spring", stiffness: 350, damping: 20 }}
+            className="flex flex-col items-center text-center"
           >
-            {/* Morphing Smartphone Mockup */}
-            <motion.div
-              layoutId="intro-phone-badge"
-              transition={{ type: "spring", stiffness: 220, damping: 22 }}
-              className="w-72 sm:w-80 md:w-96 h-[380px] sm:h-[420px] md:h-[450px] bg-slate-950 rounded-[48px] p-4 sm:p-5 border-4 border-slate-700 shadow-2xl flex flex-col justify-between relative overflow-hidden"
-            >
-              <div className="w-28 h-4 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-slate-950 mr-2" />
-                <div className="w-10 h-1 rounded-full bg-slate-700" />
-              </div>
-
-              {/* Inner Screen Area with 4 Colored Buttons */}
-              <div className="flex-1 bg-[#33106B] rounded-[32px] p-4 flex flex-col justify-center border-2 border-[#240B4D]">
-                <div className="grid grid-cols-2 gap-3.5 my-auto">
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#E21B3C] border-b-4 border-[#B0142D] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">▲</span>
-                  </div>
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#1368CE] border-b-4 border-[#0E4C96] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">◆</span>
-                  </div>
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#FFA602] border-b-4 border-[#CC8400] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">●</span>
-                  </div>
-                  <div className="h-20 sm:h-24 rounded-2xl bg-[#26890C] border-b-4 border-[#1B6108] flex items-center justify-center shadow-md">
-                    <span className="text-3xl sm:text-4xl text-white select-none">■</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-28 h-1.5 bg-slate-600 rounded-full mx-auto mt-2" />
-            </motion.div>
-
-            {/* Iconic Cahoot! Title */}
-            <motion.h2
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tighter flex items-center justify-center mt-3 drop-shadow-lg"
-            >
-              Cahoot<span className="text-[#FFA602]">!</span>
-            </motion.h2>
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-[#33106B] border-4 border-[#240B4D] border-b-[8px] border-b-[#1D083E] flex items-center justify-center text-6xl sm:text-7xl shadow-2xl mb-4 animate-bounce">
+              📱
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
+              Get Ready!
+            </h2>
+            <p className="text-sm sm:text-base font-bold text-yellow-300 mt-2 tracking-wide">
+              Eyes on the screen
+            </p>
           </motion.div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* STEP 3: QUESTION PREVIEW (Phone Mockup Morphed Above Question Box) */}
-        {/* ========================================================================= */}
-        {stage === "question_preview" && (
-          <div className="w-full flex flex-col items-center text-center">
-            {/* Smartphone Mockup Morphed & Glided Above Question Box (Natural 9:16 Vertical Ratio) */}
-            <motion.div
-              layoutId="intro-phone-badge"
-              transition={{ type: "spring", stiffness: 220, damping: 22 }}
-              className="w-20 sm:w-24 h-32 sm:h-38 bg-slate-950 rounded-2xl p-1.5 border-2 border-slate-700 shadow-xl flex flex-col justify-between mb-4 mx-auto"
-            >
-              <div className="w-8 h-1 bg-slate-800 rounded-full mx-auto" />
-              <div className="flex-1 bg-[#33106B] rounded-xl p-1 grid grid-cols-2 gap-1 items-center justify-center border border-[#240B4D] my-1">
-                <div className="h-full rounded-md bg-[#E21B3C] flex items-center justify-center text-[10px] sm:text-xs text-white">▲</div>
-                <div className="h-full rounded-md bg-[#1368CE] flex items-center justify-center text-[10px] sm:text-xs text-white">◆</div>
-                <div className="h-full rounded-md bg-[#FFA602] flex items-center justify-center text-[10px] sm:text-xs text-white">●</div>
-                <div className="h-full rounded-md bg-[#26890C] flex items-center justify-center text-[10px] sm:text-xs text-white">■</div>
-              </div>
-              <div className="w-8 h-0.5 bg-slate-700 rounded-full mx-auto" />
-            </motion.div>
-
-            {/* Super-Sized White Solid Question Box */}
-            <motion.div
-              layoutId="host-question-banner"
-              transition={{ type: "spring", stiffness: 220, damping: 22 }}
-              className="bg-white rounded-3xl py-8 sm:py-12 px-8 sm:px-14 border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-2xl w-full max-w-5xl mb-6"
-            >
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+        ) : (
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center text-center w-full max-w-5xl"
+          >
+            {/* Giant Question Preview Box */}
+            <div className="w-full bg-white text-slate-900 rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 mb-8 min-h-[140px] flex items-center justify-center">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-snug tracking-tight">
                 {question.question_text}
               </h1>
-            </motion.div>
+            </div>
 
-            {/* Optional Question Media Image */}
-            {question.media_url && (
+            {/* Smooth 3.5s Reading Progress Track */}
+            <div className="w-full max-w-2xl h-4 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative h-48 sm:h-64 md:h-72 w-full max-w-2xl rounded-3xl overflow-hidden border-4 border-slate-300 shadow-xl mb-4 bg-slate-950"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={question.media_url}
-                  alt="Question visual"
-                  className="w-full h-full object-cover"
-                />
-              </motion.div>
-            )}
-          </div>
+                style={{ width: `${readingProgress}%` }}
+                className="h-full bg-gradient-to-r from-yellow-400 to-[#FFA602] rounded-full"
+              />
+            </div>
+            <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-300 mt-3">
+              Answers incoming...
+            </span>
+          </motion.div>
         )}
       </main>
 
-      {/* ========================================================================= */}
-      {/* 4. BOTTOM 4-SECOND READING BAR */}
-      {/* ========================================================================= */}
-      <footer className="w-full max-w-5xl mx-auto pb-6 px-4 z-20">
-        {stage === "question_preview" ? (
-          <div className="w-full h-5 sm:h-6 bg-[#33106B] rounded-full p-1 border-2 border-[#240B4D] shadow-inner overflow-hidden">
-            <motion.div
-              className="h-full bg-[#FFA602] rounded-full"
-              style={{ width: `${readingProgress}%` }}
-              transition={{ ease: "linear" }}
-            />
-          </div>
-        ) : (
-          <div className="h-6" />
-        )}
-      </footer>
+      {/* 3. Empty bottom footer for balanced spacing */}
+      <footer className="h-10 z-10" />
     </div>
   );
 }

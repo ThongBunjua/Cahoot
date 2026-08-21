@@ -3,7 +3,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { KahootShape } from "@/components/ui/KahootShapes";
-import { Check, Loader2, Sparkles, EyeOff } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface PlayerGameButtonsProps {
   onSelect: (choiceIndex: number) => void;
@@ -76,7 +76,7 @@ export function PlayerGameButtons({
   return (
     <div className="w-full h-full max-w-4xl mx-auto flex flex-col justify-between p-2 sm:p-3 md:p-4 flex-1 overflow-hidden font-sans select-none gap-2">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER: Question Number Only (Classic Kahoot Style) */}
+      {/* 1. TOP HEADER: Question Number Only */}
       {/* ========================================================================= */}
       <div className="flex items-center justify-between bg-[#33106B] rounded-2xl px-4 py-2 border-2 border-[#240B4D] border-b-[4px] border-b-[#1D083E] shadow-md flex-shrink-0 w-full">
         <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-yellow-400">
@@ -141,50 +141,28 @@ export function PlayerGameButtons({
             })}
           </motion.div>
         ) : (
-          /* State B: Sleek Minimalist Loading / Waiting Spinner (Anti-Cheating / Anti-Peeking) */
+          /* State B: Clean Minimalist Spinner (No Emoji, Pure Minimal) */
           <motion.div
             key="loading-spinner-stage"
-            initial={{ opacity: 0, scale: 0.85 }}
+            initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 350, damping: 22 }}
-            className="flex-1 w-full flex flex-col items-center justify-center text-center p-6 bg-[#33106B]/80 backdrop-blur-xl rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-2xl relative overflow-hidden"
+            transition={{ duration: 0.25 }}
+            className="flex-1 w-full flex flex-col items-center justify-center text-center p-6 bg-[#33106B] rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-2xl"
           >
-            {/* Ambient Background Glow Ring */}
-            <div className="absolute w-60 h-60 rounded-full bg-purple-600/20 blur-3xl pointer-events-none animate-pulse" />
-
-            {/* Hypnotic Minimal Spinner Orb */}
-            <div className="relative w-28 h-28 sm:w-32 sm:h-32 mb-6 flex items-center justify-center">
-              {/* Rotating Dashed Ring */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
-                className="absolute inset-0 rounded-full border-4 border-dashed border-yellow-400"
-              />
-
-              {/* Inner Pulsing Check / Shape Badge */}
-              <motion.div
-                animate={{ scale: [0.9, 1.08, 0.9] }}
-                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-[#26890C] to-[#34d399] flex items-center justify-center shadow-xl border-2 border-white/60"
-              >
-                <Check className="w-10 h-10 sm:w-12 sm:h-12 text-white stroke-[4]" />
-              </motion.div>
+            {/* Minimal Smooth Spinner */}
+            <div className="mb-5 flex items-center justify-center">
+              <Loader2 className="w-14 h-14 sm:w-16 sm:h-16 text-yellow-400 animate-spin" />
             </div>
 
-            {/* Answer Locked Title */}
-            <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2"
-            >
-              Answer Locked In!
-            </motion.h2>
+            {/* Answer Submitted Title */}
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
+              Answer Submitted
+            </h2>
 
             {/* Minimal Subtitle */}
-            <p className="text-xs sm:text-sm font-bold text-purple-200 tracking-wide flex items-center gap-1.5 bg-black/25 px-4 py-1.5 rounded-full border border-white/10">
-              <EyeOff className="w-4 h-4 text-yellow-400" />
-              <span>Hidden for secrecy • Look at the host screen</span>
+            <p className="text-sm font-bold text-slate-300">
+              Look at the host screen
             </p>
           </motion.div>
         )}

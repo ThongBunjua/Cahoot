@@ -38,6 +38,7 @@ export function HostLobby({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [siteUrl, setSiteUrl] = useState("playcahoot.vercel.app");
   const [fullJoinUrl, setFullJoinUrl] = useState(`https://playcahoot.vercel.app/?pin=${pin}`);
+  const [isStartingSplash, setIsStartingSplash] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -64,8 +65,19 @@ export function HostLobby({
     }
   };
 
-  // Organize players systematically across 3 infinite conveyor lanes
-  const numRows = 3;
+  const handleStartGameClick = () => {
+    if (players.length === 0 || isStartingSplash) return;
+    setIsStartingSplash(true);
+    sounds.playDrumroll(2.2);
+
+    // 2.2s cinematic splash before transitioning to Question 1
+    setTimeout(() => {
+      onStartGame();
+    }, 2200);
+  };
+
+  // Organize players systematically across 5 infinite conveyor lanes
+  const numRows = 5;
   const rows: Player[][] = Array.from({ length: numRows }, () => []);
   players.forEach((p, idx) => {
     rows[idx % numRows].push(p);
@@ -77,9 +89,42 @@ export function HostLobby({
       <GameBackground />
 
       {/* ========================================================================= */}
+      {/* CINEMATIC START GAME SPLASH (Expanding Cahoot! Logo) */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {isStartingSplash && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-[#46178F] flex flex-col items-center justify-center text-center p-6 select-none overflow-hidden"
+          >
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: [0.6, 1.25, 1.4], opacity: [0, 1, 1] }}
+              transition={{ duration: 2.2, ease: "easeOut" }}
+              className="flex flex-col items-center"
+            >
+              <h1 className="text-7xl sm:text-9xl md:text-[140px] font-black tracking-tighter text-white drop-shadow-[0_25px_60px_rgba(0,0,0,0.8)]">
+                Cahoot<span className="text-yellow-400">!</span>
+              </h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-2xl sm:text-4xl font-black uppercase tracking-[0.3em] text-yellow-300 mt-4 drop-shadow-lg"
+              >
+                Get ready to play!
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================================= */}
       {/* 1. TOP STATUS BAR (Header with z-50 to stay 100% Bright when QR is open) */}
       {/* ========================================================================= */}
-      <div className="relative z-50 w-full bg-[#1e0741] px-6 sm:px-10 py-3 flex items-center justify-between border-b-2 border-purple-900/50 shadow-lg flex-shrink-0">
+      <div className="relative z-50 w-full bg-[#1e0741] px-6 sm:px-10 py-2.5 flex items-center justify-between border-b-2 border-purple-900/50 shadow-lg flex-shrink-0">
         {/* Left: Quiz title */}
         <div className="flex items-center gap-3">
           <span className="text-base sm:text-lg font-black text-purple-200 truncate max-w-xs sm:max-w-md">
@@ -99,7 +144,7 @@ export function HostLobby({
 
         {/* Right: Players Count, Audio & Screen Controls */}
         <div className="flex items-center gap-3.5">
-          <div className="flex items-center gap-2 bg-[#33106B] px-4 py-2 rounded-2xl border-2 border-purple-700/50 text-sm sm:text-base font-black text-white shadow-md">
+          <div className="flex items-center gap-2 bg-[#33106B] px-4 py-1.5 rounded-2xl border-2 border-purple-700/50 text-sm sm:text-base font-black text-white shadow-md">
             <Users className="w-5 h-5 text-yellow-400" />
             <span>{players.length}</span>
           </div>
@@ -108,39 +153,39 @@ export function HostLobby({
 
           <button
             onClick={toggleFullscreen}
-            className="p-2.5 rounded-2xl bg-[#33106B] hover:bg-[#240B4D] text-white border-2 border-purple-700/50 shadow-md transition-all cursor-pointer"
+            className="p-2 rounded-2xl bg-[#33106B] hover:bg-[#240B4D] text-white border-2 border-purple-700/50 shadow-md transition-all cursor-pointer"
             title="Toggle Fullscreen"
           >
-            {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. TOP MASTER BADGE: Unified Super-Sized Card (Join URL + Giant PIN + Live QR) */}
+      {/* 2. TOP MASTER BADGE: SUPER-SIZED EXTRA LARGE PIN & JOIN URL (Huge & Wide) */}
       {/* ========================================================================= */}
-      <div className="relative z-50 w-full flex justify-center pt-3 sm:pt-5 px-4">
+      <div className="relative z-50 w-full flex justify-center pt-2 sm:pt-4 px-4">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white text-slate-950 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.55)] border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-stretch divide-x-2 divide-slate-200 overflow-hidden"
+          className="bg-white text-slate-950 rounded-3xl sm:rounded-[36px] shadow-[0_25px_70px_rgba(0,0,0,0.6)] border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-stretch divide-x-2 divide-slate-200 overflow-hidden max-w-6xl w-full"
         >
-          {/* Left Partition: Join Instructions */}
-          <div className="px-6 sm:px-10 py-3.5 sm:py-5 flex flex-col justify-center text-left">
-            <span className="text-sm sm:text-base font-bold text-slate-600">
-              Join at <span className="font-black text-slate-950 underline decoration-[#46178F] underline-offset-4 text-base sm:text-lg">{siteUrl}</span>
+          {/* Left Partition: Giant Join Instructions */}
+          <div className="px-8 sm:px-12 py-3.5 sm:py-5 flex flex-col justify-center text-left flex-1">
+            <span className="text-sm sm:text-lg md:text-xl font-bold text-slate-600">
+              Join at <span className="font-black text-slate-950 underline decoration-[#46178F] underline-offset-4 text-lg sm:text-2xl md:text-3xl">{siteUrl}</span>
             </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-500 mt-0.5">
+            <span className="text-xs sm:text-sm font-semibold text-slate-500 mt-1">
               or scan with your mobile camera
             </span>
           </div>
 
-          {/* Center Partition: Super-Sized Game PIN */}
-          <div className="px-8 sm:px-14 py-3.5 sm:py-5 flex flex-col justify-center text-center bg-slate-50/80">
+          {/* Center Partition: Super-Sized Giant Game PIN */}
+          <div className="px-10 sm:px-16 py-3.5 sm:py-5 flex flex-col justify-center text-center bg-slate-50/90">
             <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-500">
               Game PIN:
             </span>
-            <span className="text-4xl sm:text-6xl md:text-7xl font-black font-mono tracking-widest text-slate-950 leading-none mt-1">
+            <span className="text-5xl sm:text-7xl md:text-8xl font-black font-mono tracking-widest text-slate-950 leading-none mt-1">
               {formatPin(pin)}
             </span>
           </div>
@@ -148,42 +193,42 @@ export function HostLobby({
           {/* Right Partition: Built-in Live QR Code */}
           <button
             onClick={() => setShowQR(true)}
-            className="p-3 sm:p-4 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group"
+            className="p-3 sm:p-5 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group flex-shrink-0"
             title="Click to enlarge QR Code"
           >
-            <div className="p-1.5 bg-white rounded-xl border-2 border-slate-200 shadow-sm group-hover:scale-105 transition-transform">
-              <QRCodeSVG value={fullJoinUrl} size={76} />
+            <div className="p-1.5 bg-white rounded-2xl border-2 border-slate-200 shadow-sm group-hover:scale-105 transition-transform">
+              <QRCodeSVG value={fullJoinUrl} size={88} />
             </div>
           </button>
         </motion.div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: Full-Width Infinite Conveyor Lines Scrolling Right */}
+      {/* 3. CENTER STAGE: 5 Full-Width Infinite Conveyor Lines Scrolling Right */}
       {/* ========================================================================= */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-2">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-1">
         {players.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center text-slate-300 max-w-lg">
-            <div className="w-24 h-24 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] flex items-center justify-center mx-auto mb-4 animate-bounce shadow-2xl">
-              <Sparkles className="w-12 h-12 text-[#FFA602]" />
+            <div className="w-20 h-20 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] flex items-center justify-center mx-auto mb-3 animate-bounce shadow-2xl">
+              <Sparkles className="w-10 h-10 text-[#FFA602]" />
             </div>
-            <h3 className="text-3xl sm:text-4xl font-black text-white mb-2">
+            <h3 className="text-2xl sm:text-3xl font-black text-white mb-1.5">
               Waiting for players to join...
             </h3>
-            <p className="text-base sm:text-lg font-bold text-purple-200">
+            <p className="text-sm sm:text-base font-bold text-purple-200">
               Enter Game PIN <span className="text-yellow-400 font-mono font-black">{formatPin(pin)}</span> on your phone or scan the QR Code.
             </p>
           </div>
         ) : (
-          /* Multi-Row Full-Width Continuous Rightward Conveyor Lines */
-          <div className="w-full flex-1 flex flex-col justify-center gap-4 sm:gap-6 overflow-hidden py-2">
+          /* 5 Multi-Row Full-Width Continuous Rightward Conveyor Lines */
+          <div className="w-full flex-1 flex flex-col justify-center gap-2 sm:gap-3 overflow-hidden py-1">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
 
               // Systematic multiplier for infinite smooth loop without rapid single repeats
               const multiplier = Math.max(3, Math.ceil(15 / rowPlayers.length));
               const seamlessList = Array(multiplier).fill(rowPlayers).flat();
-              const speedSec = 40 + rowIndex * 8; // Calm readable pace
+              const speedSec = 36 + rowIndex * 6; // Calm readable pace
 
               return (
                 <div
@@ -200,7 +245,7 @@ export function HostLobby({
                       repeat: Infinity,
                       ease: "linear",
                     }}
-                    className="flex gap-4 sm:gap-6 items-center flex-nowrap shrink-0 pr-6"
+                    className="flex gap-3 sm:gap-5 items-center flex-nowrap shrink-0 pr-5"
                   >
                     {seamlessList.map((player, pIdx) => (
                       <motion.div
@@ -208,21 +253,21 @@ export function HostLobby({
                         initial={{ scale: 0.2 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 350, damping: 18 }}
-                        className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] rounded-2xl sm:rounded-3xl px-6 sm:px-8 py-3.5 sm:py-5 flex items-center gap-4 shadow-2xl select-none shrink-0"
+                        className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-5 sm:px-7 py-2 sm:py-3 flex items-center gap-3.5 shadow-xl select-none shrink-0"
                       >
-                        <span className="text-3xl sm:text-5xl flex-shrink-0 filter drop-shadow-sm select-none">
+                        <span className="text-2xl sm:text-4xl flex-shrink-0 filter drop-shadow-sm select-none">
                           {player.avatar}
                         </span>
-                        <span className="text-xl sm:text-3xl font-black text-white truncate max-w-[200px] sm:max-w-[280px] tracking-tight">
+                        <span className="text-lg sm:text-2xl font-black text-white truncate max-w-[180px] sm:max-w-[240px] tracking-tight">
                           {player.nickname}
                         </span>
 
                         <button
                           onClick={() => onKickPlayer(player.id)}
-                          className="opacity-0 group-hover:opacity-100 p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
+                          className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
                           title={`Remove ${player.nickname}`}
                         >
-                          <X className="w-4 h-4 stroke-[3]" />
+                          <X className="w-3.5 h-3.5 stroke-[3]" />
                         </button>
                       </motion.div>
                     ))}
@@ -235,22 +280,22 @@ export function HostLobby({
       </main>
 
       {/* ========================================================================= */}
-      {/* 4. BOTTOM ACTION BAR: Ready indicator & Solid Start Game Button */}
+      {/* 4. BOTTOM ACTION BAR: Ready indicator & Giant Start Game Button */}
       {/* ========================================================================= */}
-      <div className="relative z-30 w-full max-w-[98vw] mx-auto px-6 sm:px-12 pb-6 flex items-center justify-between">
+      <div className="relative z-30 w-full max-w-[98vw] mx-auto px-6 sm:px-12 pb-4 sm:pb-5 flex items-center justify-between">
         {/* Left Indicator */}
-        <div className="flex items-center gap-3 text-base sm:text-xl font-black text-purple-200">
-          <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-ping" />
+        <div className="flex items-center gap-3 text-base sm:text-lg font-black text-purple-200">
+          <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
           <span>{players.length} {players.length === 1 ? "Player" : "Players"} Ready</span>
         </div>
 
         {/* Right: Giant Start Game Button */}
         <motion.button
-          whileHover={players.length > 0 ? { scale: 1.05 } : {}}
-          whileTap={players.length > 0 ? { scale: 0.96 } : {}}
-          disabled={players.length === 0}
-          onClick={onStartGame}
-          className={`px-10 sm:px-14 py-4 sm:py-5 rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl flex items-center gap-3.5 transition-all ${
+          whileHover={players.length > 0 && !isStartingSplash ? { scale: 1.05 } : {}}
+          whileTap={players.length > 0 && !isStartingSplash ? { scale: 0.96 } : {}}
+          disabled={players.length === 0 || isStartingSplash}
+          onClick={handleStartGameClick}
+          className={`px-10 sm:px-14 py-3.5 sm:py-4.5 rounded-2xl sm:rounded-3xl font-black text-xl sm:text-2xl flex items-center gap-3.5 transition-all ${
             players.length > 0
               ? "bg-[#26890C] hover:bg-[#22790A] text-white shadow-2xl cursor-pointer border-b-[6px] border-[#165406] active:border-b-[2px] active:translate-y-1"
               : "bg-[#240B4D] text-slate-500 border-2 border-[#1D083E] cursor-not-allowed opacity-60"
@@ -265,7 +310,7 @@ export function HostLobby({
         </motion.button>
       </div>
 
-      {/* QR Code Big Overlay Modal (Header stays 100% bright above backdrop) */}
+      {/* QR Code Big Overlay Modal */}
       <QRCodeModal
         isOpen={showQR}
         pin={pin}
