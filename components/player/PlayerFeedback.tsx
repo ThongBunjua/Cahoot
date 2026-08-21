@@ -7,23 +7,25 @@ import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 
 interface PlayerFeedbackProps {
   isCorrect: boolean | null;
-  pointsEarned: number;
-  currentScore: number;
-  streak: number;
-  currentRank: number;
-  totalPlayers: number;
+  pointsEarned?: number;
+  currentScore?: number;
+  streak?: number;
+  currentRank?: number;
+  totalPlayers?: number;
 }
 
 export function PlayerFeedback({
   isCorrect,
-  pointsEarned,
-  currentScore,
-  streak,
-  currentRank,
-  totalPlayers,
+  pointsEarned = 0,
+  currentScore = 0,
+  streak = 0,
+  currentRank = 1,
+  totalPlayers = 1,
 }: PlayerFeedbackProps) {
   const isWinner = isCorrect === true;
   const isTimeUp = isCorrect === null;
+  const safePoints = typeof pointsEarned === "number" ? pointsEarned : 0;
+  const safeScore = typeof currentScore === "number" ? currentScore : 0;
 
   return (
     <div
@@ -79,7 +81,7 @@ export function PlayerFeedback({
           className="text-2xl sm:text-3xl font-black text-white mb-4 bg-black/30 px-6 py-2 rounded-full border border-white/25 backdrop-blur-sm shadow-xl flex items-center gap-1.5"
         >
           <Sparkles className="w-5 h-5 text-yellow-300 fill-yellow-300" />
-          <span>{isWinner ? `+${pointsEarned.toLocaleString()} pts` : "+0 pts"}</span>
+          <span>{isWinner ? `+${safePoints.toLocaleString()} pts` : "+0 pts"}</span>
         </motion.div>
 
         {/* Streak Badge */}
@@ -120,7 +122,7 @@ export function PlayerFeedback({
           <span className="text-slate-300 text-[11px] font-bold uppercase tracking-wider mb-0.5">
             Total Score
           </span>
-          <span className="text-2xl sm:text-3xl font-black">{currentScore.toLocaleString()}</span>
+          <span className="text-2xl sm:text-3xl font-black">{safeScore.toLocaleString()}</span>
         </div>
       </motion.div>
     </div>

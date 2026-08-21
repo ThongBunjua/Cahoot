@@ -13,6 +13,8 @@ export function useGamePlayer(initialPin: string = "") {
     phase: "lobby",
     currentQuestionIndex: 0,
     totalQuestions: 0,
+    questionText: "",
+    choices: [],
     selectedAnswer: null,
     hasAnswered: false,
     isCorrect: null,
@@ -64,6 +66,7 @@ export function useGamePlayer(initialPin: string = "") {
       lastPoints: 0,
       lastCorrect: null,
       lastAnswerIndex: null,
+      correctCount: 0,
       rank: 1,
       joinedAt: Date.now(),
     };
@@ -144,15 +147,16 @@ export function useGamePlayer(initialPin: string = "") {
     }
 
     const unsubscribe = channel.subscribe((payload) => {
-      if (payload.pin !== stateRef.current.pin) return;
+      if (!payload || payload.pin !== stateRef.current.pin) return;
+      const eventData = payload.data || {};
 
       const myId = stateRef.current.player?.id;
       const myNickname = stateRef.current.player?.nickname?.toLowerCase();
 
       // 1. Lobby Sync
       if (payload.event === "LOBBY_SYNC") {
-        const { totalQuestions, players } = payload.data;
-        const me = players
+        const { totalQuestions, players } = eventData;
+        const me = Array.isArray(players)
           ? players.find(
               (p: any) =>
                 p.id === myId ||
@@ -173,14 +177,14 @@ export function useGamePlayer(initialPin: string = "") {
         setState((prev) => ({
           ...prev,
           totalQuestions: totalQuestions || prev.totalQuestions,
-          totalPlayers: players ? players.length : prev.totalPlayers,
+          totalPlayers: Array.isArray(players) ? players.length : prev.totalPlayers,
           currentRank: me ? me.rank : prev.currentRank,
         }));
       }
 
       // 2. Kicked by Host
       if (payload.event === "PLAYER_KICK") {
-        if (payload.data.playerId === myId) {
+        if (eventData.playerId === myId) {
           localStorage.removeItem("cahoot_player_session");
           setState((prev) => ({
             ...prev,
@@ -199,12 +203,12 @@ export function useGamePlayer(initialPin: string = "") {
         }
         if (timerRef.current) clearInterval(timerRef.current);
 
-        const { questionIndex, totalQuestions } = payload.data;
+        const { questionIndex, totalQuestions } = eventData;
 
         setState((prev) => ({
           ...prev,
           phase: "get_ready",
-          currentQuestionIndex: questionIndex,
+          currentQuestionIndex: typeof questionIndex === "number" ? questionIndex : prev.currentQuestionIndex,
           totalQuestions: totalQuestions || prev.totalQuestions,
           selectedAnswer: null,
           hasAnswered: false,
@@ -221,23 +225,25 @@ export function useGamePlayer(initialPin: string = "") {
         }
         if (timerRef.current) clearInterval(timerRef.current);
 
-        const { questionIndex, totalQuestions, timeLimit, questionText, choices } = payload.data;
+        const { questionIndex, totalQuestions, timeLimit, questionText, choices } = eventData;
+
+        const limit = typeof timeLimit === "number" && timeLimit > 0 ? timeLimit : 20;
 
         setState((prev) => ({
           ...prev,
           phase: "question",
-          currentQuestionIndex: questionIndex,
+          currentQuestionIndex: typeof questionIndex === "number" ? questionIndex : prev.currentQuestionIndex,
           totalQuestions: totalQuestions || prev.totalQuestions,
-          questionText: questionText || "",
+          questionText: typeof questionText === "string" ? questionText : "",
           choices: Array.isArray(choices) ? choices : [],
           selectedAnswer: null,
           hasAnswered: false,
           isCorrect: null,
-          timeLimit: timeLimit || 20,
-          timeRemaining: timeLimit || 20,
+          timeLimit: limit,
+          timeRemaining: limit,
         }));
 
-        let remaining = timeLimit || 20;
+        let remaining = limit;
         timerRef.current = setInterval(() => {
           remaining -= 1;
           if (remaining <= 0) {
@@ -252,14 +258,13 @@ export function useGamePlayer(initialPin: string = "") {
       if (payload.event === "QUESTION_END") {
         if (timerRef.current) clearInterval(timerRef.current);
 
-        const { playerResults, correctIndex } = payload.data;
-        const myResult = playerResults
-          ? playerResults.find(
-              (p: any) =>
-                p.id === myId ||
-                (p.nickname && p.nickname.toLowerCase() === myNickname)
-            )
-          : null;
+        const { playerResults, correctIndex } = eventData;
+        const resultsArray = Array.isArray(playerResults) ? playerResults : [];
+        const myResult = resultsArray.find(
+          (p: any) =>
+            p.id === myId ||
+            (p.nickname && p.nickname.toLowerCase() === myNickname)
+        );
 
         if (myResult && typeof myResult.isCorrect === "boolean") {
           const isCorrect = myResult.isCorrect;
@@ -278,12 +283,12 @@ export function useGamePlayer(initialPin: string = "") {
             currentScore: myResult.totalScore ?? prev.currentScore,
             streak: myResult.streak ?? prev.streak,
             currentRank: myResult.rank || prev.currentRank,
-            totalPlayers: playerResults.length,
+            totalPlayers: resultsArray.length || prev.totalPlayers,
           }));
         } else {
           // Direct fallback: check selectedAnswer vs host correctIndex
           const localSelected = stateRef.current.selectedAnswer;
-          const isCorrect = localSelected !== null && localSelected === correctIndex;
+          const isCorrect = localSelected !== null && typeof correctIndex === "number" && localSelected === correctIndex;
           const earned = isCorrect ? 850 : 0;
 
           if (isCorrect) {
@@ -305,14 +310,13 @@ export function useGamePlayer(initialPin: string = "") {
 
       // 6. Leaderboard
       if (payload.event === "SHOW_LEADERBOARD") {
-        const { topPlayers } = payload.data;
-        const me = topPlayers
-          ? topPlayers.find(
-              (p: any) =>
-                p.id === myId ||
-                (p.nickname && p.nickname.toLowerCase() === myNickname)
-            )
-          : null;
+        const { topPlayers } = eventData;
+        const topArray = Array.isArray(topPlayers) ? topPlayers : [];
+        const me = topArray.find(
+          (p: any) =>
+            p.id === myId ||
+            (p.nickname && p.nickname.toLowerCase() === myNickname)
+        );
         setState((prev) => ({
           ...prev,
           phase: "leaderboard",
@@ -322,14 +326,13 @@ export function useGamePlayer(initialPin: string = "") {
 
       // 7. Game Over / Podium
       if (payload.event === "GAME_OVER") {
-        const { allPlayers } = payload.data;
-        const me = allPlayers
-          ? allPlayers.find(
-              (p: any) =>
-                p.id === myId ||
-                (p.nickname && p.nickname.toLowerCase() === myNickname)
-            )
-          : null;
+        const { allPlayers } = eventData;
+        const allArray = Array.isArray(allPlayers) ? allPlayers : [];
+        const me = allArray.find(
+          (p: any) =>
+            p.id === myId ||
+            (p.nickname && p.nickname.toLowerCase() === myNickname)
+        );
 
         setState((prev) => ({
           ...prev,
@@ -356,6 +359,8 @@ export function useGamePlayer(initialPin: string = "") {
       phase: "lobby",
       currentQuestionIndex: 0,
       totalQuestions: 0,
+      questionText: "",
+      choices: [],
       selectedAnswer: null,
       hasAnswered: false,
       isCorrect: null,

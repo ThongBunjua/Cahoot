@@ -3,17 +3,17 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { KahootShape } from "@/components/ui/KahootShapes";
-import { Flame, Loader2, Check, Clock } from "lucide-react";
+import { Flame, Check, Clock } from "lucide-react";
 
 interface PlayerGameButtonsProps {
   onSelect: (choiceIndex: number) => void;
   selectedAnswer: number | null;
   hasAnswered: boolean;
-  timeRemaining: number;
-  timeLimit: number;
-  streak: number;
-  questionIndex: number;
-  totalQuestions: number;
+  timeRemaining?: number;
+  timeLimit?: number;
+  streak?: number;
+  questionIndex?: number;
+  totalQuestions?: number;
   questionText?: string;
   choices?: string[];
 }
@@ -26,7 +26,6 @@ const BUTTON_CONFIGS = [
     bgClass: "bg-[#E21B3C] hover:bg-[#C91835]",
     borderClass: "border-b-[6px] border-[#B0142D] active:border-b-[2px]",
     textClass: "text-white",
-    iconColor: "white",
   },
   {
     index: 1,
@@ -35,7 +34,6 @@ const BUTTON_CONFIGS = [
     bgClass: "bg-[#1368CE] hover:bg-[#105CB7]",
     borderClass: "border-b-[6px] border-[#0E4E9E] active:border-b-[2px]",
     textClass: "text-white",
-    iconColor: "white",
   },
   {
     index: 2,
@@ -44,7 +42,6 @@ const BUTTON_CONFIGS = [
     bgClass: "bg-[#FFA602] hover:bg-[#E59500]",
     borderClass: "border-b-[6px] border-[#CC8400] active:border-b-[2px]",
     textClass: "text-slate-950",
-    iconColor: "#0F172A",
   },
   {
     index: 3,
@@ -53,7 +50,6 @@ const BUTTON_CONFIGS = [
     bgClass: "bg-[#26890C] hover:bg-[#20750A]",
     borderClass: "border-b-[6px] border-[#1B6108] active:border-b-[2px]",
     textClass: "text-white",
-    iconColor: "white",
   },
 ];
 
@@ -61,17 +57,19 @@ export function PlayerGameButtons({
   onSelect,
   selectedAnswer,
   hasAnswered,
-  timeRemaining,
-  timeLimit,
-  streak,
-  questionIndex,
-  totalQuestions,
-  questionText,
+  timeRemaining = 20,
+  timeLimit = 20,
+  streak = 0,
+  questionIndex = 0,
+  totalQuestions = 1,
+  questionText = "",
   choices = [],
 }: PlayerGameButtonsProps) {
-  const safeTimeLimit = timeLimit > 0 ? timeLimit : 20;
-  const progressPercent = Math.max(0, Math.min(100, (timeRemaining / safeTimeLimit) * 100));
-  const isUrgent = timeRemaining <= 5 && timeRemaining > 0;
+  const safeTimeLimit = typeof timeLimit === "number" && timeLimit > 0 ? timeLimit : 20;
+  const safeRemaining = typeof timeRemaining === "number" ? Math.max(0, timeRemaining) : 0;
+  const progressPercent = Math.max(0, Math.min(100, (safeRemaining / safeTimeLimit) * 100));
+  const isUrgent = safeRemaining <= 5 && safeRemaining > 0;
+  const safeChoices = Array.isArray(choices) ? choices : [];
 
   return (
     <div className="w-full h-full flex flex-col justify-between p-3 sm:p-4 max-w-xl mx-auto font-sans select-none">
@@ -98,7 +96,7 @@ export function PlayerGameButtons({
               isUrgent ? "text-red-400 animate-pulse font-black text-lg" : "text-white"
             }`}
           >
-            {timeRemaining}s
+            {safeRemaining}s
           </span>
         </div>
       </div>
@@ -106,7 +104,7 @@ export function PlayerGameButtons({
       {/* ========================================================================= */}
       {/* 2. QUESTION TEXT BOX ON PLAYER DEVICE (โจทย์คำถามบนหน้าจอมือถือ) */}
       {/* ========================================================================= */}
-      {questionText && (
+      {Boolean(questionText) && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -139,7 +137,7 @@ export function PlayerGameButtons({
         {BUTTON_CONFIGS.map((btn) => {
           const isSelected = selectedAnswer === btn.index;
           const isDimmed = hasAnswered && !isSelected;
-          const choiceText = choices[btn.index] || "";
+          const choiceText = safeChoices[btn.index] || "";
 
           return (
             <motion.button
@@ -199,7 +197,7 @@ export function PlayerGameButtons({
             className={`h-full rounded-full transition-all duration-300 ${
               isUrgent
                 ? "bg-[#E21B3C] shadow-[0_0_12px_#E21B3C]"
-                : timeRemaining <= 10
+                : safeRemaining <= 10
                 ? "bg-[#FFA602]"
                 : "bg-[#26890C]"
             }`}
@@ -214,7 +212,7 @@ export function PlayerGameButtons({
               isUrgent ? "text-red-400 text-sm font-extrabold animate-pulse" : "text-yellow-400"
             }`}
           >
-            {timeRemaining} / {safeTimeLimit}s
+            {safeRemaining} / {safeTimeLimit}s
           </span>
         </div>
       </div>

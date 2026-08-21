@@ -2,17 +2,19 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Trophy, Sparkles, RotateCcw, Tv } from "lucide-react";
+import { RotateCcw, Tv } from "lucide-react";
 import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 
 interface PlayerPodiumProps {
-  score: number;
+  score?: number;
   nickname?: string;
   avatar?: string;
   onPlayAgain: () => void;
 }
 
-export function PlayerPodium({ score, nickname, avatar, onPlayAgain }: PlayerPodiumProps) {
+export function PlayerPodium({ score = 0, nickname, avatar, onPlayAgain }: PlayerPodiumProps) {
+  const safeScore = typeof score === "number" ? score : 0;
+
   return (
     <div className="flex flex-col items-center justify-center text-center max-w-sm w-full p-4 sm:p-6 text-white font-sans select-none">
       <ConfettiEffect trigger={true} duration={4000} />
@@ -61,7 +63,7 @@ export function PlayerPodium({ score, nickname, avatar, onPlayAgain }: PlayerPod
           <div className="flex items-center justify-center gap-3 pb-3 border-b border-white/10">
             <span className="text-3xl filter drop-shadow-sm">{avatar || "🦊"}</span>
             <span className="text-xl sm:text-2xl font-black text-white truncate max-w-[200px]">
-              {nickname}
+              {nickname || "Player"}
             </span>
           </div>
         )}
@@ -72,7 +74,7 @@ export function PlayerPodium({ score, nickname, avatar, onPlayAgain }: PlayerPod
             Total Points
           </span>
           <span className="text-2xl sm:text-3xl font-black text-yellow-400 tabular-nums">
-            {score.toLocaleString()} pts
+            {safeScore.toLocaleString()} pts
           </span>
         </div>
 
