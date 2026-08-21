@@ -21,9 +21,9 @@ export function HostQuestionIntro({
   totalQuestions,
   onIntroComplete,
 }: HostQuestionIntroProps) {
-  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_center" -> "question_preview"
+  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_center" -> "question_preview" -> "morph_to_top"
   const [stage, setStage] = useState<
-    "countdown_3" | "countdown_2" | "countdown_1" | "phone_center" | "question_preview"
+    "countdown_3" | "countdown_2" | "countdown_1" | "phone_center" | "question_preview" | "morph_to_top"
   >("countdown_3");
   const [readingProgress, setReadingProgress] = useState(0);
 
@@ -37,19 +37,19 @@ export function HostQuestionIntro({
       sounds.playGetReadyPulse(2);
     }, 900);
 
-    // 1.8s: Stage 1 (Countdown 1 - Giant Yellow Triangle)
+    // 1.8s: Stage 1 (Countdown 1 - Giant Yellow Triangle with White Number 1)
     const t1 = setTimeout(() => {
       setStage("countdown_1");
       sounds.playGetReadyPulse(1);
     }, 1800);
 
-    // 2.7s: Stage Phone Pop-up in Center Stage (0.9s snappy presence)
+    // 2.7s: Stage Phone Pop-up in Center Stage
     const tPhone = setTimeout(() => {
       setStage("phone_center");
       sounds.playClick();
     }, 2700);
 
-    // 3.6s: Stage Morph upwards above Question Box (3.6s generous reading time)
+    // 3.6s: Stage Question Preview in Center
     const tPreview = setTimeout(() => {
       setStage("question_preview");
     }, 3600);
@@ -62,11 +62,11 @@ export function HostQuestionIntro({
     };
   }, []);
 
-  // 3.6-second smooth reading progress bar (Total = 2.7s + 0.9s + 3.6s = 7.2s)
+  // 3.4-second reading progress bar -> Seamless Morph upwards to Top Header
   useEffect(() => {
     if (stage !== "question_preview") return;
 
-    const totalDurationMs = 3600;
+    const totalDurationMs = 3400;
     const intervalMs = 25;
     const increment = (intervalMs / totalDurationMs) * 100;
 
@@ -75,7 +75,12 @@ export function HostQuestionIntro({
         const next = prev + increment;
         if (next >= 100) {
           clearInterval(interval);
-          onIntroComplete();
+          // Trigger seamless morph upwards animation
+          setStage("morph_to_top");
+          // After 0.45s morph completes, smoothly switch to HostQuestion
+          setTimeout(() => {
+            onIntroComplete();
+          }, 450);
           return 100;
         }
         return next;
@@ -88,14 +93,16 @@ export function HostQuestionIntro({
   const isShapeCountdown =
     stage === "countdown_3" || stage === "countdown_2" || stage === "countdown_1";
 
+  const isMorphing = stage === "morph_to_top";
+
   return (
-    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-6 md:p-10 select-none overflow-hidden font-sans relative">
+    <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
       {/* 1. Top Header */}
       <header className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full pt-1 z-20">
-        <div className="bg-[#33106B] px-6 py-2.5 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
+        <div className="bg-[#33106B] px-6 py-2 rounded-2xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-md">
           <span className="text-sm md:text-base font-black uppercase tracking-wider text-[#FFA602]">
             Question {questionIndex + 1} of {totalQuestions}
           </span>
@@ -104,10 +111,10 @@ export function HostQuestionIntro({
         <AudioControl />
       </header>
 
-      {/* 2. Main Center Stage: 3-2-1 Geometric Shapes -> Phone Mockup -> Question Banner */}
+      {/* 2. Main Center Stage: 3-2-1 Geometric Shapes -> Phone Mockup -> Seamless Question Morph */}
       <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-6xl mx-auto my-auto">
         {/* ========================================================================= */}
-        {/* PART A: 3-2-1 UNIFORM MINIMALIST GEOMETRIC SHAPES (3=Pentagon, 2=Square, 1=Triangle) */}
+        {/* PART A: 3-2-1 GEOMETRIC SHAPES */}
         {/* ========================================================================= */}
         <AnimatePresence mode="popLayout">
           {isShapeCountdown && (
@@ -131,7 +138,7 @@ export function HostQuestionIntro({
                 </motion.div>
               )}
 
-              {/* COUNT 2 = Giant Blue Square (Exact Matching Size & Minimalist Rounded Geometry) */}
+              {/* COUNT 2 = Giant Blue Square */}
               {stage === "countdown_2" && (
                 <motion.div
                   key="shape-square-2"
@@ -150,7 +157,7 @@ export function HostQuestionIntro({
                 </motion.div>
               )}
 
-              {/* COUNT 1 = Giant Yellow Triangle */}
+              {/* COUNT 1 = Giant Yellow Triangle (WHITE NUMBER 1) */}
               {stage === "countdown_1" && (
                 <motion.div
                   key="shape-triangle-1"
@@ -173,20 +180,22 @@ export function HostQuestionIntro({
         </AnimatePresence>
 
         {/* ========================================================================= */}
-        {/* PART B: PERSISTENT PHONE MOCKUP (Center Stage -> Glides up to Top Anchor) */}
+        {/* PART B: PERSISTENT PHONE MOCKUP */}
         {/* ========================================================================= */}
         {!isShapeCountdown && (
           <motion.div
             initial={{ y: 80, scale: 0.5, opacity: 0 }}
             animate={
-              stage === "phone_center"
+              isMorphing
+                ? { y: -300, scale: 0.2, opacity: 0 }
+                : stage === "phone_center"
                 ? { y: 0, scale: 1, opacity: 1 }
                 : { y: -220, scale: 0.38, opacity: 1 }
             }
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
             className="w-80 h-[500px] sm:w-96 sm:h-[580px] bg-slate-950 rounded-[52px] p-5 border-4 border-slate-700 border-b-[12px] border-b-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.85)] flex flex-col justify-between absolute z-30 origin-center pointer-events-none"
           >
-            {/* Phone Speaker Notch & Front Camera */}
+            {/* Phone Speaker Notch & Camera */}
             <div className="flex items-center justify-center gap-2 mb-3 flex-shrink-0">
               <div className="w-24 h-4 bg-slate-800 rounded-full" />
               <div className="w-4 h-4 bg-slate-800 rounded-full" />
@@ -194,14 +203,12 @@ export function HostQuestionIntro({
 
             {/* Phone Screen Display */}
             <div className="flex-1 bg-[#240B4D] rounded-[36px] p-5 flex flex-col justify-between border border-purple-900/60 overflow-hidden shadow-inner">
-              {/* Top: Cahoot! Header */}
               <div className="text-center py-2">
                 <span className="text-2xl sm:text-3xl font-black tracking-tighter text-white">
                   Cahoot<span className="text-yellow-400">!</span>
                 </span>
               </div>
 
-              {/* Center: 4 Big Colored Geometric Buttons */}
               <div className="grid grid-cols-2 grid-rows-2 gap-3 flex-1 my-3">
                 <div className="bg-[#E21B3C] rounded-2xl flex items-center justify-center p-3 shadow-lg">
                   <KahootShape shape="triangle" size={36} className="text-white drop-shadow-md" />
@@ -217,49 +224,60 @@ export function HostQuestionIntro({
                 </div>
               </div>
 
-              {/* Bottom Home Indicator Line */}
               <div className="w-24 h-2 bg-white/40 rounded-full mx-auto" />
             </div>
           </motion.div>
         )}
 
         {/* ========================================================================= */}
-        {/* PART C: QUESTION PREVIEW BOX (Spaciously positioned below top phone) */}
+        {/* PART C: QUESTION CARD WITH SEAMLESS MORPH UPWARDS (ภาพที่ 1 -> ภาพที่ 2) */}
         {/* ========================================================================= */}
         {!isShapeCountdown && (
           <motion.div
             initial={{ opacity: 0, scale: 0.85, y: 120 }}
             animate={
-              stage === "phone_center"
+              isMorphing
+                ? {
+                    y: -310,
+                    scale: 0.88,
+                    opacity: 1,
+                  }
+                : stage === "phone_center"
                 ? { opacity: 0, scale: 0.85, y: 120, pointerEvents: "none" }
                 : { opacity: 1, scale: 1, y: 65, pointerEvents: "auto" }
             }
-            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-5xl flex flex-col items-center text-center relative z-20"
           >
             {/* Giant Question Preview Box */}
-            <div className="w-full bg-white text-slate-900 rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 mb-8 min-h-[140px] flex items-center justify-center">
+            <div className="w-full bg-white text-slate-900 rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 mb-6 min-h-[140px] flex items-center justify-center">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-snug tracking-tight">
                 {question.question_text}
               </h1>
             </div>
 
-            {/* Smooth 3.0s Reading Progress Track */}
-            <div className="w-full max-w-2xl h-4 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">
-              <motion.div
-                style={{ width: `${readingProgress}%` }}
-                className="h-full bg-gradient-to-r from-yellow-400 to-[#FFA602] rounded-full"
-              />
-            </div>
-            <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-300 mt-3">
-              Answers incoming...
-            </span>
+            {/* Reading Progress Track (Fades out when morphing) */}
+            <motion.div
+              animate={{ opacity: isMorphing ? 0 : 1 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-2xl flex flex-col items-center"
+            >
+              <div className="w-full h-4 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">
+                <motion.div
+                  style={{ width: `${readingProgress}%` }}
+                  className="h-full bg-gradient-to-r from-yellow-400 to-[#FFA602] rounded-full"
+                />
+              </div>
+              <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-300 mt-2.5">
+                Answers incoming...
+              </span>
+            </motion.div>
           </motion.div>
         )}
       </main>
 
-      {/* 3. Empty bottom footer for balanced layout */}
-      <footer className="h-8 z-10" />
+      {/* 3. Empty bottom footer */}
+      <footer className="h-4 z-10" />
     </div>
   );
 }
