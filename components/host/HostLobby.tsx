@@ -91,6 +91,36 @@ export function HostLobby({
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
+      {/* Embedded CSS for Unbreakable Non-Resetting Continuous Marquee Flow */}
+      <style jsx>{`
+        @keyframes continuousConveyor {
+          0% {
+            transform: translateX(-50%);
+          }
+          100% {
+            transform: translateX(0%);
+          }
+        }
+        @keyframes singlePlayerGlide {
+          0% {
+            transform: translateX(-120%);
+          }
+          100% {
+            transform: translateX(105vw);
+          }
+        }
+        .conveyor-track {
+          display: flex;
+          will-change: transform;
+          animation: continuousConveyor linear infinite;
+        }
+        .single-player-track {
+          display: flex;
+          will-change: transform;
+          animation: singlePlayerGlide linear infinite;
+        }
+      `}</style>
+
       {/* ========================================================================= */}
       {/* CINEMATIC START GAME SPLASH (Expanding Cahoot! Logo) */}
       {/* ========================================================================= */}
@@ -207,7 +237,7 @@ export function HostLobby({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: 5 Tight-knit Conveyor Lanes with Randomized Speeds */}
+      {/* 3. CENTER STAGE: 5 Continuous Non-Resetting Conveyor Lanes */}
       {/* ========================================================================= */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-1">
         {players.length === 0 ? (
@@ -223,7 +253,7 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          /* Exactly 5 Tight-knit Conveyor Lines Grouped in Center */
+          /* Exactly 5 Conveyor Lines with Continuous CSS Scrolling (Never resets on new joins!) */
           <div className="w-full flex-1 flex flex-col justify-center gap-1.5 sm:gap-2.5 py-1 overflow-hidden">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
@@ -238,15 +268,10 @@ export function HostLobby({
                   }}
                 >
                   {rowPlayers.length === 1 ? (
-                    /* Single player in lane: single card slides across full screen and loops */
-                    <motion.div
-                      animate={{ x: ["-120%", "105vw"] }}
-                      transition={{
-                        duration: speedSec * 0.65,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                      className="flex items-center shrink-0"
+                    /* Single player in lane: slides across full screen and loops smoothly without repeating duplicate badges */
+                    <div
+                      className="single-player-track items-center shrink-0"
+                      style={{ animationDuration: `${speedSec * 0.65}s` }}
                     >
                       <div className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-6 py-2.5 sm:px-8 sm:py-3.5 flex items-center gap-3.5 shadow-xl select-none shrink-0">
                         <span className="text-2xl sm:text-4xl flex-shrink-0 filter drop-shadow-sm select-none">
@@ -264,17 +289,12 @@ export function HostLobby({
                           <X className="w-3.5 h-3.5 stroke-[3]" />
                         </button>
                       </div>
-                    </motion.div>
+                    </div>
                   ) : (
-                    /* Multiple players in lane: smooth seamless tape */
-                    <motion.div
-                      animate={{ x: ["-50%", "0%"] }}
-                      transition={{
-                        duration: speedSec,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                      className="flex gap-4 sm:gap-6 items-center flex-nowrap shrink-0 pr-6"
+                    /* Multiple players: continuous non-resetting marquee track */
+                    <div
+                      className="conveyor-track gap-4 sm:gap-6 items-center flex-nowrap shrink-0 pr-6"
+                      style={{ animationDuration: `${speedSec}s` }}
                     >
                       {[...rowPlayers, ...rowPlayers].map((player, pIdx) => (
                         <div
@@ -297,7 +317,7 @@ export function HostLobby({
                           </button>
                         </div>
                       ))}
-                    </motion.div>
+                    </div>
                   )}
                 </div>
               );

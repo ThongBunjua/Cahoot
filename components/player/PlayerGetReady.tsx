@@ -5,13 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface PlayerGetReadyProps {
   questionIndex: number;
-  totalQuestions: number;
+  totalQuestions?: number;
 }
 
 export function PlayerGetReady({ questionIndex }: PlayerGetReadyProps) {
+  // Sync across total intro time (7.2s): counts 5 -> 4 -> 3 -> 2 -> 1
   const [count, setCount] = useState(5);
 
   useEffect(() => {
+    // 7.2 seconds / 5 intervals = ~1.44s per tick
     const timer = setInterval(() => {
       setCount((prev) => {
         if (prev <= 1) {
@@ -20,7 +22,7 @@ export function PlayerGetReady({ questionIndex }: PlayerGetReadyProps) {
         }
         return prev - 1;
       });
-    }, 1000);
+    }, 1440);
 
     return () => clearInterval(timer);
   }, []);
@@ -39,7 +41,7 @@ export function PlayerGetReady({ questionIndex }: PlayerGetReadyProps) {
           key={`pie-rotation-${count}`}
           initial={{ rotate: 0 }}
           animate={{ rotate: 360 }}
-          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0 rounded-full overflow-hidden shadow-2xl"
           style={{
             background: "conic-gradient(#FFFFFF 0% 50%, #9084BE 50% 100%)",
