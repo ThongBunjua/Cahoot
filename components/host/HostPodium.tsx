@@ -161,12 +161,12 @@ export function HostPodium({
       <AnimatePresence>
         {revealStep >= 3 && (
           <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden">
-            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE */}
+            {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Gradual Slow Cinematic Fade 2.2s) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 2.2, ease: "easeInOut" }}
               className="absolute inset-0 bg-[#050110]/90 backdrop-blur-[2px]"
             />
 
@@ -179,7 +179,10 @@ export function HostPodium({
                 opacity: [0.9, 1, 0.9],
               }}
               exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              transition={{
+                opacity: { duration: 1.8, ease: "easeInOut" },
+                scale: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+              }}
               className="absolute rounded-full border-4 border-yellow-200/60 shadow-[0_0_100px_35px_rgba(255,255,255,0.4),_inset_0_0_70px_rgba(255,255,255,0.3)] pointer-events-none"
               style={{
                 width: 460,

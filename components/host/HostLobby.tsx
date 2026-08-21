@@ -102,24 +102,16 @@ export function HostLobby({
   });
 
   // Dynamic varied speeds for natural, randomized flow across the 5 lanes
-  const laneSpeeds = [42, 30, 48, 34, 44];
+  const laneSpeeds = [25, 22, 28, 24, 26];
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
-      {/* Embedded CSS for Unbreakable Non-Resetting Continuous Marquee Flow */}
+      {/* Embedded CSS for Continuous Staggered Player Gliding */}
       <style jsx>{`
-        @keyframes continuousConveyor {
-          0% {
-            transform: translateX(-50%);
-          }
-          100% {
-            transform: translateX(0%);
-          }
-        }
-        @keyframes singlePlayerGlide {
+        @keyframes playerGlideTrack {
           0% {
             transform: translateX(-120%);
           }
@@ -127,15 +119,13 @@ export function HostLobby({
             transform: translateX(105vw);
           }
         }
-        .conveyor-track {
+        .player-glide-item {
+          position: absolute;
+          left: 0;
           display: flex;
+          align-items: center;
           will-change: transform;
-          animation: continuousConveyor linear infinite;
-        }
-        .single-player-track {
-          display: flex;
-          will-change: transform;
-          animation: singlePlayerGlide linear infinite;
+          animation: playerGlideTrack linear infinite;
         }
       `}</style>
 
@@ -280,57 +270,37 @@ export function HostLobby({
           </div>
         ) : (
           /* Exactly 5 Conveyor Lines with Permanent Stable Lane Assignment */
-          <div className="w-full flex-1 flex flex-col justify-center gap-1.5 sm:gap-2.5 py-1 overflow-hidden">
+          <div className="w-full flex-1 flex flex-col justify-center gap-2 sm:gap-3 py-1 overflow-hidden">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
               const speedSec = laneSpeeds[rowIndex % laneSpeeds.length];
+              const totalInRow = rowPlayers.length;
 
               return (
                 <div
                   key={rowIndex}
-                  className="w-full overflow-hidden flex relative"
+                  className="w-full h-14 sm:h-16 md:h-18 overflow-hidden relative flex items-center"
                   style={{
                     maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)",
                   }}
                 >
-                  {rowPlayers.length === 1 ? (
-                    /* Single player in lane: single card slides across full screen and loops */
-                    <div
-                      className="single-player-track items-center shrink-0"
-                      style={{ animationDuration: `${speedSec * 0.65}s` }}
-                    >
-                      <div className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-6 py-2.5 sm:px-8 sm:py-3.5 flex items-center gap-3.5 shadow-xl select-none shrink-0">
-                        <span className="text-2xl sm:text-4xl flex-shrink-0 filter drop-shadow-sm select-none">
-                          {rowPlayers[0].avatar}
-                        </span>
-                        <span className="text-lg sm:text-2xl font-black text-white truncate max-w-[200px] sm:max-w-[260px] tracking-tight">
-                          {rowPlayers[0].nickname}
-                        </span>
+                  {rowPlayers.map((player, pIdx) => {
+                    const delaySec = (pIdx / totalInRow) * speedSec;
 
-                        <button
-                          onClick={() => onKickPlayer(rowPlayers[0].id)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
-                          title={`Remove ${rowPlayers[0].nickname}`}
-                        >
-                          <X className="w-3.5 h-3.5 stroke-[3]" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Multiple players in lane: smooth seamless tape */
-                    <div
-                      className="conveyor-track gap-4 sm:gap-6 items-center flex-nowrap shrink-0 pr-6"
-                      style={{ animationDuration: `${speedSec}s` }}
-                    >
-                      {[...rowPlayers, ...rowPlayers].map((player, pIdx) => (
-                        <div
-                          key={`${player.id}-${pIdx}`}
-                          className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-6 py-2.5 sm:px-8 sm:py-3.5 flex items-center gap-3.5 shadow-xl select-none shrink-0"
-                        >
-                          <span className="text-2xl sm:text-4xl flex-shrink-0 filter drop-shadow-sm select-none">
+                    return (
+                      <div
+                        key={player.id}
+                        className="player-glide-item"
+                        style={{
+                          animationDuration: `${speedSec}s`,
+                          animationDelay: `-${delaySec}s`,
+                        }}
+                      >
+                        <div className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-5 py-2 sm:px-7 sm:py-3 flex items-center gap-3 shadow-xl select-none shrink-0">
+                          <span className="text-2xl sm:text-3xl flex-shrink-0 filter drop-shadow-sm select-none">
                             {player.avatar}
                           </span>
-                          <span className="text-lg sm:text-2xl font-black text-white truncate max-w-[200px] sm:max-w-[260px] tracking-tight">
+                          <span className="text-base sm:text-xl font-black text-white truncate max-w-[180px] sm:max-w-[240px] tracking-tight">
                             {player.nickname}
                           </span>
 
@@ -342,9 +312,9 @@ export function HostLobby({
                             <X className="w-3.5 h-3.5 stroke-[3]" />
                           </button>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
