@@ -185,6 +185,7 @@ function KahootPlayerContent() {
                   streak={state.streak || 0}
                   currentRank={state.currentRank || 1}
                   totalPlayers={Math.max(1, state.totalPlayers)}
+                  isLastQuestion={state.currentQuestionIndex + 1 >= state.totalQuestions && state.totalQuestions > 0}
                 />
               )}
 

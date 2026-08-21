@@ -113,28 +113,50 @@ export function HostPodium({ quiz, players, onPlayAgain }: HostPodiumProps) {
       <ConfettiEffect trigger={triggerConfetti} duration={14000} />
 
       {/* ========================================================================= */}
-      {/* DYNAMIC SWEEPING SPOTLIGHT BEAM */}
+      {/* DUAL GOLDEN CINEMATIC STAGE SPOTLIGHT BEAMS & CELEBRATION */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {spotlight && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-50 pointer-events-none flex flex-col items-center justify-start bg-black/85 overflow-hidden"
-          >
+          <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
+            {/* Soft Ambient Stage Dimming */}
             <motion.div
-              initial={{ y: -180, scale: 0.4, opacity: 0 }}
-              animate={{ y: 130, scale: 1, opacity: 1 }}
-              transition={{ duration: 1.0, ease: "easeOut" }}
-              className="w-[560px] h-[560px] sm:w-[720px] sm:h-[720px] rounded-full bg-white/20 shadow-[0_0_200px_rgba(255,255,255,0.75)] border-4 border-white/40 flex flex-col items-center justify-start pt-12"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            />
+
+            {/* Left Golden Spotlight Cone */}
+            <motion.div
+              initial={{ opacity: 0, rotate: -25, scaleY: 0.5 }}
+              animate={{ opacity: [0, 0.7, 0.5], rotate: -15, scaleY: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="absolute -top-20 left-1/4 w-[280px] sm:w-[420px] h-[120vh] bg-gradient-to-b from-yellow-300/40 via-amber-400/15 to-transparent blur-2xl origin-top"
+              style={{ clipPath: "polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)" }}
+            />
+
+            {/* Right Golden Spotlight Cone */}
+            <motion.div
+              initial={{ opacity: 0, rotate: 25, scaleY: 0.5 }}
+              animate={{ opacity: [0, 0.7, 0.5], rotate: 15, scaleY: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="absolute -top-20 right-1/4 w-[280px] sm:w-[420px] h-[120vh] bg-gradient-to-b from-yellow-300/40 via-amber-400/15 to-transparent blur-2xl origin-top"
+              style={{ clipPath: "polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)" }}
+            />
+
+            {/* Grand Champion Floating Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+              className="absolute top-24 sm:top-28 left-1/2 -translate-x-1/2 flex flex-col items-center text-center z-40"
             >
-              <span className="text-3xl sm:text-5xl font-black text-yellow-300 uppercase tracking-widest animate-pulse drop-shadow-2xl">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-yellow-400 bg-black/60 px-6 py-2 rounded-full border-2 border-yellow-400/40 shadow-2xl backdrop-blur-md">
                 Grand Champion
               </span>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Check, X, Flame, Award, Clock, Sparkles } from "lucide-react";
+import { Check, X, Flame, Award, Clock, Sparkles, Trophy } from "lucide-react";
 import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 
 interface PlayerFeedbackProps {
@@ -12,6 +12,7 @@ interface PlayerFeedbackProps {
   streak?: number;
   currentRank?: number;
   totalPlayers?: number;
+  isLastQuestion?: boolean;
 }
 
 export function PlayerFeedback({
@@ -21,6 +22,7 @@ export function PlayerFeedback({
   streak = 0,
   currentRank = 1,
   totalPlayers = 1,
+  isLastQuestion = false,
 }: PlayerFeedbackProps) {
   const isWinner = isCorrect === true;
   const isTimeUp = isCorrect === null;
@@ -42,7 +44,7 @@ export function PlayerFeedback({
       {/* Top Banner */}
       <div className="pt-4">
         <span className="text-xs font-black uppercase tracking-widest bg-black/25 text-white/90 px-4 py-1.5 rounded-full border border-white/20">
-          Round Finished
+          {isLastQuestion ? "Game Finished!" : "Round Finished"}
         </span>
       </div>
 
@@ -98,32 +100,48 @@ export function PlayerFeedback({
         )}
       </div>
 
-      {/* Bottom Floating Stats Pill */}
+      {/* Bottom Floating Stats Pill (Rank is hidden on final question to build suspense for Host Podium!) */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="w-full max-w-xs bg-black/35 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/20 flex items-center justify-around shadow-2xl pb-4 mb-2"
+        className="w-full max-w-sm bg-black/35 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/20 flex items-center justify-around shadow-2xl pb-4 mb-2"
       >
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1 text-slate-300 text-[11px] font-bold uppercase tracking-wider mb-0.5">
-            <Award className="w-3.5 h-3.5 text-yellow-300" />
-            <span>Rank</span>
+        {isLastQuestion ? (
+          <div className="flex items-center gap-3 py-1">
+            <Trophy className="w-8 h-8 text-yellow-400 flex-shrink-0 animate-bounce" />
+            <div className="text-left">
+              <span className="text-yellow-300 text-xs sm:text-sm font-black uppercase tracking-wider block">
+                Final Question Done!
+              </span>
+              <span className="text-xs text-white/90 font-bold block">
+                Look at the Host screen for the Podium!
+              </span>
+            </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black">
-            #{currentRank}{" "}
-            <span className="text-xs font-bold text-slate-300">/ {totalPlayers}</span>
-          </span>
-        </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center">
+              <div className="flex items-center gap-1 text-slate-300 text-[11px] font-bold uppercase tracking-wider mb-0.5">
+                <Award className="w-3.5 h-3.5 text-yellow-300" />
+                <span>Rank</span>
+              </div>
+              <span className="text-2xl sm:text-3xl font-black">
+                #{currentRank}{" "}
+                <span className="text-xs font-bold text-slate-300">/ {totalPlayers}</span>
+              </span>
+            </div>
 
-        <div className="w-[1px] h-10 bg-white/20" />
+            <div className="w-[1px] h-10 bg-white/20" />
 
-        <div className="flex flex-col items-center">
-          <span className="text-slate-300 text-[11px] font-bold uppercase tracking-wider mb-0.5">
-            Total Score
-          </span>
-          <span className="text-2xl sm:text-3xl font-black">{safeScore.toLocaleString()}</span>
-        </div>
+            <div className="flex flex-col items-center">
+              <span className="text-slate-300 text-[11px] font-bold uppercase tracking-wider mb-0.5">
+                Total Score
+              </span>
+              <span className="text-2xl sm:text-3xl font-black">{safeScore.toLocaleString()}</span>
+            </div>
+          </>
+        )}
       </motion.div>
     </div>
   );

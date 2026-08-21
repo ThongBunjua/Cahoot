@@ -28,7 +28,7 @@ export function HostQuestionIntro({
   useEffect(() => {
     sounds.playGetReadyPulse(3);
 
-    // 1.8s: Morph phone from Center Stage to Top Anchor above Question Box
+    // 1.8s: Morph phone from Center Stage to Top Floating Position Above Question Box
     const tPreview = setTimeout(() => {
       setStage("question_preview");
       sounds.playClick();
@@ -78,63 +78,66 @@ export function HostQuestionIntro({
         <AudioControl />
       </header>
 
-      {/* 2. Main Center Stage: Single Continuous Seamless Phone Morph */}
+      {/* 2. Main Center Stage: Continuous Phone Morph with Spacious Top Separation */}
       <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-6xl mx-auto my-auto">
         {/* ========================================================================= */}
-        {/* PERSISTENT PHONE MOCKUP (Physically glides & scales from Center to Top) */}
+        {/* EXTRA-LARGE PHONE MOCKUP (Full-Screen presence in Stage 1, Floats nicely in Stage 2) */}
         {/* ========================================================================= */}
         <motion.div
-          initial={{ y: 80, scale: 0.5, opacity: 0 }}
+          initial={{ y: 80, scale: 0.6, opacity: 0 }}
           animate={
             stage === "phone_center"
               ? { y: 0, scale: 1, opacity: 1 }
-              : { y: -195, scale: 0.44, opacity: 1 }
+              : { y: -220, scale: 0.38, opacity: 1 }
           }
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-          className="w-72 h-[430px] bg-slate-950 rounded-[46px] p-4 border-4 border-slate-700 border-b-[10px] border-b-slate-800 shadow-[0_35px_80px_rgba(0,0,0,0.8)] flex flex-col justify-between absolute z-30 origin-center pointer-events-none"
+          className="w-80 h-[500px] sm:w-96 sm:h-[580px] bg-slate-950 rounded-[52px] p-5 border-4 border-slate-700 border-b-[12px] border-b-slate-800 shadow-[0_40px_100px_rgba(0,0,0,0.85)] flex flex-col justify-between absolute z-30 origin-center pointer-events-none"
         >
-          {/* Phone Speaker Notch */}
-          <div className="w-20 h-4 bg-slate-800 rounded-full mx-auto mb-3 flex-shrink-0" />
+          {/* Phone Speaker Notch & Front Camera */}
+          <div className="flex items-center justify-center gap-2 mb-3 flex-shrink-0">
+            <div className="w-24 h-4 bg-slate-800 rounded-full" />
+            <div className="w-4 h-4 bg-slate-800 rounded-full" />
+          </div>
 
           {/* Phone Screen Display */}
-          <div className="flex-1 bg-[#240B4D] rounded-3xl p-4 flex flex-col justify-between border border-purple-900/60 overflow-hidden shadow-inner">
-            {/* Top: Cahoot! Mini Header */}
-            <div className="text-center py-1">
-              <span className="text-xl font-black tracking-tighter text-white">
+          <div className="flex-1 bg-[#240B4D] rounded-[36px] p-5 flex flex-col justify-between border border-purple-900/60 overflow-hidden shadow-inner">
+            {/* Top: Cahoot! Header */}
+            <div className="text-center py-2">
+              <span className="text-2xl sm:text-3xl font-black tracking-tighter text-white">
                 Cahoot<span className="text-yellow-400">!</span>
               </span>
             </div>
 
-            {/* Center: 4 Mini Colored Geometric Buttons */}
-            <div className="grid grid-cols-2 grid-rows-2 gap-2.5 flex-1 my-2.5">
-              <div className="bg-[#E21B3C] rounded-xl flex items-center justify-center p-2 shadow-md">
-                <KahootShape shape="triangle" size={26} className="text-white drop-shadow" />
+            {/* Center: 4 Big Colored Geometric Buttons */}
+            <div className="grid grid-cols-2 grid-rows-2 gap-3 flex-1 my-3">
+              <div className="bg-[#E21B3C] rounded-2xl flex items-center justify-center p-3 shadow-lg">
+                <KahootShape shape="triangle" size={36} className="text-white drop-shadow-md" />
               </div>
-              <div className="bg-[#1368CE] rounded-xl flex items-center justify-center p-2 shadow-md">
-                <KahootShape shape="diamond" size={26} className="text-white drop-shadow" />
+              <div className="bg-[#1368CE] rounded-2xl flex items-center justify-center p-3 shadow-lg">
+                <KahootShape shape="diamond" size={36} className="text-white drop-shadow-md" />
               </div>
-              <div className="bg-[#FFA602] rounded-xl flex items-center justify-center p-2 shadow-md">
-                <KahootShape shape="circle" size={26} className="text-white drop-shadow" />
+              <div className="bg-[#FFA602] rounded-2xl flex items-center justify-center p-3 shadow-lg">
+                <KahootShape shape="circle" size={36} className="text-white drop-shadow-md" />
               </div>
-              <div className="bg-[#26890C] rounded-xl flex items-center justify-center p-2 shadow-md">
-                <KahootShape shape="square" size={26} className="text-white drop-shadow" />
+              <div className="bg-[#26890C] rounded-2xl flex items-center justify-center p-3 shadow-lg">
+                <KahootShape shape="square" size={36} className="text-white drop-shadow-md" />
               </div>
             </div>
 
             {/* Bottom Home Indicator Line */}
-            <div className="w-16 h-1.5 bg-white/40 rounded-full mx-auto" />
+            <div className="w-24 h-2 bg-white/40 rounded-full mx-auto" />
           </div>
         </motion.div>
 
         {/* ========================================================================= */}
-        {/* QUESTION PREVIEW BOX (Expands smoothly beneath the resting phone) */}
+        {/* QUESTION PREVIEW BOX (Spaciously positioned with breathing room below phone) */}
         {/* ========================================================================= */}
         <motion.div
           initial={{ opacity: 0, scale: 0.85, y: 120 }}
           animate={
             stage === "phone_center"
               ? { opacity: 0, scale: 0.85, y: 120, pointerEvents: "none" }
-              : { opacity: 1, scale: 1, y: 45, pointerEvents: "auto" }
+              : { opacity: 1, scale: 1, y: 65, pointerEvents: "auto" }
           }
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           className="w-full max-w-5xl flex flex-col items-center text-center relative z-20"

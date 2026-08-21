@@ -48,9 +48,9 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: Super-Sized Solid White Question Box (Widescreen max-w-[96vw]) */}
       {/* ========================================================================= */}
-      <header className="flex items-center justify-between gap-4 max-w-[96vw] mx-auto w-full pt-1 z-20">
-        <div className="flex-1 min-w-0 bg-white text-slate-900 px-6 py-4 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-xl">
-          <h2 className="text-xl md:text-3xl lg:text-4xl font-black text-slate-900 truncate text-center sm:text-left tracking-tight">
+      <header className="flex items-center justify-between gap-6 max-w-[96vw] mx-auto w-full pt-1 z-20">
+        <div className="flex-1 min-w-0 bg-white text-slate-900 px-6 md:px-10 py-5 md:py-6 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-xl min-h-[110px] md:min-h-[130px] flex items-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 text-center sm:text-left tracking-tight leading-snug break-words w-full">
             {question.question_text}
           </h2>
         </div>

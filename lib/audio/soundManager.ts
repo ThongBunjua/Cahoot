@@ -570,7 +570,7 @@ class SoundManager {
     }, 240);
   }
 
-  // 2. Question Countdown Tension Beat (Fast pulsing arcade suspense)
+  // 2. Question Countdown Tension Beat (Fast pulsing arcade suspense + bassline)
   public startQuestionMusic() {
     this.isQuestionBeatPlaying = true;
     this.isLobbyPlaying = false;
@@ -582,27 +582,55 @@ class SoundManager {
     this.stopAllMusic();
     this.isQuestionBeatPlaying = true;
 
-    const rhythm = [110, 110, 220, 110, 146.83, 110, 220, 164.81];
+    // Iconic syncopated question groove: Root-Octave Bassline + High Ticking Chime
+    const groove = [
+      { bass: 110.0, lead: 440.0 }, // A2 + A4
+      { bass: 0, lead: 523.25 },     // C5
+      { bass: 220.0, lead: 440.0 }, // A3 + A4
+      { bass: 0, lead: 659.25 },     // E5
+      { bass: 146.83, lead: 587.33 },// D3 + D5
+      { bass: 0, lead: 523.25 },     // C5
+      { bass: 220.0, lead: 659.25 }, // A3 + E5
+      { bass: 164.81, lead: 783.99 },// E3 + G5
+    ];
     let step = 0;
 
     this.musicInterval = setInterval(() => {
       if (!this.isQuestionBeatPlaying || this.isMuted || !this.ctx) return;
-      const freq = rhythm[step % rhythm.length];
+      const beat = groove[step % groove.length];
 
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+      // Bass synth note
+      if (beat.bass > 0) {
+        const bOsc = this.ctx.createOscillator();
+        const bGain = this.ctx.createGain();
+        bOsc.type = "sawtooth";
+        bOsc.frequency.setValueAtTime(beat.bass, this.ctx.currentTime);
+        bGain.gain.setValueAtTime(0.09, this.ctx.currentTime);
+        bGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.16);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.12);
+        bOsc.connect(bGain);
+        bGain.connect(this.ctx.destination);
+        bOsc.start();
+        bOsc.stop(this.ctx.currentTime + 0.16);
+      }
+
+      // High Ticking Arp Note
+      if (beat.lead > 0) {
+        const lOsc = this.ctx.createOscillator();
+        const lGain = this.ctx.createGain();
+        lOsc.type = "triangle";
+        lOsc.frequency.setValueAtTime(beat.lead, this.ctx.currentTime);
+        lGain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        lGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.10);
+
+        lOsc.connect(lGain);
+        lGain.connect(this.ctx.destination);
+        lOsc.start();
+        lOsc.stop(this.ctx.currentTime + 0.10);
+      }
 
       step++;
-    }, 180);
+    }, 190);
   }
 
   public stopLobbyMusic() {
