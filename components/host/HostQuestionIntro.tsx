@@ -21,9 +21,9 @@ export function HostQuestionIntro({
   totalQuestions,
   onIntroComplete,
 }: HostQuestionIntroProps) {
-  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_center" -> "question_preview" -> "morph_to_top"
+  // Stages: "countdown_3" -> "countdown_2" -> "countdown_1" -> "phone_center" -> "question_preview"
   const [stage, setStage] = useState<
-    "countdown_3" | "countdown_2" | "countdown_1" | "phone_center" | "question_preview" | "morph_to_top"
+    "countdown_3" | "countdown_2" | "countdown_1" | "phone_center" | "question_preview"
   >("countdown_3");
   const [readingProgress, setReadingProgress] = useState(0);
 
@@ -57,7 +57,7 @@ export function HostQuestionIntro({
     };
   }, []);
 
-  // Reading progress bar -> then morph -> then switch to HostQuestion
+  // Reading progress bar -> once 100%, seamlessly hand over to HostQuestion in one single continuous glide
   useEffect(() => {
     if (stage !== "question_preview") return;
 
@@ -70,11 +70,7 @@ export function HostQuestionIntro({
         const next = prev + increment;
         if (next >= 100) {
           clearInterval(interval);
-          setStage("morph_to_top");
-          // Smooth 650ms morph animation before handing over to HostQuestion
-          setTimeout(() => {
-            onIntroComplete();
-          }, 650);
+          onIntroComplete();
           return 100;
         }
         return next;
@@ -86,8 +82,7 @@ export function HostQuestionIntro({
 
   const isShapeCountdown =
     stage === "countdown_3" || stage === "countdown_2" || stage === "countdown_1";
-  const isMorphing = stage === "morph_to_top";
-  const isQuestionVisible = stage === "question_preview" || isMorphing;
+  const isQuestionVisible = stage === "question_preview";
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between p-3 sm:p-4 md:p-5 select-none overflow-hidden font-sans relative">
@@ -162,14 +157,12 @@ export function HostQuestionIntro({
           )}
         </AnimatePresence>
 
-        {/* PART B: PHONE MOCKUP (Smoothly elevates when question appears, fades out on morph) */}
-        {(stage === "phone_center" || stage === "question_preview" || isMorphing) && (
+        {/* PART B: PHONE MOCKUP (Elevates to upper center when question appears) */}
+        {(stage === "phone_center" || stage === "question_preview") && (
           <motion.div
             initial={{ y: 80, scale: 0.5, opacity: 0 }}
             animate={
-              isMorphing
-                ? { y: -380, scale: 0.25, opacity: 0 }
-                : stage === "phone_center"
+              stage === "phone_center"
                 ? { y: 0, scale: 1, opacity: 1 }
                 : { y: -200, scale: 0.38, opacity: 1 }
             }
@@ -208,68 +201,18 @@ export function HostQuestionIntro({
           </motion.div>
         )}
 
-        {/* PART C: QUESTION CARD - STAYS 100% STILL IN PREVIEW, SLIDES UP AT CONSTANT SPEED ON MORPH */}
+        {/* PART C: QUESTION CARD - STAYS 100% STILL DURING PREVIEW, MORPHS CONTINUOUSLY TO HOSTQUESTION HEADER */}
         {isQuestionVisible && (
           <motion.div
             layoutId="host-question-banner"
             initial={{ opacity: 0 }}
-            animate={
-              isMorphing
-                ? {
-                    y: -360,
-                    opacity: 1,
-                  }
-                : {
-                    y: 60,
-                    opacity: 1,
-                  }
-            }
-            transition={{
-              duration: isMorphing ? 0.6 : 0.25,
-              ease: isMorphing ? "easeInOut" : "easeOut",
-            }}
-            className={`w-full bg-white text-slate-900 shadow-2xl flex items-center justify-between z-30 ${
-              isMorphing
-                ? "max-w-[98vw] py-2.5 sm:py-3.5 px-4 sm:px-8 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 gap-4"
-                : "max-w-[1100px] py-7 sm:py-9 px-8 sm:px-14 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300"
-            }`}
+            animate={{ opacity: 1, y: 60 }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-[1100px] bg-white text-slate-900 shadow-2xl flex items-center justify-center py-7 sm:py-9 px-8 sm:px-14 rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 z-30"
           >
-            {/* Left: Badge during morph */}
-            {isMorphing && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-center gap-2 flex-shrink-0"
-              >
-                <span className="text-xs sm:text-sm md:text-base font-black uppercase tracking-wider bg-[#33106B] text-white px-3.5 py-1.5 rounded-xl border-2 border-[#240B4D]">
-                  {questionIndex + 1} / {totalQuestions}
-                </span>
-              </motion.div>
-            )}
-
-            {/* Center: Question Text */}
-            <h1
-              className={`font-black text-slate-900 leading-snug tracking-tight text-center flex-1 px-3 break-words ${
-                isMorphing
-                  ? "text-xl sm:text-2xl md:text-3xl lg:text-4xl"
-                  : "text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
-              }`}
-            >
+            <h1 className="font-black text-slate-900 leading-snug tracking-tight text-center flex-1 px-3 break-words text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
               {question.question_text}
             </h1>
-
-            {/* Right: Audio during morph */}
-            {isMorphing && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-center gap-2.5 flex-shrink-0"
-              >
-                <AudioControl />
-              </motion.div>
-            )}
           </motion.div>
         )}
 

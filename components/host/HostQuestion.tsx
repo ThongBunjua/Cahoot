@@ -65,7 +65,7 @@ export function HostQuestion({
       {/* ========================================================================= */}
       <motion.header
         layoutId="host-question-banner"
-        transition={{ type: "spring", stiffness: 220, damping: 22 }}
+        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-[98vw] mx-auto bg-white text-slate-900 rounded-2xl sm:rounded-3xl py-2.5 sm:py-3.5 px-4 sm:px-8 shadow-xl border-2 border-slate-200 border-b-[6px] border-b-slate-300 flex items-center justify-between gap-4 z-20 flex-shrink-0"
       >
         {/* Left: Question Counter Badge */}
