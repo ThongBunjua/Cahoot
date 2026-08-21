@@ -211,6 +211,17 @@ export function useGameHost(pin: string, quiz: Quiz) {
         }
       }
 
+      // 1.1 Player Leaves Room
+      if (payload.event === "PLAYER_LEAVE") {
+        const { id, nickname } = payload.data || {};
+        const remainingPlayers = currentState.players.filter(
+          (p) => p.id !== id && (!nickname || p.nickname.toLowerCase() !== String(nickname).toLowerCase())
+        );
+        stateRef.current = { ...stateRef.current, players: remainingPlayers };
+        setState((prev) => ({ ...prev, players: remainingPlayers }));
+        syncLobby(remainingPlayers);
+      }
+
       // 2. Player Submits Answer during Question Phase
       if (payload.event === "SUBMIT_ANSWER" && currentState.phase === "question") {
         const { playerId, nickname, answerIndex } = payload.data;

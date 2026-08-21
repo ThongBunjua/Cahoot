@@ -91,6 +91,7 @@ export type RealtimeEvent =
   | "ROOM_EXISTS"
   | "ROOM_NOT_FOUND"
   | "PLAYER_JOIN"
+  | "PLAYER_LEAVE"
   | "PLAYER_KICK"
   | "LOBBY_SYNC"
   | "GET_READY"

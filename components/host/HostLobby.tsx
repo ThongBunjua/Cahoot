@@ -190,7 +190,7 @@ export function HostLobby({
             </span>
           </div>
 
-          {/* Right Partition: Built-in Big Live QR Code (120px) */}
+          {/* Right Partition: Built-in Big Live QR Code (110px) */}
           <button
             onClick={() => setShowQR(true)}
             className="p-4 sm:p-6 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group flex-shrink-0"
@@ -204,9 +204,9 @@ export function HostLobby({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: 5 Full-Width Infinite Conveyor Lanes Scrolling Right */}
+      {/* 3. CENTER STAGE: 5 Full-Width Conveyor Lanes (Large Badges & Balanced Gaps) */}
       {/* ========================================================================= */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-1">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-2">
         {players.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center text-slate-300 max-w-lg">
             <div className="w-20 h-20 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] flex items-center justify-center mx-auto mb-3 animate-bounce shadow-2xl">
@@ -220,12 +220,12 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          /* Exactly 5 Multi-Row Full-Width Continuous Rightward Conveyor Lines */
-          <div className="w-full flex-1 flex flex-col justify-evenly gap-1.5 sm:gap-2.5 overflow-hidden py-1">
+          /* Exactly 5 Conveyor Lines with Large Bold Player Badges */
+          <div className="w-full flex-1 flex flex-col justify-between py-2 overflow-hidden">
             {rows.map((rowPlayers, rowIndex) => {
               if (rowPlayers.length === 0) return null;
 
-              // Systematic multiplier for infinite smooth loop without rapid single repeats
+              // Systematic multiplier for infinite smooth loop
               const multiplier = Math.max(3, Math.ceil(15 / rowPlayers.length));
               const seamlessList = Array(multiplier).fill(rowPlayers).flat();
               const speedSec = 34 + rowIndex * 6; // Calm readable pace
@@ -233,7 +233,7 @@ export function HostLobby({
               return (
                 <div
                   key={rowIndex}
-                  className="w-full overflow-hidden flex relative"
+                  className="w-full overflow-hidden flex relative my-1"
                   style={{
                     maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)",
                   }}
@@ -245,7 +245,7 @@ export function HostLobby({
                       repeat: Infinity,
                       ease: "linear",
                     }}
-                    className="flex gap-3 sm:gap-5 items-center flex-nowrap shrink-0 pr-5"
+                    className="flex gap-4 sm:gap-6 items-center flex-nowrap shrink-0 pr-6"
                   >
                     {seamlessList.map((player, pIdx) => (
                       <motion.div
@@ -253,21 +253,21 @@ export function HostLobby({
                         initial={{ scale: 0.2 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 350, damping: 18 }}
-                        className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-5 sm:px-7 py-2 sm:py-3 flex items-center gap-3.5 shadow-xl select-none shrink-0"
+                        className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] rounded-2xl sm:rounded-3xl px-7 py-3 sm:px-9 sm:py-4 flex items-center gap-4 shadow-2xl select-none shrink-0"
                       >
-                        <span className="text-2xl sm:text-4xl flex-shrink-0 filter drop-shadow-sm select-none">
+                        <span className="text-3xl sm:text-5xl flex-shrink-0 filter drop-shadow-sm select-none">
                           {player.avatar}
                         </span>
-                        <span className="text-lg sm:text-2xl font-black text-white truncate max-w-[180px] sm:max-w-[240px] tracking-tight">
+                        <span className="text-xl sm:text-3xl font-black text-white truncate max-w-[220px] sm:max-w-[300px] tracking-tight">
                           {player.nickname}
                         </span>
 
                         <button
                           onClick={() => onKickPlayer(player.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
+                          className="opacity-0 group-hover:opacity-100 p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1.5"
                           title={`Remove ${player.nickname}`}
                         >
-                          <X className="w-3.5 h-3.5 stroke-[3]" />
+                          <X className="w-4 h-4 stroke-[3]" />
                         </button>
                       </motion.div>
                     ))}

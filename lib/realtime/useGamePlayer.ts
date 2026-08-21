@@ -32,7 +32,7 @@ export function useGamePlayer(initialPin: string = "") {
   const timerRef = useRef<any>(null);
   const joinHandshakeIntervalRef = useRef<any>(null);
 
-  // Restore session from localStorage if available
+  // Restore session from localStorage only if the room actually exists
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -40,13 +40,22 @@ export function useGamePlayer(initialPin: string = "") {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.pin && parsed.player) {
-          setState((prev) => ({
-            ...prev,
-            pin: parsed.pin,
-            player: parsed.player,
-            currentScore: parsed.player.score || 0,
-            streak: parsed.player.streak || 0,
-          }));
+          SyncBridge.verifyRoomExists(parsed.pin).then((res) => {
+            if (res.exists) {
+              setState((prev) => ({
+                ...prev,
+                pin: parsed.pin,
+                player: parsed.player,
+                currentScore: parsed.player.score || 0,
+                streak: parsed.player.streak || 0,
+              }));
+            } else {
+              // Stale room -> delete cache so user stays on clean PIN screen
+              localStorage.removeItem("cahoot_player_session");
+            }
+          }).catch(() => {
+            localStorage.removeItem("cahoot_player_session");
+          });
         }
       }
     } catch (e) {
@@ -369,8 +378,25 @@ export function useGamePlayer(initialPin: string = "") {
   }, [state.pin]);
 
   const leaveRoom = useCallback(() => {
+    const currentPin = stateRef.current.pin;
+    const currentPlayer = stateRef.current.player;
+
+    if (currentPin && currentPlayer) {
+      try {
+        const channel = getRealtimeChannel(currentPin);
+        channel.broadcast("PLAYER_LEAVE", {
+          id: currentPlayer.id,
+          nickname: currentPlayer.nickname,
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+
     localStorage.removeItem("cahoot_player_session");
     if (joinHandshakeIntervalRef.current) clearInterval(joinHandshakeIntervalRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
+
     setState({
       pin: "",
       player: null,
