@@ -72,7 +72,7 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MAIN CENTER: SUPER-TALL & WIDE DYNAMIC 3D SOLID BAR CHART */}
+      {/* 2. MAIN CENTER: SUPER-TALL 3D BAR CHART (Correct Answer Shines Brightest!) */}
       {/* ========================================================================= */}
       <main className="flex-1 flex flex-col items-center justify-end max-w-[98vw] mx-auto w-full my-2 md:my-3 z-10 px-2 sm:px-6 min-h-0">
         <div className="flex items-end justify-center gap-6 sm:gap-12 md:gap-16 lg:gap-20 w-full max-w-6xl h-full max-h-[420px] pb-2">
@@ -88,41 +88,57 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
                 : Math.round(40 + (count / maxVote) * (maxBarHeightPx - 40));
 
             return (
-              <div key={idx} className="flex-1 max-w-[150px] sm:max-w-[200px] md:max-w-[240px] flex flex-col items-center">
+              <div
+                key={idx}
+                className={`flex-1 max-w-[150px] sm:max-w-[200px] md:max-w-[240px] flex flex-col items-center transition-all duration-500 ${
+                  isCorrect
+                    ? "opacity-100 scale-[1.03] z-20"
+                    : "opacity-25 grayscale-[60%] z-10"
+                }`}
+              >
                 {/* Indicator Checkmark & Large Count Number */}
                 <div className="flex flex-col items-center gap-1.5 mb-2.5 h-20 justify-end flex-shrink-0">
-                  {isCorrect && (
+                  {isCorrect ? (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 bg-[#26890C] border-3 border-white text-white rounded-full flex items-center justify-center shadow-2xl animate-bounce"
+                      className="w-11 h-11 sm:w-13 sm:h-13 bg-[#26890C] border-3 border-white text-white rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(38,137,12,0.9)] animate-bounce"
                     >
-                      <Check className="w-6 h-6 sm:w-7 sm:h-7 stroke-[4]" />
+                      <Check className="w-7 h-7 stroke-[4]" />
                     </motion.div>
+                  ) : (
+                    <div className="h-11" />
                   )}
                   <span className="text-4xl sm:text-6xl md:text-7xl font-black text-white tabular-nums tracking-tight drop-shadow-md">
                     {count}
                   </span>
                 </div>
 
-                {/* The Super-Tall Solid Rising Bar */}
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${barHeight}px` }}
-                  transition={{ duration: 0.85, ease: "easeOut" }}
-                  className={`w-full rounded-t-3xl ${theme.bgClass} shadow-2xl border-t-4 border-x-2 border-white/60 relative overflow-hidden ${
-                    isCorrect ? "ring-4 ring-white shadow-[0_0_30px_rgba(255,255,255,0.6)]" : ""
-                  }`}
-                />
-
-                {/* Base Shape Solid Floor Tile */}
+                {/* Unified Full-Column Container with seamless border for correct answer */}
                 <div
-                  className={`w-full h-16 sm:h-20 ${theme.bgClass} rounded-b-2xl sm:rounded-b-3xl flex items-center justify-center shadow-lg border-b-[8px] sm:border-b-[10px] ${theme.borderBottomClass} flex-shrink-0`}
+                  className={`w-full flex flex-col rounded-3xl overflow-hidden shadow-2xl transition-all ${
+                    isCorrect
+                      ? "border-4 border-white shadow-[0_0_40px_rgba(255,255,255,0.75)]"
+                      : "border-2 border-white/10"
+                  }`}
                 >
-                  <span className="text-3xl sm:text-5xl text-white select-none drop-shadow">
-                    {theme.shapeSymbol}
-                  </span>
+                  {/* The Rising Bar */}
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: `${barHeight}px` }}
+                    transition={{ duration: 0.85, ease: "easeOut" }}
+                    className={`w-full ${theme.bgClass}`}
+                  />
+
+                  {/* Base Shape Solid Floor Tile */}
+                  <div
+                    className={`w-full h-16 sm:h-20 ${theme.bgClass} flex items-center justify-center border-t-2 border-black/20 ${theme.borderBottomClass} flex-shrink-0`}
+                  >
+                    <span className="text-3xl sm:text-5xl text-white select-none drop-shadow">
+                      {theme.shapeSymbol}
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -131,7 +147,7 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
       </main>
 
       {/* ========================================================================= */}
-      {/* 3. BOTTOM ZONE: MASSIVE SOLID 2X2 ANSWER GRID (Super-Sized!) */}
+      {/* 3. BOTTOM ZONE: MASSIVE SOLID 2X2 ANSWER GRID */}
       {/* ========================================================================= */}
       <footer className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 max-w-[98vw] mx-auto w-full pb-2 z-20 flex-shrink-0">
         {question.choices.map((choice, idx) => {
@@ -145,8 +161,8 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
                 theme.borderBottomClass
               } ${theme.bgClass} ${
                 isCorrect
-                  ? "border-4 border-white shadow-[0_0_30px_rgba(38,137,12,0.8)] scale-[1.01] opacity-100 ring-2 ring-emerald-400"
-                  : "opacity-40 grayscale-[25%]"
+                  ? "border-4 border-white shadow-[0_0_40px_rgba(38,137,12,0.9)] scale-[1.02] opacity-100 ring-4 ring-emerald-400"
+                  : "opacity-20 grayscale-[60%]"
               }`}
             >
               <span className="text-3xl sm:text-5xl md:text-6xl mr-4 sm:mr-6 text-white select-none drop-shadow-md">
@@ -158,8 +174,8 @@ export function HostResults({ question, answerCounts, isLastQuestion = false, on
               </span>
 
               {isCorrect && (
-                <div className="w-9 h-9 sm:w-11 sm:h-11 bg-white text-[#26890C] rounded-full flex items-center justify-center shadow-2xl flex-shrink-0 ml-3 animate-pulse">
-                  <Check className="w-6 h-6 sm:w-7 sm:h-7 stroke-[4]" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white text-[#26890C] rounded-full flex items-center justify-center shadow-2xl flex-shrink-0 ml-3 animate-pulse">
+                  <Check className="w-7 h-7 stroke-[4]" />
                 </div>
               )}
             </div>
