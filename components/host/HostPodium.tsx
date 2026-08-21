@@ -160,14 +160,17 @@ export function HostPodium({
       {/* ========================================================================= */}
       <AnimatePresence>
         {revealStep >= 3 && (
-          <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden">
+          <motion.div
+            key="podium-spotlight-stage"
+            className="fixed inset-0 z-20 pointer-events-none overflow-hidden"
+          >
             {/* 1. DEEP DARK STAGE DIMMING VIGNETTE (Fades in smoothly 0s - 1.8s) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1.8, ease: "easeInOut" }}
-              className="absolute inset-0 bg-[#050110]/92 backdrop-blur-[2.5px]"
+              className="absolute inset-0 bg-[#050110]/92 backdrop-blur-[2px]"
             />
 
             {/* 2. Compact Kahoot Circular Spotlight Dome (Delayed: Blooms into dark stage at 1.0s) */}
@@ -180,7 +183,7 @@ export function HostPodium({
               }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{
-                opacity: { duration: 1.4, delay: 1.0, ease: "easeOut" },
+                opacity: { duration: 1.2, delay: 1.0, ease: "easeOut" },
                 scale: { duration: 2.5, delay: 1.0, repeat: Infinity, ease: "easeInOut" },
               }}
               className="absolute rounded-full border-4 border-yellow-200/60 shadow-[0_0_120px_40px_rgba(255,255,255,0.45),_inset_0_0_80px_rgba(255,255,255,0.35)] pointer-events-none"
@@ -201,7 +204,7 @@ export function HostPodium({
                 className="w-3/4 h-3/4 rounded-full bg-white/20 blur-xl mx-auto mt-[12.5%]"
               />
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
