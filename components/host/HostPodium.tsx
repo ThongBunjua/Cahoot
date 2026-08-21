@@ -143,63 +143,55 @@ export function HostPodium({ quiz, players, onPlayAgain, onEndGame }: HostPodium
       {/* ========================================================================= */}
       {/* CINEMATIC SPOTLIGHT LIGHTING: BEAMS + CIRCULAR FLOOR DISK (วงกลมแสงไฟ) */}
       {/* ========================================================================= */}
-      {/* CINEMATIC SPOTLIGHT LIGHTING: RADIAL FOCUS ON CHAMPION + DARK SURROUNDINGS */}
+      {/* CINEMATIC SPOTLIGHT: DIRECT VERTICAL CENTER BEAM + DEEP DARK SURROUNDINGS */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {spotlight && (
           <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden flex flex-col items-center justify-center">
-            {/* 1. Dramatic Surrounding Dark Vignette (Dims entire stage except center champion) */}
+            {/* 1. Deep Dark Stage Background (Darkens surroundings so all focus is on center) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.0 }}
-              className="absolute inset-0"
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0 bg-[#06020e]/92 backdrop-blur-[2px]"
+            />
+
+            {/* 2. Grand Vertical Overhead Center Spotlight Beam (ฉายลงมาจากเพดานตรงกลางจอตรงๆ) */}
+            <motion.div
+              initial={{ opacity: 0, scaleY: 0.2 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              exit={{ opacity: 0, scaleY: 0.4 }}
+              transition={{ duration: 1.0, ease: "easeOut" }}
+              className="absolute -top-16 left-1/2 -translate-x-1/2 w-[560px] sm:w-[720px] h-[130vh] origin-top"
               style={{
-                background: "radial-gradient(circle 380px at 50% 46%, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.55) 45%, rgba(6,2,14,0.92) 75%, rgba(0,0,0,0.96) 100%)",
+                background: "linear-gradient(180deg, rgba(255, 235, 120, 0.7) 0%, rgba(255, 190, 30, 0.35) 35%, rgba(245, 158, 11, 0.12) 70%, transparent 100%)",
+                clipPath: "polygon(44% 0%, 56% 0%, 100% 100%, 0% 100%)",
               }}
             />
 
-            {/* 2. Left Golden Spotlight Cone converging to Center */}
-            <motion.div
-              initial={{ opacity: 0, rotate: -32, scaleY: 0.4 }}
-              animate={{ opacity: [0, 0.85, 0.65], rotate: -15, scaleY: 1 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute -top-24 left-[15%] w-[360px] sm:w-[500px] h-[135vh] bg-gradient-to-b from-[#FFA602]/50 via-amber-500/20 to-transparent blur-3xl origin-top"
-              style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
-            />
-
-            {/* 3. Right Violet-Gold Spotlight Cone converging to Center */}
-            <motion.div
-              initial={{ opacity: 0, rotate: 32, scaleY: 0.4 }}
-              animate={{ opacity: [0, 0.85, 0.65], rotate: 15, scaleY: 1 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute -top-24 right-[15%] w-[360px] sm:w-[500px] h-[135vh] bg-gradient-to-b from-yellow-300/50 via-amber-400/20 to-transparent blur-3xl origin-top"
-              style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
-            />
-
-            {/* 4. Giant Focused Circular Spotlight Halo centered directly behind Winner's Name, Avatar & Crown */}
+            {/* 3. Bright Glowing Circular Spotlight Pool centered directly at Winner Name, Crown & Avatar */}
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{
-                opacity: [0.75, 1, 0.85],
-                scale: [0.95, 1.05, 0.98],
+                opacity: [0.85, 1, 0.88],
+                scale: [0.96, 1.06, 0.98],
               }}
               exit={{ opacity: 0, scale: 0.6 }}
               transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] sm:w-[540px] h-[420px] sm:h-[540px] rounded-full bg-gradient-to-tr from-amber-400/35 via-yellow-300/25 to-yellow-500/10 blur-2xl border-4 border-yellow-300/50 shadow-[0_0_120px_rgba(250,204,21,0.75)]"
+              className="absolute top-[42%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] sm:w-[520px] h-[420px] sm:h-[520px] rounded-full bg-gradient-to-b from-amber-300/45 via-yellow-400/30 to-amber-500/10 blur-2xl border-4 border-yellow-300/50 shadow-[0_0_140px_rgba(250,204,21,0.85)]"
             />
 
-            {/* 5. Glowing Circular Stage Floor Spotlight (วงกลมแสงไฟส่องพื้นเวทีอันดับ 1) */}
+            {/* 4. Glowing Stage Floor Oval Spotlight at Base of 1st Place Pillar */}
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{
-                opacity: [0.8, 1, 0.88],
-                scale: [0.96, 1.04, 0.98],
+                opacity: [0.85, 1, 0.9],
+                scale: [0.98, 1.03, 0.99],
               }}
               exit={{ opacity: 0, scale: 0.7 }}
               transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[500px] sm:w-[620px] h-[160px] sm:h-[220px] rounded-[100%] bg-amber-400/30 border-2 border-yellow-300/60 blur-xl shadow-[0_0_90px_rgba(251,191,36,0.7)]"
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[520px] sm:w-[640px] h-[160px] sm:h-[220px] rounded-[100%] bg-amber-400/40 border-2 border-yellow-200/80 blur-xl shadow-[0_0_100px_rgba(251,191,36,0.8)]"
             />
           </div>
         )}
