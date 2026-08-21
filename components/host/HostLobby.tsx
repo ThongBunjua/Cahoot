@@ -279,7 +279,7 @@ export function HostLobby({
               return (
                 <div
                   key={rowIndex}
-                  className="w-full h-14 sm:h-16 md:h-18 overflow-hidden relative flex items-center"
+                  className="w-full h-18 sm:h-22 md:h-24 overflow-hidden relative flex items-center"
                   style={{
                     maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)",
                   }}
@@ -296,20 +296,20 @@ export function HostLobby({
                           animationDelay: `-${delaySec}s`,
                         }}
                       >
-                        <div className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] rounded-2xl px-5 py-2 sm:px-7 sm:py-3 flex items-center gap-3 shadow-xl select-none shrink-0">
-                          <span className="text-2xl sm:text-3xl flex-shrink-0 filter drop-shadow-sm select-none">
+                        <div className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] rounded-2xl sm:rounded-3xl px-6 py-3 sm:px-8 sm:py-4 flex items-center gap-3.5 sm:gap-4 shadow-2xl select-none shrink-0">
+                          <span className="text-3xl sm:text-4xl md:text-5xl flex-shrink-0 filter drop-shadow-md select-none">
                             {player.avatar}
                           </span>
-                          <span className="text-base sm:text-xl font-black text-white truncate max-w-[180px] sm:max-w-[240px] tracking-tight">
+                          <span className="text-lg sm:text-2xl md:text-3xl font-black text-white truncate max-w-[220px] sm:max-w-[320px] tracking-tight">
                             {player.nickname}
                           </span>
 
                           <button
                             onClick={() => onKickPlayer(player.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
+                            className="opacity-0 group-hover:opacity-100 p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
                             title={`Remove ${player.nickname}`}
                           >
-                            <X className="w-3.5 h-3.5 stroke-[3]" />
+                            <X className="w-4 h-4 stroke-[3]" />
                           </button>
                         </div>
                       </div>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Quiz } from "@/lib/realtime/types";
 import { QuizStore } from "@/lib/store/quizStore";
 import { generateGamePin } from "@/lib/utils/pinGenerator";
-import { Play, Plus, Edit3, Trash2, Copy, Layers, RefreshCw, Cloud } from "lucide-react";
+import { Play, Plus, Edit3, Trash2, Copy, Layers, RefreshCw, Cloud, Share2, Check } from "lucide-react";
 import Link from "next/link";
 import { HostGuard } from "@/components/auth/HostGuard";
 
@@ -13,6 +13,7 @@ function QuizzesContent() {
   const router = useRouter();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Load from local storage immediately, then fetch from Supabase Cloud
   const loadQuizzes = async () => {
@@ -33,6 +34,16 @@ function QuizzesContent() {
   const handleHostGame = (quizId: string) => {
     const pin = generateGamePin();
     router.push(`/host/game/${pin}?quizId=${quizId}`);
+  };
+
+  const handleShareQuiz = (quizId: string) => {
+    if (typeof window !== "undefined") {
+      const shareUrl = `${window.location.origin}/creator/${quizId}`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopiedId(quizId);
+        setTimeout(() => setCopiedId(null), 2500);
+      });
+    }
   };
 
   const handleDuplicate = async (quiz: Quiz) => {
@@ -172,6 +183,25 @@ function QuizzesContent() {
                     <Edit3 className="w-3.5 h-3.5" />
                     <span>Edit</span>
                   </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => handleShareQuiz(quiz.id)}
+                    className="py-1.5 px-2.5 bg-white/10 hover:bg-yellow-400/20 text-slate-300 hover:text-yellow-400 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 border border-white/10 cursor-pointer"
+                    title="Copy Quiz Link to Share"
+                  >
+                    {copiedId === quiz.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400 text-[11px]">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-3.5 h-3.5 text-yellow-400" />
+                        <span className="text-[11px]">Share</span>
+                      </>
+                    )}
+                  </button>
 
                   <button
                     type="button"

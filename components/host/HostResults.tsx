@@ -39,6 +39,14 @@ const CHOICES_SOLID_THEME = [
   },
 ];
 
+function getAnswerFontSize(text: string) {
+  const len = text ? text.trim().length : 0;
+  if (len <= 35) return "text-base sm:text-xl md:text-2xl lg:text-3xl";
+  if (len <= 75) return "text-sm sm:text-lg md:text-xl lg:text-2xl";
+  if (len <= 120) return "text-xs sm:text-sm md:text-base lg:text-lg";
+  return "text-[11px] sm:text-xs md:text-sm lg:text-[15px] leading-tight";
+}
+
 export function HostResults({
   question,
   answerCounts,
@@ -183,7 +191,7 @@ export function HostResults({
                 {theme.shapeSymbol}
               </span>
 
-              <span className="flex-1 truncate font-black text-base sm:text-xl md:text-2xl lg:text-3xl text-white tracking-tight leading-normal sm:leading-relaxed py-1">
+              <span className={`flex-1 font-black text-white tracking-tight leading-normal sm:leading-relaxed break-words py-1 ${getAnswerFontSize(choice.text)}`}>
                 {choice.text}
               </span>
 

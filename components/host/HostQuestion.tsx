@@ -38,6 +38,14 @@ const CHOICE_CONFIGS = [
   },
 ];
 
+function getAnswerFontSize(text: string) {
+  const len = text ? text.trim().length : 0;
+  if (len <= 35) return "text-base sm:text-xl md:text-2xl lg:text-3xl";
+  if (len <= 75) return "text-sm sm:text-lg md:text-xl lg:text-2xl";
+  if (len <= 120) return "text-xs sm:text-sm md:text-base lg:text-lg";
+  return "text-[11px] sm:text-xs md:text-sm lg:text-[15px] leading-tight";
+}
+
 export function HostQuestion({
   question,
   questionIndex,
@@ -123,15 +131,17 @@ export function HostQuestion({
           </span>
         </div>
 
-        {/* Center: Full-Canvas Media Display (Only rendered when question has an image, otherwise completely open) */}
+        {/* Center: Full-Canvas Media Display (Auto-fits image aspect ratio tightly) */}
         {question.media_url ? (
-          <div className="flex-1 h-full max-h-[42vh] lg:max-h-[46vh] bg-[#33106B]/90 rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-2xl flex items-center justify-center mx-3 sm:mx-6 md:mx-8 relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={question.media_url}
-              alt="Question visual"
-              className="w-full h-full object-contain bg-black/40"
-            />
+          <div className="flex-1 h-full max-h-[42vh] lg:max-h-[46vh] flex items-center justify-center mx-3 sm:mx-6 md:mx-8">
+            <div className="h-full max-h-[42vh] lg:max-h-[46vh] w-fit max-w-[55vw] rounded-3xl border-4 border-[#240B4D] overflow-hidden shadow-2xl bg-black/40 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={question.media_url}
+                alt="Question visual"
+                className="h-full w-auto max-h-[42vh] lg:max-h-[46vh] max-w-[55vw] object-contain rounded-2xl"
+              />
+            </div>
           </div>
         ) : (
           <div className="flex-1" />
@@ -149,7 +159,7 @@ export function HostQuestion({
       </main>
 
       {/* ========================================================================= */}
-      {/* 4. BOTTOM ZONE: MASSIVE & HIGH-IMPACT 2X2 ANSWER GRID (Thai Safe) */}
+      {/* 4. BOTTOM ZONE: MASSIVE & HIGH-IMPACT 2X2 ANSWER GRID (Thai Safe & Dynamic Font Size) */}
       {/* ========================================================================= */}
       <footer className="w-full max-w-[96vw] mx-auto grid grid-cols-2 gap-3 sm:gap-4 pb-3 sm:pb-4 px-2 sm:px-4 z-20 flex-shrink-0">
         {question.choices.map((choice, idx) => {
@@ -164,8 +174,8 @@ export function HostQuestion({
                 {config.shapeSymbol}
               </span>
 
-              {/* Massive Thai-Friendly Answer Text (generous line height) */}
-              <span className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight leading-normal sm:leading-relaxed line-clamp-2 break-words drop-shadow-sm flex-1 py-1">
+              {/* Massive Thai-Friendly Answer Text (Dynamic font scaling for full text display) */}
+              <span className={`font-black tracking-tight leading-normal sm:leading-relaxed break-words drop-shadow-sm flex-1 py-1 ${getAnswerFontSize(choice.text)}`}>
                 {choice.text}
               </span>
             </div>

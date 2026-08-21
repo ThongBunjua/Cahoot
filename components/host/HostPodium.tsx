@@ -79,6 +79,20 @@ function RankParticles({
   return <div className="absolute inset-0 pointer-events-none flex items-center justify-center -z-10">{particles}</div>;
 }
 
+function getPodiumNameFontSize(name: string, isChampion: boolean = false) {
+  const len = name ? name.trim().length : 0;
+  if (isChampion) {
+    if (len <= 10) return "text-2xl sm:text-4xl md:text-5xl";
+    if (len <= 20) return "text-xl sm:text-3xl md:text-4xl";
+    if (len <= 30) return "text-lg sm:text-2xl md:text-3xl";
+    return "text-sm sm:text-lg md:text-xl leading-tight";
+  }
+  if (len <= 10) return "text-xl sm:text-3xl md:text-4xl";
+  if (len <= 20) return "text-lg sm:text-2xl md:text-3xl";
+  if (len <= 30) return "text-base sm:text-xl md:text-2xl";
+  return "text-xs sm:text-base md:text-lg leading-tight";
+}
+
 export function HostPodium({
   quiz,
   players = [],
@@ -440,8 +454,8 @@ export function HostPodium({
                         <span className="text-7xl sm:text-8xl md:text-9xl lg:text-[105px] mb-2 filter drop-shadow-[0_10px_20px_rgba(217,119,6,0.7)] select-none leading-none">
                           {third.avatar}
                         </span>
-                        {/* Solid White Name Plaque */}
-                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-12 py-3.5 sm:py-4.5 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-amber-700 truncate max-w-[300px] sm:max-w-[380px] text-center">
+                        {/* Solid White Name Plaque (Never truncated with '...') */}
+                        <div className={`bg-white text-slate-950 font-black px-6 sm:px-10 py-3 sm:py-4 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-amber-700 break-words w-fit max-w-[300px] sm:max-w-[390px] text-center ${getPodiumNameFontSize(third.nickname)}`}>
                           {third.nickname}
                         </div>
                       </motion.div>
@@ -526,8 +540,8 @@ export function HostPodium({
                         <span className="text-7xl sm:text-8xl md:text-9xl lg:text-[105px] mb-2 filter drop-shadow-[0_10px_20px_rgba(203,213,225,0.7)] select-none leading-none">
                           {second.avatar}
                         </span>
-                        {/* Solid White Name Plaque */}
-                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl px-8 sm:px-12 py-3.5 sm:py-4.5 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-400 truncate max-w-[300px] sm:max-w-[380px] text-center">
+                        {/* Solid White Name Plaque (Never truncated with '...') */}
+                        <div className={`bg-white text-slate-950 font-black px-6 sm:px-10 py-3 sm:py-4 rounded-3xl shadow-2xl border-2 border-slate-200 border-b-[8px] border-b-slate-400 break-words w-fit max-w-[300px] sm:max-w-[390px] text-center ${getPodiumNameFontSize(second.nickname)}`}>
                           {second.nickname}
                         </div>
                       </motion.div>
@@ -624,8 +638,8 @@ export function HostPodium({
                           {first.avatar}
                         </span>
 
-                        {/* Giant Solid White Name Plaque with Golden Glow */}
-                        <div className="bg-white text-slate-950 font-black text-2xl sm:text-4xl md:text-5xl px-10 sm:px-14 py-4 sm:py-5 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] border-4 border-amber-300 border-b-[8px] border-b-amber-400 truncate max-w-[360px] sm:max-w-[440px] text-center">
+                        {/* Giant Solid White Name Plaque with Golden Glow (Never truncated with '...') */}
+                        <div className={`bg-white text-slate-950 font-black px-8 sm:px-12 py-4 sm:py-5 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] border-4 border-amber-300 border-b-[8px] border-b-amber-400 break-words w-fit max-w-[360px] sm:max-w-[460px] text-center ${getPodiumNameFontSize(first.nickname, true)}`}>
                           {first.nickname}
                         </div>
                       </motion.div>

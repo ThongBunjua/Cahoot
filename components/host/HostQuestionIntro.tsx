@@ -210,16 +210,16 @@ export function HostQuestionIntro({
           </motion.div>
         )}
 
-        {/* PART C: QUESTION CARD - STAYS 100% STILL DURING PREVIEW, MORPHS CONTINUOUSLY TO HOSTQUESTION HEADER */}
+        {/* PART C: QUESTION CARD - GIANT HIGH-IMPACT PREVIEW CARD */}
         {isQuestionVisible && (
           <motion.div
             layoutId="host-question-banner"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: 30 }}
+            animate={{ opacity: 1, y: 20 }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-[1300px] bg-white text-slate-900 shadow-2xl flex items-center justify-center min-h-[110px] sm:min-h-[135px] md:min-h-[145px] py-6 sm:py-9 px-8 sm:px-16 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 z-30 overflow-visible"
+            className="w-full max-w-[1380px] bg-white text-slate-900 shadow-2xl flex items-center justify-center min-h-[160px] sm:min-h-[220px] md:min-h-[260px] py-8 sm:py-12 px-8 sm:px-20 rounded-3xl border-3 border-slate-200 border-b-[10px] border-b-slate-300 z-30 overflow-visible"
           >
-            <h1 className="font-black text-slate-900 leading-normal sm:leading-relaxed tracking-tight text-center flex-1 px-3 py-1 break-words text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
+            <h1 className="font-black text-slate-900 leading-normal sm:leading-relaxed tracking-tight text-center flex-1 px-4 py-2 break-words text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
               {question.question_text}
             </h1>
           </motion.div>
@@ -229,18 +229,18 @@ export function HostQuestionIntro({
         {stage === "question_preview" && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: 160 }}
+            animate={{ opacity: 1, y: 190 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="w-full max-w-2xl flex flex-col items-center absolute z-20"
+            className="w-full max-w-3xl flex flex-col items-center absolute z-20"
           >
-            <div className="w-full h-4 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">
+            <div className="w-full h-5 bg-[#33106B] rounded-full overflow-hidden border-2 border-[#240B4D] p-0.5 shadow-inner">
               <motion.div
                 style={{ width: `${readingProgress}%` }}
                 className="h-full bg-gradient-to-r from-yellow-400 to-[#FFA602] rounded-full"
               />
             </div>
-            <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-300 mt-2.5">
+            <span className="text-xs sm:text-base font-black uppercase tracking-widest text-slate-300 mt-3">
               Answers incoming...
             </span>
           </motion.div>
