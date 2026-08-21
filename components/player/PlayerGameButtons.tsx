@@ -137,7 +137,8 @@ export function PlayerGameButtons({
         {BUTTON_CONFIGS.map((btn) => {
           const isSelected = selectedAnswer === btn.index;
           const isDimmed = hasAnswered && !isSelected;
-          const choiceText = safeChoices[btn.index] || "";
+          const rawChoice = safeChoices[btn.index];
+          const choiceText = typeof rawChoice === "string" ? rawChoice : (rawChoice as any)?.text ? String((rawChoice as any).text) : "";
 
           return (
             <motion.button

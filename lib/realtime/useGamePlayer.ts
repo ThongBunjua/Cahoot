@@ -229,13 +229,22 @@ export function useGamePlayer(initialPin: string = "") {
 
         const limit = typeof timeLimit === "number" && timeLimit > 0 ? timeLimit : 20;
 
+        // Normalize choices so it is ALWAYS an array of pure strings
+        const normalizedChoices: string[] = Array.isArray(choices)
+          ? choices.map((c: any) => {
+              if (typeof c === "string") return c;
+              if (c && typeof c.text === "string") return c.text;
+              return "";
+            })
+          : [];
+
         setState((prev) => ({
           ...prev,
           phase: "question",
           currentQuestionIndex: typeof questionIndex === "number" ? questionIndex : prev.currentQuestionIndex,
           totalQuestions: totalQuestions || prev.totalQuestions,
           questionText: typeof questionText === "string" ? questionText : "",
-          choices: Array.isArray(choices) ? choices : [],
+          choices: normalizedChoices,
           selectedAnswer: null,
           hasAnswered: false,
           isCorrect: null,
