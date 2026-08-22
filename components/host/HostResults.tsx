@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { GameBackground } from "@/components/ui/GameBackground";
 import { HostTopBar } from "@/components/host/HostTopBar";
-import { soundManager } from "@/lib/audio/soundManager";
+import { sounds } from "@/lib/audio/soundManager";
 import { Check, ArrowRight } from "lucide-react";
 
 interface HostResultsProps {
@@ -63,7 +63,7 @@ export function HostResults({
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsRevealed(true);
-      soundManager.playCorrect();
+      sounds.playCorrect();
     }, 800);
 
     return () => clearTimeout(timer);
