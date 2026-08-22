@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Player, Quiz } from "@/lib/realtime/types";
 import { formatPin } from "@/lib/utils/pinGenerator";
@@ -17,6 +17,7 @@ import {
   X,
   Sparkles,
   Lock,
+  LayoutGrid,
 } from "lucide-react";
 
 interface HostLobbyProps {
@@ -25,16 +26,6 @@ interface HostLobbyProps {
   players: Player[];
   onStartGame: () => void;
   onKickPlayer: (id: string) => void;
-}
-
-// Deterministic string hash for permanent stable lane assignment
-function getStableLane(playerId: string, numLanes: number = 5): number {
-  let hash = 0;
-  for (let i = 0; i < playerId.length; i++) {
-    hash = (hash << 5) - hash + playerId.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash) % numLanes;
 }
 
 export function HostLobby({
@@ -81,51 +72,45 @@ export function HostLobby({
     sounds.stopLobbyMusic();
     sounds.playGameStartSplash();
 
-    // Automatically trigger Fullscreen (F11) for the Host on game start
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
       setIsFullscreen(true);
     }
 
-    // 4.7s luxurious cinematic splash before transitioning to Question 1 (+2.5s extended)
     setTimeout(() => {
       onStartGame();
     }, 4700);
   };
 
-  // Organize players into 5 STABLE lanes (existing players NEVER jump vertically!)
-  const numRows = 5;
-  const rows: Player[][] = Array.from({ length: numRows }, () => []);
-  players.forEach((p) => {
-    const lane = getStableLane(p.id, numRows);
-    rows[lane].push(p);
-  });
-
-  // Dynamic varied speeds for natural, randomized flow across the 5 lanes
-  const laneSpeeds = [25, 22, 28, 24, 26];
+  // Determine badge sizing tier based on player count so everything is crystal clear & never overlaps
+  const sizeTier = useMemo(() => {
+    const count = players.length;
+    if (count <= 12) return "large";
+    if (count <= 36) return "medium";
+    if (count <= 80) return "compact";
+    return "micro";
+  }, [players.length]);
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
 
-      {/* Embedded CSS for Continuous Staggered Player Gliding */}
+      {/* Embedded CSS for custom elegant scrollbar in high player counts */}
       <style jsx>{`
-        @keyframes playerGlideTrack {
-          0% {
-            transform: translateX(-120%);
-          }
-          100% {
-            transform: translateX(105vw);
-          }
+        .lobby-scroll::-webkit-scrollbar {
+          width: 8px;
         }
-        .player-glide-item {
-          position: absolute;
-          left: 0;
-          display: flex;
-          align-items: center;
-          will-change: transform;
-          animation: playerGlideTrack linear infinite;
+        .lobby-scroll::-webkit-scrollbar-track {
+          background: rgba(30, 7, 65, 0.4);
+          border-radius: 9999px;
+        }
+        .lobby-scroll::-webkit-scrollbar-thumb {
+          background: rgba(250, 204, 21, 0.45);
+          border-radius: 9999px;
+        }
+        .lobby-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(250, 204, 21, 0.8);
         }
       `}</style>
 
@@ -171,7 +156,7 @@ export function HostLobby({
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* 1. TOP STATUS BAR (Header with z-50 to stay 100% Bright when QR is open) */}
+      {/* 1. TOP STATUS BAR */}
       {/* ========================================================================= */}
       <div className="relative z-50 w-full bg-[#1e0741] px-6 sm:px-12 py-3 flex items-center justify-between border-b-2 border-purple-900/50 shadow-lg flex-shrink-0">
         {/* Left: Quiz title */}
@@ -211,53 +196,57 @@ export function HostLobby({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. TOP MASTER BADGE: AUDITORIUM MASSIVE PIN & JOIN URL (Huge, Wide & High Visibility) */}
+      {/* 2. TOP MASTER BADGE: AUDITORIUM MASSIVE PIN & JOIN URL */}
       {/* ========================================================================= */}
-      <div className="relative z-50 w-full flex justify-center pt-2 sm:pt-4 px-4">
+      <div className="relative z-40 w-full flex justify-center pt-2 sm:pt-4 px-4 flex-shrink-0">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white text-slate-950 rounded-3xl sm:rounded-[40px] shadow-[0_30px_90px_rgba(0,0,0,0.65)] border-2 border-slate-200 border-b-[10px] border-b-slate-300 flex items-stretch divide-x-2 divide-slate-200 overflow-hidden w-full max-w-[94vw] lg:max-w-7xl"
+          className="bg-white text-slate-950 rounded-3xl sm:rounded-[36px] shadow-[0_25px_70px_rgba(0,0,0,0.6)] border-2 border-slate-200 border-b-[8px] border-b-slate-300 flex items-stretch divide-x-2 divide-slate-200 overflow-hidden w-full max-w-[94vw] lg:max-w-6xl"
         >
           {/* Left Partition: Giant Join Instructions */}
-          <div className="px-8 sm:px-14 py-4 sm:py-6 flex flex-col justify-center text-left flex-1">
+          <div className="px-6 sm:px-12 py-3 sm:py-5 flex flex-col justify-center text-left flex-1">
             <span className="text-base sm:text-2xl md:text-3xl font-bold text-slate-600">
               Join at <span className="font-black text-slate-950 underline decoration-[#46178F] underline-offset-4 text-xl sm:text-3xl md:text-4xl">{siteUrl}</span>
             </span>
-            <span className="text-xs sm:text-base font-semibold text-slate-500 mt-1">
+            <span className="text-xs sm:text-sm font-semibold text-slate-500 mt-0.5">
               or scan with your mobile camera
             </span>
           </div>
 
-          {/* Center Partition: Super-Sized Giant Game PIN (Auditorium Scale) */}
-          <div className="px-10 sm:px-20 py-4 sm:py-6 flex flex-col justify-center text-center bg-slate-50/90">
+          {/* Center Partition: Super-Sized Giant Game PIN */}
+          <div className="px-8 sm:px-16 py-3 sm:py-5 flex flex-col justify-center text-center bg-slate-50/90">
             <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-500">
               Game PIN:
             </span>
-            <span className="text-7xl sm:text-8xl md:text-9xl lg:text-[120px] font-black font-mono tracking-widest text-slate-950 leading-none mt-1 select-all drop-shadow-sm">
+            <span className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black font-mono tracking-widest text-slate-950 leading-none mt-1 select-all drop-shadow-sm">
               {formatPin(pin)}
             </span>
           </div>
 
-          {/* Right Partition: Built-in Big Live QR Code (110px) */}
+          {/* Right Partition: Built-in Live QR Code */}
           <button
             onClick={() => setShowQR(true)}
-            className="p-4 sm:p-6 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group flex-shrink-0"
+            className="p-3 sm:p-5 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group flex-shrink-0"
             title="Click to enlarge QR Code"
           >
             <div className="p-2 bg-white rounded-2xl border-2 border-slate-200 shadow-md group-hover:scale-105 transition-transform">
-              <QRCodeSVG value={fullJoinUrl} size={110} />
+              <QRCodeSVG value={fullJoinUrl} size={95} />
             </div>
           </button>
         </motion.div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: 5 Stable Non-Resetting Conveyor Lanes (Fill horizontally to the right!) */}
+      {/* 3. CENTER STAGE: ZERO-OVERLAP ADAPTIVE PLAYER NAME CLOUD (Supports 1-200+ Players) */}
       {/* ========================================================================= */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-1">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[96vw] mx-auto px-4 sm:px-8 overflow-hidden my-auto py-2">
         {players.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center text-slate-300 max-w-lg">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex flex-col items-center justify-center text-center text-slate-300 max-w-lg my-auto"
+          >
             <div className="w-20 h-20 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] flex items-center justify-center mx-auto mb-3 animate-bounce shadow-2xl">
               <Sparkles className="w-10 h-10 text-[#FFA602]" />
             </div>
@@ -267,57 +256,78 @@ export function HostLobby({
             <p className="text-sm sm:text-base font-bold text-purple-200">
               Enter Game PIN <span className="text-yellow-400 font-mono font-black">{formatPin(pin)}</span> on your phone or scan the QR Code.
             </p>
-          </div>
+          </motion.div>
         ) : (
-          /* Exactly 5 Conveyor Lines with Permanent Stable Lane Assignment */
-          <div className="w-full flex-1 flex flex-col justify-center gap-2 sm:gap-3 py-1 overflow-hidden">
-            {rows.map((rowPlayers, rowIndex) => {
-              if (rowPlayers.length === 0) return null;
-              const speedSec = laneSpeeds[rowIndex % laneSpeeds.length];
-              const totalInRow = rowPlayers.length;
-
-              return (
-                <div
-                  key={rowIndex}
-                  className="w-full h-18 sm:h-22 md:h-24 overflow-hidden relative flex items-center"
-                  style={{
-                    maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)",
-                  }}
-                >
-                  {rowPlayers.map((player, pIdx) => {
-                    const delaySec = (pIdx / totalInRow) * speedSec;
-
-                    return (
-                      <div
-                        key={player.id}
-                        className="player-glide-item"
-                        style={{
-                          animationDuration: `${speedSec}s`,
-                          animationDelay: `-${delaySec}s`,
-                        }}
+          /* Responsive Adaptive Flex Grid with Zero Collisions / No Overlap */
+          <div className="w-full h-full max-h-[50vh] flex flex-col items-center justify-center overflow-hidden">
+            <div className="w-full max-h-full overflow-y-auto lobby-scroll px-3 py-2 flex flex-wrap items-center justify-center content-center gap-2.5 sm:gap-3.5">
+              <AnimatePresence mode="popLayout">
+                {players.map((player) => {
+                  return (
+                    <motion.div
+                      key={player.id}
+                      layout
+                      initial={{ scale: 0.3, opacity: 0, y: 15 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 450, damping: 28 }}
+                      whileHover={{ scale: 1.06, y: -2 }}
+                      className={`group relative bg-[#33106B] hover:bg-[#3D147D] border-2 border-[#240B4D] border-b-[4px] border-b-[#1D083E] rounded-2xl flex items-center shadow-xl select-none transition-colors ${
+                        sizeTier === "large"
+                          ? "px-6 py-3.5 gap-4 rounded-3xl border-b-[6px]"
+                          : sizeTier === "medium"
+                          ? "px-4.5 py-2.5 gap-3 rounded-2xl border-b-[5px]"
+                          : sizeTier === "compact"
+                          ? "px-3.5 py-2 gap-2.5 rounded-xl border-b-[4px]"
+                          : "px-3 py-1.5 gap-2 rounded-xl border-b-[3px]"
+                      }`}
+                    >
+                      {/* Avatar */}
+                      <span
+                        className={`flex-shrink-0 filter drop-shadow-md select-none ${
+                          sizeTier === "large"
+                            ? "text-4xl sm:text-5xl"
+                            : sizeTier === "medium"
+                            ? "text-2xl sm:text-3xl"
+                            : sizeTier === "compact"
+                            ? "text-xl sm:text-2xl"
+                            : "text-lg sm:text-xl"
+                        }`}
                       >
-                        <div className="group relative bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] rounded-2xl sm:rounded-3xl px-6 py-3 sm:px-8 sm:py-4 flex items-center gap-3.5 sm:gap-4 shadow-2xl select-none shrink-0">
-                          <span className="text-3xl sm:text-4xl md:text-5xl flex-shrink-0 filter drop-shadow-md select-none">
-                            {player.avatar}
-                          </span>
-                          <span className="text-lg sm:text-2xl md:text-3xl font-black text-white truncate max-w-[220px] sm:max-w-[320px] tracking-tight">
-                            {player.nickname}
-                          </span>
+                        {player.avatar}
+                      </span>
 
-                          <button
-                            onClick={() => onKickPlayer(player.id)}
-                            className="opacity-0 group-hover:opacity-100 p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
-                            title={`Remove ${player.nickname}`}
-                          >
-                            <X className="w-4 h-4 stroke-[3]" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                      {/* Nickname (Clear, high-contrast, fully visible) */}
+                      <span
+                        className={`font-black text-white tracking-tight leading-tight ${
+                          sizeTier === "large"
+                            ? "text-xl sm:text-3xl max-w-[280px]"
+                            : sizeTier === "medium"
+                            ? "text-base sm:text-xl max-w-[200px]"
+                            : sizeTier === "compact"
+                            ? "text-sm sm:text-base max-w-[150px]"
+                            : "text-xs sm:text-sm max-w-[120px]"
+                        } truncate`}
+                      >
+                        {player.nickname}
+                      </span>
+
+                      {/* Kick button on hover */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onKickPlayer(player.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-lg text-white transition-opacity shadow-md flex-shrink-0 cursor-pointer ml-0.5"
+                        title={`Remove ${player.nickname}`}
+                      >
+                        <X className="w-3.5 h-3.5 stroke-[3]" />
+                      </button>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
           </div>
         )}
       </main>
@@ -325,7 +335,7 @@ export function HostLobby({
       {/* ========================================================================= */}
       {/* 4. BOTTOM ACTION BAR: Ready indicator & Giant Start Game Button */}
       {/* ========================================================================= */}
-      <div className="relative z-30 w-full max-w-[98vw] mx-auto px-6 sm:px-12 pb-4 sm:pb-5 flex items-center justify-between">
+      <div className="relative z-30 w-full max-w-[98vw] mx-auto px-6 sm:px-12 pb-4 sm:pb-5 flex items-center justify-between flex-shrink-0">
         {/* Left Indicator */}
         <div className="flex items-center gap-3 text-base sm:text-xl font-black text-purple-200">
           <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-ping" />

@@ -6,8 +6,8 @@
  * 📖 วิธีการเรียกใช้งานบอท (HOW TO RUN BOTS):
  * 
  * 1. รันบอทตามจำนวนที่ต้องการ (ใส่ PIN และจำนวนบอท):
- *    $env:Path = "$env:LOCALAPPDATA\Programs\nodejs;" + $env:Path
  *    npx tsx scratch/stress-test-150.ts <GAME_PIN> <จำนวนบอท>
+ *    หรือ: npm run bot <GAME_PIN> <จำนวนบอท>
  * 
  * 2. ตัวอย่างคำสั่งที่ใช้บ่อย (Common Usage Examples):
  * 
@@ -53,7 +53,8 @@ async function runPlayerSimulation() {
   console.log(`🚀 CAHOOT! BOT SIMULATOR`);
   console.log(`📌 Target Game PIN: ${targetPin}`);
   console.log(`👥 Total Simulated Bots: ${botCount}`);
-  console.log(`======================================================\n`);
+  console.log(`======================================================`);
+  console.log(`⏳ [1/2] Connecting to Supabase WebSocket for PIN ${targetPin}...`);
 
   if (!process.argv[2]) {
     console.log(`⚠️ ไม่ได้ระบุ Game PIN! ใช้ PIN เริ่มต้น: 999999`);
@@ -64,7 +65,7 @@ async function runPlayerSimulation() {
   const supabase = createClient(url, key, {
     realtime: {
       transport: WebSocket as any,
-      params: { eventsPerSecond: 50 },
+      params: { eventsPerSecond: 100 },
     },
   });
 
@@ -142,10 +143,10 @@ async function runPlayerSimulation() {
       }
     })
     .subscribe(async (status) => {
-      console.log(`📡 WebSocket Channel Subscription Status: ${status}`);
+      console.log(`📡 WebSocket Channel Status: ${status}`);
 
       if (status === "SUBSCRIBED") {
-        console.log(`\n🤖 Injecting ${botCount} player bots into Game PIN: ${targetPin}...`);
+        console.log(`\n🤖 [2/2] Injecting ${botCount} player bots into Game PIN: ${targetPin}...`);
 
         // Batch inject bots in quick succession
         for (let i = 0; i < bots.length; i++) {
@@ -164,8 +165,8 @@ async function runPlayerSimulation() {
             },
           });
 
-          // Small stagger of 15ms so the host sees player names cascading in beautifully
-          await new Promise((r) => setTimeout(r, 15));
+          // Fast stagger of 8ms
+          await new Promise((r) => setTimeout(r, 8));
 
           if ((i + 1) % 25 === 0 || i + 1 === botCount) {
             console.log(`  ✓ Joined ${i + 1}/${botCount} players...`);
@@ -174,7 +175,9 @@ async function runPlayerSimulation() {
 
         console.log(`\n✅ ALL ${botCount} BOTS HAVE SUCCESSFULLY JOINED ROOM ${targetPin}!`);
         console.log(`👉 Look at the Host screen. You should see ${botCount} players in the lobby.`);
-        console.log(`👉 Press "Start Game" on Host whenever you are ready.\n`);
+        console.log(`👉 Keep this terminal open and press "Start Game" on Host whenever you are ready.\n`);
+      } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+        console.error(`❌ Connection error: ${status}`);
       }
     });
 }

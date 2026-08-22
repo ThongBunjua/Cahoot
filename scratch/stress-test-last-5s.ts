@@ -116,10 +116,10 @@ async function runLast5SecondsRushSimulation() {
       }
     })
     .subscribe(async (status) => {
-      console.log(`📡 WebSocket Channel Subscription Status: ${status}`);
+      console.log(`📡 WebSocket Channel Status: ${status}`);
 
       if (status === "SUBSCRIBED") {
-        console.log(`\n🤖 Injecting ${botCount} player bots into Game PIN: ${targetPin}...`);
+        console.log(`\n🤖 Injecting ${botCount} bots into Game PIN: ${targetPin}...`);
 
         // Batch inject bots in quick succession
         for (let i = 0; i < bots.length; i++) {
@@ -138,17 +138,16 @@ async function runLast5SecondsRushSimulation() {
             },
           });
 
-          // Small stagger of 15ms
-          await new Promise((r) => setTimeout(r, 15));
+          // Small stagger of 8ms
+          await new Promise((r) => setTimeout(r, 8));
 
           if ((i + 1) % 25 === 0 || i + 1 === botCount) {
             console.log(`  ✓ Joined ${i + 1}/${botCount} players...`);
           }
         }
 
-        console.log(`\n✅ ALL ${botCount} BOTS HAVE JOINED ROOM ${targetPin}!`);
-        console.log(`👉 Press "Start Game" on Host whenever you are ready.`);
-        console.log(`👉 Watch the host screen: In the last 5 seconds, all ${botCount} answers will flood in smoothly!`);
+        console.log(`\n✅ ALL ${botCount} BOTS READY IN ROOM ${targetPin}!`);
+        console.log(`👉 Press "Start Game" on Host. The bots will wait and RUSH in the LAST 5 SECONDS of each question!\n`);
       }
     });
 }
