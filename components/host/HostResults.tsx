@@ -56,7 +56,6 @@ export function HostResults({
   onNext,
 }: HostResultsProps) {
   const maxVote = Math.max(...answerCounts, 1);
-  const maxBarHeightPx = 360; // Extra tall 360px bar chart stage
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
@@ -85,79 +84,82 @@ export function HostResults({
       {/* ========================================================================= */}
       {/* 2. QUESTION ZONE: SPACIOUS & LOWERED DOWN (Thai Safe Typography) */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-[98vw] mx-auto px-2 sm:px-4 z-20 flex-shrink-0 mt-3 sm:mt-5 mb-1 sm:mb-2">
-        <div className="w-full bg-white text-slate-900 min-h-[110px] sm:min-h-[135px] md:min-h-[145px] px-8 sm:px-14 py-5 sm:py-7 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-2xl flex items-center justify-center overflow-visible">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 text-center tracking-tight leading-normal sm:leading-relaxed break-words w-full py-1">
+      <div className="w-full max-w-[98vw] mx-auto px-2 sm:px-4 z-20 flex-shrink-0 mt-2 sm:mt-4 mb-1">
+        <div className="w-full bg-white text-slate-900 min-h-[95px] sm:min-h-[120px] md:min-h-[135px] px-6 sm:px-12 py-4 sm:py-6 rounded-2xl sm:rounded-3xl border-2 border-slate-200 border-b-[8px] border-b-slate-300 shadow-2xl flex items-center justify-center overflow-visible">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 text-center tracking-tight leading-normal sm:leading-relaxed break-words w-full py-1">
             {question.question_text}
           </h2>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. MAIN CENTER: SUPER-TALL 3D BAR CHART (Correct Answer Shines Brightest!) */}
+      {/* 3. MAIN CENTER: DYNAMIC RESPONSIVE PERCENTAGE BAR CHART (Guaranteed Zero Overlap with Question) */}
       {/* ========================================================================= */}
       <main className="flex-1 flex flex-col items-center justify-end max-w-[96vw] mx-auto w-full my-1 sm:my-2 z-10 px-2 sm:px-6 min-h-0">
-        <div className="flex items-end justify-center gap-6 sm:gap-12 md:gap-16 lg:gap-20 w-full max-w-6xl h-full max-h-[390px] pb-2">
+        <div className="flex items-end justify-center gap-4 sm:gap-8 md:gap-12 lg:gap-16 w-full max-w-5xl h-full min-h-0 pb-1">
           {question.choices.map((choice, idx) => {
             const count = answerCounts[idx] || 0;
             const isCorrect = idx === question.correct_index;
             const theme = CHOICES_SOLID_THEME[idx];
 
-            // Dynamic steep height calculation (High vote towers high, 0 vote stays at floor)
-            const barHeight =
+            // Dynamic percentage height capped at max 68% of available space to guarantee ample top headroom
+            const maxPercent = 68;
+            const minPercent = 6;
+            const barHeightPercent =
               count === 0
-                ? 12
-                : Math.round(40 + (count / maxVote) * (maxBarHeightPx - 40));
+                ? minPercent
+                : Math.round(minPercent + (count / maxVote) * (maxPercent - minPercent));
 
             return (
               <div
                 key={idx}
-                className={`flex-1 max-w-[140px] sm:max-w-[180px] md:max-w-[220px] flex flex-col items-center transition-all duration-500 ${
+                className={`flex-1 max-w-[120px] sm:max-w-[160px] md:max-w-[200px] h-full flex flex-col justify-end items-center transition-all duration-500 ${
                   isCorrect
-                    ? "opacity-100 scale-[1.03] z-20"
+                    ? "opacity-100 scale-[1.02] z-20"
                     : "opacity-25 grayscale-[60%] z-10"
                 }`}
               >
-                {/* Indicator Checkmark & Large Count Number */}
-                <div className="flex flex-col items-center gap-1.5 mb-2 h-18 justify-end flex-shrink-0">
+                {/* Indicator Checkmark & Large Count Number (Always with ample top headroom) */}
+                <div className="flex flex-col items-center gap-1 mb-1.5 flex-shrink-0">
                   {isCorrect ? (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 bg-[#26890C] border-3 border-white text-white rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(38,137,12,0.9)] animate-bounce"
+                      className="w-9 h-9 sm:w-11 sm:h-11 bg-[#26890C] border-3 border-white text-white rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(38,137,12,0.9)] animate-bounce"
                     >
-                      <Check className="w-6 h-6 stroke-[4]" />
+                      <Check className="w-5 h-5 sm:w-6 sm:h-6 stroke-[4]" />
                     </motion.div>
                   ) : (
-                    <div className="h-10" />
+                    <div className="h-9 sm:h-11" />
                   )}
-                  <span className="text-3xl sm:text-5xl md:text-6xl font-black text-white tabular-nums tracking-tight drop-shadow-md">
+                  <span className="text-2xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight drop-shadow-md">
                     {count}
                   </span>
                 </div>
 
-                {/* Unified Full-Column Container with seamless border for correct answer */}
+                {/* Unified Full-Column Container */}
                 <div
-                  className={`w-full flex flex-col rounded-3xl overflow-hidden shadow-2xl transition-all ${
+                  className={`w-full flex flex-col justify-end rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all ${
                     isCorrect
                       ? "border-4 border-white shadow-[0_0_40px_rgba(255,255,255,0.75)]"
                       : "border-2 border-white/10"
                   }`}
+                  style={{ height: `${barHeightPercent + 15}%` }}
                 >
-                  {/* The Rising Bar */}
+                  {/* The Rising Animated Bar */}
                   <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: `${barHeight}px` }}
+                    initial={{ height: "0%" }}
+                    animate={{ height: "100%" }}
                     transition={{ duration: 0.85, ease: "easeOut" }}
-                    className={`w-full ${theme.bgClass}`}
+                    className={`w-full flex-1 ${theme.bgClass}`}
                   />
 
                   {/* Base Shape Solid Floor Tile */}
                   <div
-                    className={`w-full h-14 sm:h-18 ${theme.bgClass} flex items-center justify-center border-t-2 border-black/20 ${theme.borderBottomClass} flex-shrink-0`}
+                    className={`w-full h-11 sm:h-14 ${theme.bgClass} flex items-center justify-center border-t-2 border-black/20 ${theme.borderBottomClass} flex-shrink-0`}
                   >
-                    <span className="text-2xl sm:text-4xl text-white select-none drop-shadow">
+                    <span className="text-xl sm:text-3xl text-white select-none drop-shadow">
                       {theme.shapeSymbol}
                     </span>
                   </div>
