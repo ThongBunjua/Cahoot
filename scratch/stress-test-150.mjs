@@ -1,35 +1,22 @@
+#!/usr/bin/env node
+
 /**
  * ==============================================================================================
- * 🤖 CAHOOT! LIVE MULTIPLAYER BOT SIMULATOR & STRESS TESTER
+ * 🤖 CAHOOT! LIVE MULTIPLAYER BOT SIMULATOR & STRESS TESTER (NATIVE NODE ENGINE)
  * ==============================================================================================
  * 
- * 📖 วิธีการเรียกใช้งานบอท (HOW TO RUN BOTS):
- * 
- * 1. รันบอทตามจำนวนที่ต้องการ (ใส่ PIN และจำนวนบอท):
- *    npx tsx scratch/stress-test-150.ts <GAME_PIN> <จำนวนบอท>
+ * 📖 วิธีรันง่ายและเร็วที่สุด (Instant Startup):
+ *    node scratch/stress-test-150.mjs <GAME_PIN> <จำนวนบอท>
  *    หรือ: npm run bot <GAME_PIN> <จำนวนบอท>
  * 
- * 2. ตัวอย่างคำสั่งที่ใช้บ่อย (Common Usage Examples):
- * 
- *    👉 ทดสอบบอท 1 ตัว (Single Player Test):
- *       npx tsx scratch/stress-test-150.ts 123456 1
- * 
- *    👉 ทดสอบบอท 10 ตัว (Small Group Test):
- *       npx tsx scratch/stress-test-150.ts 123456 10
- * 
- *    👉 ทดสอบบอท 50 ตัว (Medium Classroom Test):
- *       npx tsx scratch/stress-test-150.ts 123456 50
- * 
- *    👉 ทดสอบบอท 150 ตัว (Full Auditorium Max Stress Test):
- *       npx tsx scratch/stress-test-150.ts 123456 150
- * 
- * 3. หรือรันผ่าน npm script (ถ้ากำหนดไว้ใน package.json):
- *    npm run bot 123456 10
- *    npm run bot:150 123456
+ * 💡 ตัวอย่าง:
+ *    node scratch/stress-test-150.mjs 8183 150
+ *    npm run bot 8183 150
  * 
  * ==============================================================================================
  */
 
+// Instant stdout feedback
 console.log(`\n⚡ Initializing Cahoot Bot Simulator...`);
 
 import { createClient } from "@supabase/supabase-js";
@@ -51,7 +38,7 @@ const NAMES = [
 ];
 
 async function runPlayerSimulation() {
-  console.log(`\n======================================================`);
+  console.log(`======================================================`);
   console.log(`🚀 CAHOOT! BOT SIMULATOR`);
   console.log(`📌 Target Game PIN: ${targetPin}`);
   console.log(`👥 Total Simulated Bots: ${botCount}`);
@@ -60,13 +47,13 @@ async function runPlayerSimulation() {
 
   if (!process.argv[2]) {
     console.log(`⚠️ ไม่ได้ระบุ Game PIN! ใช้ PIN เริ่มต้น: 999999`);
-    console.log(`💡 วิธีระบุ PIN: npx tsx scratch/stress-test-150.ts <PIN> <จำนวนบอท>\n`);
+    console.log(`💡 วิธีระบุ PIN: node scratch/stress-test-150.mjs <PIN> <จำนวนบอท>\n`);
   }
 
   // Create Supabase client with WebSocket transport
   const supabase = createClient(url, key, {
     realtime: {
-      transport: WebSocket as any,
+      transport: WebSocket,
       params: { eventsPerSecond: 100 },
     },
   });
@@ -76,7 +63,7 @@ async function runPlayerSimulation() {
   });
 
   // Track active bots
-  const bots: Array<{ id: string; nickname: string; avatar: string }> = [];
+  const bots = [];
 
   for (let i = 1; i <= botCount; i++) {
     const nameIndex = (i - 1) % NAMES.length;
@@ -92,8 +79,8 @@ async function runPlayerSimulation() {
 
   // Listen for Host Game Events
   channel
-    .on("broadcast", { event: "game_event" }, (payload: any) => {
-      const data = payload.payload;
+    .on("broadcast", { event: "game_event" }, (payload) => {
+      const data = payload?.payload;
       if (!data) return;
 
       if (data.event === "GET_READY") {
@@ -137,7 +124,7 @@ async function runPlayerSimulation() {
       }
 
       if (data.event === "SHOW_LEADERBOARD") {
-        console.log(`\n📊 Host showing Leaderboard! Top 5:`, data.data?.topPlayers?.slice(0, 5).map((p: any) => `${p.nickname}: ${p.score}pts`));
+        console.log(`\n📊 Host showing Leaderboard! Top 5:`, data.data?.topPlayers?.slice(0, 5).map((p) => `${p.nickname}: ${p.score}pts`));
       }
 
       if (data.event === "GAME_OVER") {
