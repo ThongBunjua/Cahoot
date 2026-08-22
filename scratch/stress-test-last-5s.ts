@@ -1,3 +1,8 @@
+import dns from "node:dns";
+if (dns && typeof dns.setDefaultResultOrder === "function") {
+  dns.setDefaultResultOrder("ipv4first");
+}
+
 console.log(`\n⚡ Initializing Last-5-Seconds Rush Bot Simulator...`);
 
 import { createClient } from "@supabase/supabase-js";
