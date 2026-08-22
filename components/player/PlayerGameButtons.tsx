@@ -194,14 +194,28 @@ export function PlayerGameButtons({
         </div>
       </div>
 
+      {/* Embedded CSS for 60fps Liquid-Smooth Player Timer Bar */}
+      <style jsx>{`
+        @keyframes smoothPlayerTimerScale {
+          from {
+            transform: scaleX(1);
+          }
+          to {
+            transform: scaleX(0);
+          }
+        }
+      `}</style>
+
       {/* ========================================================================= */}
-      {/* 4. BOTTOM-MOST: FULL-WIDTH SLIM COUNTDOWN PROGRESS BAR */}
+      {/* 4. BOTTOM-MOST: FULL-WIDTH SLIM COUNTDOWN PROGRESS BAR (SMOOTH 60FPS) */}
       {/* ========================================================================= */}
       <div className="w-full h-2 sm:h-2.5 bg-[#240B4D] rounded-full overflow-hidden flex-shrink-0 shadow-inner">
-        <motion.div
-          style={{ width: `${progressPercent}%` }}
-          transition={{ duration: 0.25, ease: "linear" }}
-          className={`h-full rounded-full transition-all duration-200 ${
+        <div
+          style={{
+            animation: `smoothPlayerTimerScale ${safeTimeLimit}s linear forwards`,
+            transformOrigin: "left",
+          }}
+          className={`h-full w-full rounded-full transition-colors duration-300 ${
             isUrgent
               ? "bg-[#E21B3C] shadow-[0_0_12px_#E21B3C]"
               : safeRemaining <= 10

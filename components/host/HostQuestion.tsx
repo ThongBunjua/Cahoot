@@ -183,18 +183,31 @@ export function HostQuestion({
         })}
       </footer>
 
+      {/* Embedded CSS for 60fps Liquid-Smooth Timer Bar */}
+      <style jsx>{`
+        @keyframes smoothTimerBar {
+          from {
+            transform: scaleX(1);
+          }
+          to {
+            transform: scaleX(0);
+          }
+        }
+      `}</style>
+
       {/* ========================================================================= */}
-      {/* 5. REALTIME SYNCED TIME PROGRESS BAR AT THE VERY BOTTOM OF SCREEN */}
+      {/* 5. REALTIME SYNCED SMOOTH 60FPS TIME PROGRESS BAR AT THE VERY BOTTOM */}
       {/* ========================================================================= */}
       <div className="fixed bottom-0 left-0 right-0 h-2 sm:h-2.5 bg-black/40 z-30 overflow-hidden">
-        <motion.div
-          className={`h-full transition-all duration-300 ease-linear ${
+        <div
+          className={`h-full w-full ${
             timeRemaining <= 5
               ? "bg-gradient-to-r from-red-500 via-rose-500 to-red-600 shadow-[0_0_12px_rgba(239,68,68,0.9)] animate-pulse"
               : "bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]"
           }`}
           style={{
-            width: `${timeProgressPercent}%`,
+            animation: `smoothTimerBar ${totalTime}s linear forwards`,
+            transformOrigin: "left",
           }}
         />
       </div>
