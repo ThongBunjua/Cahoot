@@ -1,3 +1,5 @@
+console.log(`\n⚡ Initializing Last-5-Seconds Rush Bot Simulator...`);
+
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
@@ -21,12 +23,13 @@ const NAMES = [
 ];
 
 async function runLast5SecondsRushSimulation() {
-  console.log(`\n=============================================================`);
-  console.log(`⏱️ STARTING LAST-5-SECONDS RUSH STRESS TEST (150 PLAYERS)`);
+  console.log(`=============================================================`);
+  console.log(`⏱️ STARTING LAST-5-SECONDS RUSH STRESS TEST (${botCount} PLAYERS)`);
   console.log(`📌 Target Game PIN: ${targetPin}`);
   console.log(`👥 Total Simulated Bots: ${botCount}`);
   console.log(`⚡ Rush Rule: All bots wait quietly until the LAST 5 SECONDS!`);
-  console.log(`=============================================================\n`);
+  console.log(`=============================================================`);
+  console.log(`⏳ [1/2] Connecting to Supabase WebSocket for PIN ${targetPin}...`);
 
   // Create Supabase client with WebSocket transport
   const supabase = createClient(url, key, {
