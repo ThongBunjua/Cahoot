@@ -7,9 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "bot": "node scratch/stress-test-150.mjs",
-    "bot:last5s": "node scratch/stress-test-last-5s.mjs",
-    "bot:ts": "tsx scratch/stress-test-150.ts"
+    "bot": "tsx scratch/stress-test-150.ts",
+    "bot:last5s": "tsx scratch/stress-test-last-5s.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
