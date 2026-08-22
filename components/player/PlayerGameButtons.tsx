@@ -123,7 +123,7 @@ export function PlayerGameButtons({
                   key={btn.index}
                   whileTap={{ scale: 0.96 }}
                   onClick={() => onSelect(btn.index)}
-                  className={`relative w-full h-full rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col justify-between transition-all cursor-pointer shadow-lg overflow-hidden ${btn.bgClass} ${btn.borderClass} active:translate-y-1`}
+                  className={`relative w-full h-full rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col justify-between transition-all cursor-pointer shadow-lg overflow-hidden touch-manipulation select-none ${btn.bgClass} ${btn.borderClass} active:translate-y-1`}
                 >
                   {/* Top: Geometric Shape Icon */}
                   <div className="w-full flex items-center justify-between flex-shrink-0">
