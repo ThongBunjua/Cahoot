@@ -1,3 +1,41 @@
+/**
+ * ==============================================================================================
+ * ⏱️ CAHOOT! LAST-5-SECONDS RUSH BOT SIMULATOR & STRESS TESTER
+ * ==============================================================================================
+ * 
+ * 📖 พฤติกรรมของบอทชุดนี้:
+ *    - เมื่อเริ่มคำถาม บอทจะรอนิ่ง ๆ และจะ "กระหน่ำยิงคำตอบพร้อมกันใน 5 วินาทีสุดท้าย"
+ *    - ใช้สำหรับทดสอบ Stress Test ของระบบ Server/WebSocket ในจังหวะโหลดหนักพร้อมกัน
+ * 
+ * 📖 วิธีการเรียกใช้งานบอท (HOW TO RUN BOTS):
+ * 
+ * 1. รันผ่าน npm script (แนะนำ สะดวกที่สุด):
+ *    npm run bot:last5s <GAME_PIN> <จำนวนบอท>
+ * 
+ * 2. หรือรันผ่าน npx tsx:
+ *    npx tsx scratch/stress-test-last-5s.ts <GAME_PIN> <จำนวนบอท>
+ * 
+ * 3. ตัวอย่างคำสั่งที่ใช้บ่อย (Common Usage Examples):
+ * 
+ *    👉 ทดสอบบอท 1 ตัว:
+ *       npm run bot:last5s 123456 1
+ *       npx tsx scratch/stress-test-last-5s.ts 123456 1
+ * 
+ *    👉 ทดสอบบอท 10 ตัว (Small Group Rush):
+ *       npm run bot:last5s 123456 10
+ *       npx tsx scratch/stress-test-last-5s.ts 123456 10
+ * 
+ *    👉 ทดสอบบอท 50 ตัว (Medium Classroom Rush):
+ *       npm run bot:last5s 123456 50
+ *       npx tsx scratch/stress-test-last-5s.ts 123456 50
+ * 
+ *    👉 ทดสอบบอท 150 ตัว (Full Auditorium Max Rush Stress Test):
+ *       npm run bot:last5s 123456 150
+ *       npx tsx scratch/stress-test-last-5s.ts 123456 150
+ * 
+ * ==============================================================================================
+ */
+
 import dns from "node:dns";
 if (dns && typeof dns.setDefaultResultOrder === "function") {
   dns.setDefaultResultOrder("ipv4first");
