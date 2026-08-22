@@ -103,18 +103,12 @@ async function runPlayerSimulation() {
       if (data.event === "QUESTION_START") {
         const qIndex = data.data?.questionIndex ?? 0;
         const timeLimitSec = data.data?.timeLimit || 20;
-        console.log(`\n⚡ Question #${qIndex + 1} STARTED! (Timer: ${timeLimitSec}s)`);
-        console.log(`🧠 Simulating realistic human thinking delays (spread across 2.5s - ${timeLimitSec - 1.5}s)...`);
+        console.log(`\n⚡ Question #${qIndex + 1} STARTED! Simulating ${botCount} answers (0.3s - 3s)...`);
 
-        // Natural human delay: spread answers across the entire question duration
-        // Leaving bots staggered so human players always have plenty of time to answer!
-        const minDelay = 2500; // 2.5s reading time
-        const maxDelay = Math.max(minDelay + 1000, (timeLimitSec - 1.5) * 1000);
-
+        // Fast arcade bot response (0.3s - 3.1s)
         bots.forEach((bot, index) => {
           const randomChoice = Math.floor(Math.random() * 4); // 0, 1, 2, 3
-          // Stagger naturally over the full timeLimit
-          const randomDelay = minDelay + Math.random() * (maxDelay - minDelay);
+          const randomDelay = 300 + Math.random() * 2800; // 300ms to 3100ms
 
           setTimeout(() => {
             channel.send({
