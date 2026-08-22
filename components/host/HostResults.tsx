@@ -146,11 +146,11 @@ export function HostResults({
                   </span>
                 </div>
 
-                {/* Unified Full-Column Container with Fast 0.5s Rising Animation */}
+                {/* Unified Full-Column Container with Fast 0.5s Linear Constant-Speed Rising Animation */}
                 <motion.div
                   initial={{ height: "14%" }}
                   animate={{ height: `${barHeightPercent + 15}%` }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  transition={{ duration: 0.5, ease: "linear" }}
                   className={`w-full flex flex-col justify-end rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all ${
                     isCorrect
                       ? "border-4 border-white shadow-[0_0_40px_rgba(255,255,255,0.85)] ring-4 ring-white/30"

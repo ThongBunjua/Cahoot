@@ -27,16 +27,6 @@ interface HostLobbyProps {
   onKickPlayer: (id: string) => void;
 }
 
-// Deterministic string hash for permanent stable lane assignment across 5 conveyor lines
-function getStableLane(playerId: string, numLanes: number = 5): number {
-  let hash = 0;
-  for (let i = 0; i < playerId.length; i++) {
-    hash = (hash << 5) - hash + playerId.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash) % numLanes;
-}
-
 export function HostLobby({
   pin,
   quiz,
@@ -81,69 +71,58 @@ export function HostLobby({
     sounds.stopLobbyMusic();
     sounds.playGameStartSplash();
 
+    // Automatically trigger Fullscreen (F11) for the Host on game start
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
       setIsFullscreen(true);
     }
 
+    // 4.7s luxurious cinematic splash before transitioning to Question 1
     setTimeout(() => {
       onStartGame();
     }, 4700);
   };
 
-  // Organize players into 5 STABLE conveyor lanes (existing players never jump vertically)
-  const numRows = 5;
-  const rows: Player[][] = Array.from({ length: numRows }, () => []);
-  players.forEach((p) => {
-    const lane = getStableLane(p.id, numRows);
-    rows[lane].push(p);
-  });
+  // Adaptive card size scaling based on total player count
+  const getBadgeScaleClasses = (count: number) => {
+    if (count <= 8) {
+      return {
+        card: "px-7 py-3.5 sm:px-9 sm:py-4.5 rounded-3xl border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] shadow-2xl gap-4",
+        avatar: "text-3xl sm:text-4xl md:text-5xl",
+        text: "text-lg sm:text-2xl md:text-3xl max-w-[260px] sm:max-w-[360px]",
+        kick: "w-4 h-4",
+      };
+    }
+    if (count <= 24) {
+      return {
+        card: "px-5 py-2.5 sm:px-7 sm:py-3.5 rounded-2xl sm:rounded-3xl border-2 border-[#240B4D] border-b-[5px] border-b-[#1D083E] shadow-xl gap-3",
+        avatar: "text-2xl sm:text-3xl md:text-4xl",
+        text: "text-base sm:text-xl md:text-2xl max-w-[200px] sm:max-w-[280px]",
+        kick: "w-3.5 h-3.5",
+      };
+    }
+    if (count <= 60) {
+      return {
+        card: "px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl border border-[#240B4D] border-b-[4px] border-b-[#1D083E] shadow-lg gap-2.5",
+        avatar: "text-xl sm:text-2xl",
+        text: "text-xs sm:text-base md:text-lg max-w-[160px] sm:max-w-[220px]",
+        kick: "w-3 h-3",
+      };
+    }
+    return {
+      card: "px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-[#240B4D] border-b-3 border-b-[#1D083E] shadow-md gap-2",
+      avatar: "text-lg sm:text-xl",
+      text: "text-xs sm:text-sm font-black max-w-[120px] sm:max-w-[180px]",
+      kick: "w-3 h-3",
+    };
+  };
 
-  // Balanced varied speeds for natural, endless arcade flow
-  const laneSpeeds = [35, 42, 38, 45, 32];
+  const scaleClasses = getBadgeScaleClasses(players.length);
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
       {/* Dynamic Animated Pattern Background */}
       <GameBackground />
-
-      {/* Embedded CSS for True Non-Colliding Continuous Flex Marquee Streams */}
-      <style jsx>{`
-        @keyframes marqueeStreamLeft {
-          0% {
-            transform: translateX(0%);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        @keyframes marqueeStreamRight {
-          0% {
-            transform: translateX(-50%);
-          }
-          100% {
-            transform: translateX(0%);
-          }
-        }
-        .marquee-track-left {
-          display: flex;
-          align-items: center;
-          width: max-content;
-          will-change: transform;
-          animation: marqueeStreamLeft linear infinite;
-        }
-        .marquee-track-right {
-          display: flex;
-          align-items: center;
-          width: max-content;
-          will-change: transform;
-          animation: marqueeStreamRight linear infinite;
-        }
-        .marquee-track-left:hover,
-        .marquee-track-right:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
 
       {/* ========================================================================= */}
       {/* CINEMATIC START GAME SPLASH (Super-Sized Smooth Expanding Cahoot! Logo 4.7s) */}
@@ -187,7 +166,7 @@ export function HostLobby({
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* 1. TOP STATUS BAR */}
+      {/* 1. TOP STATUS BAR (Header with z-50 to stay 100% Bright when QR is open) */}
       {/* ========================================================================= */}
       <div className="relative z-50 w-full bg-[#1e0741] px-6 sm:px-12 py-3 flex items-center justify-between border-b-2 border-purple-900/50 shadow-lg flex-shrink-0">
         {/* Left: Quiz title */}
@@ -227,9 +206,9 @@ export function HostLobby({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. TOP MASTER BADGE: AUDITORIUM MASSIVE PIN & JOIN URL */}
+      {/* 2. TOP MASTER BADGE: AUDITORIUM MASSIVE PIN & JOIN URL (Huge, Wide & High Visibility) */}
       {/* ========================================================================= */}
-      <div className="relative z-40 w-full flex justify-center pt-2 sm:pt-4 px-4 flex-shrink-0">
+      <div className="relative z-50 w-full flex justify-center pt-2 sm:pt-4 px-4 flex-shrink-0">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -255,7 +234,7 @@ export function HostLobby({
             </span>
           </div>
 
-          {/* Right Partition: Built-in Big Live QR Code */}
+          {/* Right Partition: Built-in Big Live QR Code (110px) */}
           <button
             onClick={() => setShowQR(true)}
             className="p-4 sm:p-6 bg-white hover:bg-slate-50 flex items-center justify-center cursor-pointer transition-colors group flex-shrink-0"
@@ -269,11 +248,11 @@ export function HostLobby({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: 5 NON-COLLIDING ENDLESS CONVEYOR LANES (Zero Overlap Guaranteed) */}
+      {/* 3. CENTER STAGE: VIBRANT INTERACTIVE PLAYER ARENA (Each Player Displayed ONCE with Spring Pop) */}
       {/* ========================================================================= */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-2 sm:px-6 overflow-hidden my-auto py-1">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-4 sm:px-8 overflow-hidden my-auto py-2">
         {players.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center text-slate-300 max-w-lg">
+          <div className="flex flex-col items-center justify-center text-center text-slate-300 max-w-lg my-auto">
             <div className="w-20 h-20 rounded-3xl bg-[#33106B] border-2 border-[#240B4D] border-b-[6px] border-b-[#1D083E] flex items-center justify-center mx-auto mb-3 animate-bounce shadow-2xl">
               <Sparkles className="w-10 h-10 text-[#FFA602]" />
             </div>
@@ -285,96 +264,58 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          /* Exactly 5 Conveyor Lines with Physical Non-Overlapping Flex Streams */
-          <div className="w-full flex-1 flex flex-col justify-center gap-2 sm:gap-3 py-1 overflow-hidden">
-            {rows.map((rowPlayers, rowIndex) => {
-              if (rowPlayers.length === 0) return null;
-              const speedSec = laneSpeeds[rowIndex % laneSpeeds.length];
-
-              // Ensure at least 4 items in track for seamless infinite looping
-              let displayList: Player[] = [...rowPlayers];
-              while (displayList.length < 5) {
-                displayList = [...displayList, ...rowPlayers];
-              }
-
-              // Dynamic animation direction: alternating lanes for rich arcade look
-              const isEven = rowIndex % 2 === 0;
-
-              return (
-                <div
-                  key={rowIndex}
-                  className="w-full h-16 sm:h-20 md:h-22 overflow-hidden relative flex items-center"
-                  style={{
-                    maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)",
+          /* Responsive Adaptive Player Grid Arena - Clean, Spring Pop, Zero Duplicates! */
+          <div className="w-full flex-1 flex flex-wrap items-center justify-center content-center gap-3 sm:gap-4 md:gap-5 overflow-y-auto max-h-[50vh] p-2">
+            <AnimatePresence mode="popLayout">
+              {players.map((player, idx) => (
+                <motion.div
+                  key={player.id}
+                  layout
+                  initial={{ scale: 0, opacity: 0, y: 25 }}
+                  animate={{
+                    scale: 1,
+                    opacity: 1,
+                    y: [-(idx % 3) * 1.5, (idx % 3) * 1.5, -(idx % 3) * 1.5],
                   }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  whileHover={{ scale: 1.07, y: -4 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 420,
+                    damping: 22,
+                    y: { repeat: Infinity, duration: 2.4 + (idx % 4) * 0.4, ease: "easeInOut" },
+                  }}
+                  className="relative group select-none"
                 >
                   <div
-                    className={isEven ? "marquee-track-left" : "marquee-track-right"}
-                    style={{
-                      animationDuration: `${speedSec}s`,
-                    }}
+                    className={`bg-[#33106B] hover:bg-[#3d1480] flex items-center shadow-2xl transition-colors ${scaleClasses.card}`}
                   >
-                    {/* Primary Set */}
-                    <div className="flex items-center gap-4 sm:gap-6 pr-4 sm:pr-6 flex-shrink-0">
-                      {displayList.map((player, pIdx) => (
-                        <div
-                          key={`p1_${player.id}_${pIdx}`}
-                          className="group relative bg-[#33106B] hover:bg-[#3D147D] border-2 border-[#240B4D] border-b-[5px] sm:border-b-[6px] border-b-[#1D083E] rounded-2xl sm:rounded-3xl px-5 py-2.5 sm:px-7 sm:py-3.5 flex items-center gap-3 sm:gap-4 shadow-2xl select-none flex-shrink-0 transition-transform hover:scale-105"
-                        >
-                          <span className="text-2xl sm:text-4xl md:text-5xl flex-shrink-0 filter drop-shadow-md select-none">
-                            {player.avatar}
-                          </span>
-                          <span className="text-base sm:text-xl md:text-2xl font-black text-white whitespace-nowrap tracking-tight">
-                            {player.nickname}
-                          </span>
+                    <span className={`${scaleClasses.avatar} flex-shrink-0 filter drop-shadow-md`}>
+                      {player.avatar}
+                    </span>
+                    <span className={`font-black text-white truncate tracking-tight ${scaleClasses.text}`}>
+                      {player.nickname}
+                    </span>
 
-                          <button
-                            onClick={() => onKickPlayer(player.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 sm:p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
-                            title={`Remove ${player.nickname}`}
-                          >
-                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Identical Duplicate Set for Perfect Seamless Infinite Loop */}
-                    <div className="flex items-center gap-4 sm:gap-6 pr-4 sm:pr-6 flex-shrink-0" aria-hidden>
-                      {displayList.map((player, pIdx) => (
-                        <div
-                          key={`p2_${player.id}_${pIdx}`}
-                          className="group relative bg-[#33106B] hover:bg-[#3D147D] border-2 border-[#240B4D] border-b-[5px] sm:border-b-[6px] border-b-[#1D083E] rounded-2xl sm:rounded-3xl px-5 py-2.5 sm:px-7 sm:py-3.5 flex items-center gap-3 sm:gap-4 shadow-2xl select-none flex-shrink-0 transition-transform hover:scale-105"
-                        >
-                          <span className="text-2xl sm:text-4xl md:text-5xl flex-shrink-0 filter drop-shadow-md select-none">
-                            {player.avatar}
-                          </span>
-                          <span className="text-base sm:text-xl md:text-2xl font-black text-white whitespace-nowrap tracking-tight">
-                            {player.nickname}
-                          </span>
-
-                          <button
-                            onClick={() => onKickPlayer(player.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 sm:p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow flex-shrink-0 cursor-pointer ml-1"
-                            title={`Remove ${player.nickname}`}
-                          >
-                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                    <button
+                      onClick={() => onKickPlayer(player.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 sm:p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow-md flex-shrink-0 cursor-pointer ml-1 active:scale-90"
+                      title={`Remove ${player.nickname}`}
+                    >
+                      <X className={`${scaleClasses.kick} stroke-[3]`} />
+                    </button>
                   </div>
-                </div>
-              );
-            })}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </main>
 
       {/* ========================================================================= */}
-      {/* 4. BOTTOM ACTION BAR */}
+      {/* 4. BOTTOM ACTION BAR: Ready indicator & Giant Start Game Button */}
       {/* ========================================================================= */}
-      <div className="relative z-30 w-full max-w-[98vw] mx-auto px-6 sm:px-12 pb-4 sm:pb-5 flex items-center justify-between flex-shrink-0">
+      <div className="relative z-30 w-full max-w-[98vw] mx-auto px-6 sm:px-12 pb-4 sm:pb-5 flex items-center justify-between">
         {/* Left Indicator */}
         <div className="flex items-center gap-3 text-base sm:text-xl font-black text-purple-200">
           <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-ping" />
