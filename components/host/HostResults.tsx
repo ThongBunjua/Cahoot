@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Question } from "@/lib/realtime/types";
 import { GameBackground } from "@/components/ui/GameBackground";
@@ -57,16 +57,10 @@ export function HostResults({
   onNext,
 }: HostResultsProps) {
   const maxVote = Math.max(...answerCounts, 1);
-  const [isRevealed, setIsRevealed] = useState(false);
 
-  // Staged suspense reveal: Bars rise first (0s - 0.75s), then Grand Reveal pops at 0.8s!
+  // Play crisp correct chime on enter
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsRevealed(true);
-      sounds.playCorrect();
-    }, 800);
-
-    return () => clearTimeout(timer);
+    sounds.playCorrect();
   }, []);
 
   return (
@@ -105,7 +99,7 @@ export function HostResults({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. MAIN CENTER: DYNAMIC 3-PHASE RAPID RISING BAR CHART WITH SUSPENSE */}
+      {/* 3. MAIN CENTER: FAST 0.5s RISING BAR CHART (Safe Headroom Guarantee) */}
       {/* ========================================================================= */}
       <main className="flex-1 flex flex-col items-center justify-end max-w-[96vw] mx-auto w-full my-1 sm:my-2 z-10 px-2 sm:px-6 min-h-0">
         <div className="flex items-end justify-center gap-4 sm:gap-8 md:gap-12 lg:gap-16 w-full max-w-5xl h-full min-h-0 pb-1">
@@ -114,8 +108,8 @@ export function HostResults({
             const isCorrect = idx === question.correct_index;
             const theme = CHOICES_SOLID_THEME[idx];
 
-            // Dynamic percentage height capped at max 68% of available space to guarantee top headroom
-            const maxPercent = 68;
+            // Percentage height capped at max 65% of available space (Ample 35% top safety margin)
+            const maxPercent = 65;
             const minPercent = 4;
             const barHeightPercent =
               count === 0
@@ -125,20 +119,18 @@ export function HostResults({
             return (
               <div
                 key={idx}
-                className={`flex-1 max-w-[120px] sm:max-w-[160px] md:max-w-[200px] h-full flex flex-col justify-end items-center transition-all duration-500 ${
-                  isRevealed
-                    ? isCorrect
-                      ? "opacity-100 scale-[1.03] z-20"
-                      : "opacity-25 grayscale-[60%] z-10"
-                    : "opacity-100 z-10"
+                className={`flex-1 max-w-[120px] sm:max-w-[160px] md:max-w-[200px] h-full flex flex-col justify-end items-center transition-all duration-300 ${
+                  isCorrect
+                    ? "opacity-100 scale-[1.03] z-20"
+                    : "opacity-25 grayscale-[60%] z-10"
                 }`}
               >
-                {/* Indicator Checkmark & Animated Count Number */}
+                {/* Indicator Checkmark & Large Count Number */}
                 <div className="flex flex-col items-center gap-1 mb-1.5 flex-shrink-0">
                   {isCorrect ? (
                     <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={isRevealed ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 450, damping: 15 }}
                       className="w-9 h-9 sm:w-11 sm:h-11 bg-[#26890C] border-3 border-white text-white rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(38,137,12,0.9)] animate-bounce"
                     >
@@ -148,24 +140,19 @@ export function HostResults({
                     <div className="h-9 sm:h-11" />
                   )}
 
-                  {/* Number pops up as bar reaches peak */}
-                  <motion.span
-                    initial={{ opacity: 0, scale: 0.3, y: 15 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.35 + idx * 0.05, duration: 0.4, ease: "easeOut" }}
-                    className="text-2xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight drop-shadow-md"
-                  >
+                  {/* Count Number on top */}
+                  <span className="text-2xl sm:text-4xl md:text-5xl font-black text-white tabular-nums tracking-tight drop-shadow-md">
                     {count}
-                  </motion.span>
+                  </span>
                 </div>
 
-                {/* Unified Full-Column Container with Rapid Rising Animation */}
+                {/* Unified Full-Column Container with Fast 0.5s Rising Animation */}
                 <motion.div
                   initial={{ height: "14%" }}
                   animate={{ height: `${barHeightPercent + 15}%` }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                   className={`w-full flex flex-col justify-end rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all ${
-                    isRevealed && isCorrect
+                    isCorrect
                       ? "border-4 border-white shadow-[0_0_40px_rgba(255,255,255,0.85)] ring-4 ring-white/30"
                       : "border-2 border-white/10"
                   }`}
@@ -189,7 +176,7 @@ export function HostResults({
       </main>
 
       {/* ========================================================================= */}
-      {/* 4. BOTTOM ZONE: MASSIVE SOLID 2X2 ANSWER GRID WITH STAGED REVEAL (Thai Safe) */}
+      {/* 4. BOTTOM ZONE: MASSIVE SOLID 2X2 ANSWER GRID (Thai Safe) */}
       {/* ========================================================================= */}
       <footer className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-[96vw] mx-auto w-full pb-3 sm:pb-4 px-2 sm:px-4 z-20 flex-shrink-0">
         {question.choices.map((choice, idx) => {
@@ -197,22 +184,14 @@ export function HostResults({
           const theme = CHOICES_SOLID_THEME[idx];
 
           return (
-            <motion.div
+            <div
               key={idx}
-              animate={
-                isRevealed
-                  ? isCorrect
-                    ? { scale: 1.02, opacity: 1 }
-                    : { scale: 1, opacity: 0.2 }
-                  : { scale: 1, opacity: 1 }
-              }
-              transition={{ duration: 0.4 }}
               className={`min-h-[80px] sm:min-h-[95px] md:min-h-[110px] rounded-2xl md:rounded-3xl flex items-center px-5 sm:px-8 border-b-[8px] sm:border-b-[10px] py-3 transition-all overflow-visible ${
                 theme.borderBottomClass
               } ${theme.bgClass} ${
-                isRevealed && isCorrect
-                  ? "border-4 border-white shadow-[0_0_40px_rgba(38,137,12,0.9)] ring-4 ring-emerald-400"
-                  : "border-2 border-white/20"
+                isCorrect
+                  ? "border-4 border-white shadow-[0_0_40px_rgba(38,137,12,0.9)] scale-[1.02] opacity-100 ring-4 ring-emerald-400"
+                  : "opacity-20 grayscale-[60%]"
               }`}
             >
               <span className="text-2xl sm:text-4xl md:text-5xl mr-3 sm:mr-5 text-white select-none drop-shadow-md flex-shrink-0">
@@ -224,16 +203,11 @@ export function HostResults({
               </span>
 
               {isCorrect && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={isRevealed ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 450, damping: 15 }}
-                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white text-[#26890C] rounded-full flex items-center justify-center shadow-2xl flex-shrink-0 ml-3 animate-pulse"
-                >
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white text-[#26890C] rounded-full flex items-center justify-center shadow-2xl flex-shrink-0 ml-3 animate-pulse">
                   <Check className="w-5 h-5 sm:w-6 sm:h-6 stroke-[4]" />
-                </motion.div>
+                </div>
               )}
-            </motion.div>
+            </div>
           );
         })}
       </footer>
