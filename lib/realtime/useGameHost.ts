@@ -302,8 +302,12 @@ export function useGameHost(pin: string, quiz: Quiz) {
         setState(stateRef.current);
         sounds.playClick();
 
-        // If all players have answered, end question immediately
-        if (newTotalAnswers >= currentState.players.length && currentState.players.length > 0) {
+        // Check if EVERY registered player has actually submitted an answer
+        const allRegisteredPlayersAnswered =
+          updatedPlayers.length > 0 &&
+          updatedPlayers.every((p) => p.lastAnswerIndex !== null && typeof p.lastAnswerIndex === "number");
+
+        if (allRegisteredPlayersAnswered) {
           endQuestion(updatedPlayers, newAnswerCounts);
         }
       }
