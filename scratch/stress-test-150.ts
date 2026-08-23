@@ -1,31 +1,23 @@
 /**
  * ==============================================================================================
- * 🤖 CAHOOT! LIVE MULTIPLAYER BOT SIMULATOR & STRESS TESTER
+ * 🤖 CAHOOT! REALISTIC HUMAN-LIKE BOT SIMULATOR (UP TO 200+ PLAYERS)
  * ==============================================================================================
  * 
  * 📖 วิธีการเรียกใช้งานบอท (HOW TO RUN BOTS):
  * 
  * 1. รันบอทตามจำนวนที่ต้องการ (ใส่ PIN และจำนวนบอท):
  *    npx tsx scratch/stress-test-150.ts <GAME_PIN> <จำนวนบอท>
- *    หรือ: npm run bot <GAME_PIN> <จำนวนบอท>
  * 
  * 2. ตัวอย่างคำสั่งที่ใช้บ่อย (Common Usage Examples):
- * 
- *    👉 ทดสอบบอท 1 ตัว (Single Player Test):
- *       npx tsx scratch/stress-test-150.ts 123456 1
  * 
  *    👉 ทดสอบบอท 10 ตัว (Small Group Test):
  *       npx tsx scratch/stress-test-150.ts 123456 10
  * 
- *    👉 ทดสอบบอท 50 ตัว (Medium Classroom Test):
+ *    👉 ทดสอบบอท 50 ตัว (Classroom Test):
  *       npx tsx scratch/stress-test-150.ts 123456 50
  * 
- *    👉 ทดสอบบอท 150 ตัว (Full Auditorium Max Stress Test):
- *       npx tsx scratch/stress-test-150.ts 123456 150
- * 
- * 3. หรือรันผ่าน npm script (ถ้ากำหนดไว้ใน package.json):
- *    npm run bot 123456 10
- *    npm run bot:150 123456
+ *    👉 ทดสอบบอท 200 ตัว (Auditorium Full Stress Test):
+ *       npx tsx scratch/stress-test-150.ts 123456 200
  * 
  * ==============================================================================================
  */
@@ -35,7 +27,7 @@ if (dns && typeof dns.setDefaultResultOrder === "function") {
   dns.setDefaultResultOrder("ipv4first");
 }
 
-console.log(`\n⚡ Initializing Cahoot Bot Simulator...`);
+console.log(`\n⚡ Initializing Cahoot Realistic Bot Simulator...`);
 
 import { createClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
@@ -45,23 +37,27 @@ const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 
 // Parse Game PIN from command line arguments (Arg 1: PIN, Arg 2: Count)
 const targetPin = process.argv[2] || "999999";
-const botCount = parseInt(process.argv[3] || "150", 10);
+const botCount = parseInt(process.argv[3] || "50", 10);
 
-const AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐸", "🐙", "🦄", "🚀", "⚡", "🔥", "💎", "⭐", "🎉"];
-const NAMES = [
+const AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐨", "🐸", "🐙", "🦄", "🚀", "⚡", "🔥", "💎", "⭐", "🎉", "🐱", "🐶", "🐻", "🦖", "🦉", "🐺"];
+
+const NAMES_POOL = [
   "Somchai", "Somsak", "Ananda", "Nadech", "Yaya", "Bella", "Mario", "Baifern",
   "Alex", "Max", "Leo", "Emma", "Liam", "Sophia", "Lucas", "Mia",
   "Ninja", "Pixel", "Cyber", "Rocket", "Shadow", "Flash", "Blaze", "Nova",
-  "Thong", "Arthit", "Mali", "Sun", "Sky", "Ocean", "Ken", "Ploy"
+  "Thong", "Arthit", "Mali", "Sun", "Sky", "Ocean", "Ken", "Ploy",
+  "Ton", "Beam", "Golf", "Mike", "Nut", "Oat", "Baitong", "Pim",
+  "Korn", "Natt", "James", "Mark", "Tor", "Bright", "Win", "Gulf",
+  "Captain", "Zenith", "Phoenix", "Titan", "Viper", "Echo", "Cosmo", "Neon"
 ];
 
-async function runPlayerSimulation() {
+async function runRealisticPlayerSimulation() {
   console.log(`\n======================================================`);
-  console.log(`🚀 CAHOOT! BOT SIMULATOR`);
+  console.log(`🤖 CAHOOT! REALISTIC HUMAN-LIKE BOT SIMULATOR`);
   console.log(`📌 Target Game PIN: ${targetPin}`);
-  console.log(`👥 Total Simulated Bots: ${botCount}`);
+  console.log(`👥 Total Simulated Players: ${botCount}`);
   console.log(`======================================================`);
-  console.log(`⏳ [1/2] Connecting to Supabase WebSocket for PIN ${targetPin}...`);
+  console.log(`⏳ [1/2] Connecting to Realtime Channel for PIN: ${targetPin}...`);
 
   if (!process.argv[2]) {
     console.log(`⚠️ ไม่ได้ระบุ Game PIN! ใช้ PIN เริ่มต้น: 999999`);
@@ -81,17 +77,23 @@ async function runPlayerSimulation() {
   });
 
   // Track active bots
-  const bots: Array<{ id: string; nickname: string; avatar: string }> = [];
+  const bots: Array<{ id: string; nickname: string; avatar: string; skillLevel: number }> = [];
 
   for (let i = 1; i <= botCount; i++) {
-    const nameIndex = (i - 1) % NAMES.length;
-    const suffix = Math.floor((i - 1) / NAMES.length) > 0 ? `_${Math.floor((i - 1) / NAMES.length) + 1}` : "";
-    const randomName = `${NAMES[nameIndex]}${suffix}`;
+    const nameIndex = (i - 1) % NAMES_POOL.length;
+    const roundNumber = Math.floor((i - 1) / NAMES_POOL.length);
+    const suffix = roundNumber > 0 ? `${roundNumber + 1}` : "";
+    const randomName = `${NAMES_POOL[nameIndex]}${suffix}`;
     const randomAvatar = AVATARS[(i - 1) % AVATARS.length];
+    
+    // Skill level from 0.4 (casual guesser) to 0.95 (genius student)
+    const skillLevel = 0.45 + Math.random() * 0.5;
+
     bots.push({
-      id: `bot_${i}_${Date.now()}`,
+      id: `player_${i}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       nickname: randomName,
       avatar: randomAvatar,
+      skillLevel,
     });
   }
 
@@ -108,12 +110,27 @@ async function runPlayerSimulation() {
       if (data.event === "QUESTION_START") {
         const qIndex = data.data?.questionIndex ?? 0;
         const timeLimitSec = data.data?.timeLimit || 20;
-        console.log(`\n⚡ Question #${qIndex + 1} STARTED! Simulating ${botCount} answers (0.3s - 3s)...`);
+        console.log(`\n⚡ Question #${qIndex + 1} STARTED! Simulating realistic human answers (1.2s - ${Math.min(timeLimitSec - 2, 14)}s)...`);
 
-        // Fast arcade bot response (0.3s - 3.1s)
+        let submittedCount = 0;
+
         bots.forEach((bot, index) => {
-          const randomChoice = Math.floor(Math.random() * 4); // 0, 1, 2, 3
-          const randomDelay = 300 + Math.random() * 2800; // 300ms to 3100ms
+          // Human-like response time distribution:
+          // 25% Speed demons (1.2s - 2.8s)
+          // 50% Average thinkers (2.8s - 6.5s)
+          // 25% Careful/hesitant thinkers (6.5s - 12s)
+          let delayMs = 0;
+          const roll = Math.random();
+          if (roll < 0.25) {
+            delayMs = 1200 + Math.random() * 1600;
+          } else if (roll < 0.75) {
+            delayMs = 2800 + Math.random() * 3700;
+          } else {
+            delayMs = 6500 + Math.random() * Math.min(6000, (timeLimitSec - 8) * 1000);
+          }
+
+          // Pick an answer (0, 1, 2, 3)
+          const randomChoice = Math.floor(Math.random() * 4);
 
           setTimeout(() => {
             channel.send({
@@ -131,10 +148,12 @@ async function runPlayerSimulation() {
               },
             });
 
-            if ((index + 1) % 25 === 0 || index + 1 === botCount) {
-              console.log(`  ✓ ${index + 1}/${botCount} bots submitted answers.`);
+            submittedCount++;
+            if (submittedCount % 20 === 0 || submittedCount === botCount) {
+              const percent = Math.round((submittedCount / botCount) * 100);
+              console.log(`  ✓ Answers received: ${submittedCount}/${botCount} (${percent}%)`);
             }
-          }, randomDelay);
+          }, delayMs);
         });
       }
 
@@ -154,11 +173,12 @@ async function runPlayerSimulation() {
       console.log(`📡 WebSocket Channel Status: ${status}`);
 
       if (status === "SUBSCRIBED") {
-        console.log(`\n🤖 [2/2] Injecting ${botCount} player bots into Game PIN: ${targetPin}...`);
+        console.log(`\n👥 [2/2] Simulating REALISTIC human join flow (${botCount} players) into Room ${targetPin}...`);
+        console.log(`💡 Players will join in natural staggered waves (like a real room/classroom)...\n`);
 
-        // Batch inject bots in quick succession
         for (let i = 0; i < bots.length; i++) {
           const bot = bots[i];
+          
           channel.send({
             type: "broadcast",
             event: "game_event",
@@ -173,21 +193,22 @@ async function runPlayerSimulation() {
             },
           });
 
-          // Fast stagger of 8ms
-          await new Promise((r) => setTimeout(r, 8));
+          console.log(`  ✨ [${i + 1}/${botCount}] ${bot.avatar}  ${bot.nickname} joined!`);
 
-          if ((i + 1) % 25 === 0 || i + 1 === botCount) {
-            console.log(`  ✓ Joined ${i + 1}/${botCount} players...`);
-          }
+          // Human-like staggered joining delay:
+          // Occasional quick pairs (100ms - 200ms) or natural intervals (250ms - 550ms)
+          const isBurst = Math.random() < 0.35;
+          const joinDelay = isBurst ? 90 + Math.random() * 120 : 250 + Math.random() * 320;
+          await new Promise((r) => setTimeout(r, joinDelay));
         }
 
-        console.log(`\n✅ ALL ${botCount} BOTS HAVE SUCCESSFULLY JOINED ROOM ${targetPin}!`);
-        console.log(`👉 Look at the Host screen. You should see ${botCount} players in the lobby.`);
-        console.log(`👉 Keep this terminal open and press "Start Game" on Host whenever you are ready.\n`);
+        console.log(`\n✅ ALL ${botCount} PLAYERS HAVE JOINED THE LOBBY!`);
+        console.log(`👉 Check Host screen. The player count is now ${botCount}.`);
+        console.log(`👉 Press "Start Game" on Host whenever you want to begin!\n`);
       } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
         console.error(`❌ Connection error: ${status}`);
       }
     });
 }
 
-runPlayerSimulation();
+runRealisticPlayerSimulation();

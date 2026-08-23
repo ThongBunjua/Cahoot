@@ -83,7 +83,7 @@ export function HostLobby({
     }, 4700);
   };
 
-  // Adaptive card size scaling based on total player count
+  // Adaptive card size scaling based on total player count (scales up to 200+ smoothly)
   const getBadgeScaleClasses = (count: number) => {
     if (count <= 8) {
       return {
@@ -109,15 +109,25 @@ export function HostLobby({
         kick: "w-3 h-3",
       };
     }
+    if (count <= 120) {
+      return {
+        card: "px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-[#240B4D] border-b-3 border-b-[#1D083E] shadow-md gap-2",
+        avatar: "text-base sm:text-lg",
+        text: "text-xs sm:text-sm font-black max-w-[120px] sm:max-w-[170px]",
+        kick: "w-3 h-3",
+      };
+    }
+    // 121 - 200+ players: Ultra-compact lightweight chips
     return {
-      card: "px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-[#240B4D] border-b-3 border-b-[#1D083E] shadow-md gap-2",
-      avatar: "text-lg sm:text-xl",
-      text: "text-xs sm:text-sm font-black max-w-[120px] sm:max-w-[180px]",
-      kick: "w-3 h-3",
+      card: "px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-[#240B4D] border-b-2 border-b-[#1D083E] shadow-sm gap-1.5",
+      avatar: "text-sm sm:text-base",
+      text: "text-[11px] sm:text-xs font-black max-w-[100px] sm:max-w-[140px]",
+      kick: "w-2.5 h-2.5",
     };
   };
 
   const scaleClasses = getBadgeScaleClasses(players.length);
+  const isHighDensity = players.length > 40;
 
   return (
     <div className="h-screen w-screen bg-[#46178F] text-white flex flex-col justify-between select-none overflow-hidden font-sans relative">
@@ -248,7 +258,7 @@ export function HostLobby({
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CENTER STAGE: VIBRANT INTERACTIVE PLAYER ARENA (Each Player Displayed ONCE with Spring Pop) */}
+      {/* 3. CENTER STAGE: VIBRANT INTERACTIVE PLAYER ARENA (Up to 200 Players Smooth & Unique) */}
       {/* ========================================================================= */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[98vw] mx-auto px-4 sm:px-8 overflow-hidden my-auto py-2">
         {players.length === 0 ? (
@@ -264,31 +274,33 @@ export function HostLobby({
             </p>
           </div>
         ) : (
-          /* Responsive Adaptive Player Grid Arena - Clean, Spring Pop, Zero Duplicates! */
-          <div className="w-full flex-1 flex flex-wrap items-center justify-center content-center gap-3 sm:gap-4 md:gap-5 overflow-y-auto max-h-[50vh] p-2">
+          /* Responsive Adaptive Player Grid Arena - 60fps, Spring Pop, Zero Duplicates! */
+          <div className="w-full flex-1 flex flex-wrap items-center justify-center content-center gap-2 sm:gap-3 md:gap-4 overflow-y-auto max-h-[54vh] p-2 custom-scrollbar">
             <AnimatePresence mode="popLayout">
               {players.map((player, idx) => (
                 <motion.div
                   key={player.id}
                   layout
-                  initial={{ scale: 0, opacity: 0, y: 25 }}
+                  initial={{ scale: 0, opacity: 0, y: 20 }}
                   animate={{
                     scale: 1,
                     opacity: 1,
-                    y: [-(idx % 3) * 1.5, (idx % 3) * 1.5, -(idx % 3) * 1.5],
+                    y: isHighDensity ? 0 : [-(idx % 3) * 1.5, (idx % 3) * 1.5, -(idx % 3) * 1.5],
                   }}
                   exit={{ scale: 0, opacity: 0 }}
-                  whileHover={{ scale: 1.07, y: -4 }}
+                  whileHover={{ scale: 1.07, y: -3 }}
                   transition={{
                     type: "spring",
                     stiffness: 420,
                     damping: 22,
-                    y: { repeat: Infinity, duration: 2.4 + (idx % 4) * 0.4, ease: "easeInOut" },
+                    y: isHighDensity
+                      ? { duration: 0 }
+                      : { repeat: Infinity, duration: 2.4 + (idx % 4) * 0.4, ease: "easeInOut" },
                   }}
                   className="relative group select-none"
                 >
                   <div
-                    className={`bg-[#33106B] hover:bg-[#3d1480] flex items-center shadow-2xl transition-colors ${scaleClasses.card}`}
+                    className={`bg-[#33106B] hover:bg-[#3d1480] flex items-center shadow-xl transition-colors ${scaleClasses.card}`}
                   >
                     <span className={`${scaleClasses.avatar} flex-shrink-0 filter drop-shadow-md`}>
                       {player.avatar}
@@ -299,7 +311,7 @@ export function HostLobby({
 
                     <button
                       onClick={() => onKickPlayer(player.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 sm:p-2 bg-[#E21B3C] hover:bg-[#B0142D] rounded-xl text-white transition-opacity shadow-md flex-shrink-0 cursor-pointer ml-1 active:scale-90"
+                      className="opacity-0 group-hover:opacity-100 p-1 sm:p-1.5 bg-[#E21B3C] hover:bg-[#B0142D] rounded-lg sm:rounded-xl text-white transition-opacity shadow-md flex-shrink-0 cursor-pointer ml-1 active:scale-90"
                       title={`Remove ${player.nickname}`}
                     >
                       <X className={`${scaleClasses.kick} stroke-[3]`} />
