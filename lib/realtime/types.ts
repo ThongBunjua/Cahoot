@@ -100,7 +100,9 @@ export type RealtimeEvent =
   | "QUESTION_END"
   | "SHOW_LEADERBOARD"
   | "GAME_OVER"
-  | "PLAYER_ASSIGN_NAME";
+  | "PLAYER_ASSIGN_NAME"
+  | "CHECK_NICKNAME"
+  | "NICKNAME_RESULT";
 
 export interface BroadcastPayload {
   event: RealtimeEvent;

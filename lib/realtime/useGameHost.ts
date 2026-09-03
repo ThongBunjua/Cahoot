@@ -188,6 +188,33 @@ export function useGameHost(pin: string, quiz: Quiz) {
         syncLobby(currentState.players);
       }
 
+      // 0.1 Player checks if nickname is already taken in the room
+      if (payload.event === "CHECK_NICKNAME") {
+        const { nickname, checkId, playerId } = payload.data || {};
+        const cleanName = typeof nickname === "string" ? nickname.trim().replace(/[<>]/g, "").slice(0, 15) : "";
+        if (cleanName && checkId) {
+          const isTaken = currentState.players.some(
+            (p) => p.id !== playerId && p.nickname.toLowerCase() === cleanName.toLowerCase()
+          );
+
+          let suggested = cleanName;
+          if (isTaken) {
+            let suffix = 2;
+            while (currentState.players.some((p) => p.nickname.toLowerCase() === `${cleanName} ${suffix}`.toLowerCase())) {
+              suffix++;
+            }
+            suggested = `${cleanName} ${suffix}`;
+          }
+
+          broadcast("NICKNAME_RESULT", {
+            checkId,
+            isTaken,
+            nickname: cleanName,
+            suggestedNickname: suggested,
+          });
+        }
+      }
+
       // 1. Player Joins Lobby
       if (payload.event === "PLAYER_JOIN") {
         const data = payload.data || {};
