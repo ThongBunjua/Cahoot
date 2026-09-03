@@ -45,7 +45,7 @@ const NAMES_POOL = [
   "Somchai", "Somsak", "Ananda", "Nadech", "Yaya", "Bella", "Mario", "Baifern",
   "Alex", "Max", "Leo", "Emma", "Liam", "Sophia", "Lucas", "Mia",
   "Ninja", "Pixel", "Cyber", "Rocket", "Shadow", "Flash", "Blaze", "Nova",
-  "Thong", "Arthit", "Mali", "Sun", "Sky", "Ocean", "Ken", "Ploy",
+  "Tiger", "Arthit", "Mali", "Sun", "Sky", "Ocean", "Ken", "Ploy",
   "Ton", "Beam", "Golf", "Mike", "Nut", "Oat", "Baitong", "Pim",
   "Korn", "Natt", "James", "Mark", "Tor", "Bright", "Win", "Gulf",
   "Captain", "Zenith", "Phoenix", "Titan", "Viper", "Echo", "Cosmo", "Neon"

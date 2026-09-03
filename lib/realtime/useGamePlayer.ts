@@ -187,6 +187,43 @@ export function useGamePlayer(initialPin: string = "") {
       const myId = stateRef.current.player?.id;
       const myNickname = stateRef.current.player?.nickname?.toLowerCase();
 
+      // 0. Name Assignment / Auto-Disambiguation Sync
+      if (payload.event === "PLAYER_ASSIGN_NAME" && eventData.playerId === myId) {
+        const assignedName = eventData.nickname;
+        if (assignedName && typeof assignedName === "string") {
+          setState((prev) => {
+            const updatedPlayer = prev.player ? { ...prev.player, nickname: assignedName } : prev.player;
+            try {
+              if (updatedPlayer) {
+                localStorage.setItem("cahoot_player_session", JSON.stringify({ pin: prev.pin, player: updatedPlayer }));
+              }
+            } catch (e) {}
+            return {
+              ...prev,
+              player: updatedPlayer,
+            };
+          });
+        }
+      }
+
+      if (payload.event === "LOBBY_SYNC" && Array.isArray(eventData.players)) {
+        const serverMe = eventData.players.find((p: any) => p.id === myId);
+        if (serverMe && serverMe.nickname && stateRef.current.player && serverMe.nickname !== stateRef.current.player.nickname) {
+          setState((prev) => {
+            const updatedPlayer = prev.player ? { ...prev.player, nickname: serverMe.nickname } : prev.player;
+            try {
+              if (updatedPlayer) {
+                localStorage.setItem("cahoot_player_session", JSON.stringify({ pin: prev.pin, player: updatedPlayer }));
+              }
+            } catch (e) {}
+            return {
+              ...prev,
+              player: updatedPlayer,
+            };
+          });
+        }
+      }
+
       // 1. Kick Event
       if (payload.event === "PLAYER_KICK" && eventData.playerId === myId) {
         localStorage.removeItem("cahoot_player_session");
@@ -266,11 +303,9 @@ export function useGamePlayer(initialPin: string = "") {
 
         const { playerResults, correctIndex } = eventData;
         const resultsArray = Array.isArray(playerResults) ? playerResults : [];
-        const myResult = resultsArray.find(
-          (p: any) =>
-            p.id === myId ||
-            (p.nickname && p.nickname.toLowerCase() === myNickname)
-        );
+        const myResult = myId
+          ? resultsArray.find((p: any) => p.id === myId)
+          : resultsArray.find((p: any) => p.nickname && p.nickname.toLowerCase() === myNickname);
 
         if (myResult && typeof myResult.isCorrect === "boolean") {
           const isCorrect = myResult.isCorrect;
@@ -318,11 +353,9 @@ export function useGamePlayer(initialPin: string = "") {
       if (payload.event === "SHOW_LEADERBOARD") {
         const { topPlayers } = eventData;
         const topArray = Array.isArray(topPlayers) ? topPlayers : [];
-        const me = topArray.find(
-          (p: any) =>
-            p.id === myId ||
-            (p.nickname && p.nickname.toLowerCase() === myNickname)
-        );
+        const me = myId
+          ? topArray.find((p: any) => p.id === myId)
+          : topArray.find((p: any) => p.nickname && p.nickname.toLowerCase() === myNickname);
         setState((prev) => ({
           ...prev,
           phase: "leaderboard",
@@ -335,11 +368,9 @@ export function useGamePlayer(initialPin: string = "") {
         localStorage.removeItem("cahoot_player_session");
         const { allPlayers } = eventData;
         const allArray = Array.isArray(allPlayers) ? allPlayers : [];
-        const me = allArray.find(
-          (p: any) =>
-            p.id === myId ||
-            (p.nickname && p.nickname.toLowerCase() === myNickname)
-        );
+        const me = myId
+          ? allArray.find((p: any) => p.id === myId)
+          : allArray.find((p: any) => p.nickname && p.nickname.toLowerCase() === myNickname);
 
         setState((prev) => ({
           ...prev,

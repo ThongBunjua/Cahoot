@@ -229,6 +229,13 @@ export function useGameHost(pin: string, quiz: Quiz) {
           setState((prev) => ({ ...prev, players: updatedPlayers }));
           playThrottledClick();
           syncLobby(updatedPlayers);
+
+          if (uniqueNickname !== cleanNickname) {
+            broadcast("PLAYER_ASSIGN_NAME", {
+              playerId: cleanId,
+              nickname: uniqueNickname,
+            });
+          }
         }
       }
 
@@ -257,7 +264,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
         if (answerIndex < 0 || answerIndex > 3) return;
 
-        const answerKey = `${playerId || ""}_${nickname || ""}`;
+        const answerKey = String(playerId || nickname || "");
         if (answersMapRef.current.has(answerKey)) return;
 
         const question = currentState.quiz.questions[currentState.currentQuestionIndex];
@@ -269,10 +276,10 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
         const isCorrect = Number(answerIndex) === Number(question.correct_index);
 
-        // Match player by ID or Nickname
-        const player = currentState.players.find(
-          (p) => (playerId && p.id === playerId) || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())
-        );
+        // Match player STRICTLY by playerId if present; fallback to nickname only if playerId missing
+        const player = playerId
+          ? currentState.players.find((p) => p.id === playerId)
+          : currentState.players.find((p) => nickname && p.nickname.toLowerCase() === nickname.toLowerCase());
         const currentStreak = player ? player.streak : 0;
 
         const { points, newStreak } = calculateScore({
@@ -291,9 +298,13 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
         const newTotalAnswers = currentState.totalAnswersReceived + 1;
 
-        // Update player record
+        // Update player record STRICTLY by playerId
         const updatedPlayers = currentState.players.map((p) => {
-          if ((playerId && p.id === playerId) || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())) {
+          const isMatch = playerId
+            ? p.id === playerId
+            : (nickname && p.nickname.toLowerCase() === nickname.toLowerCase());
+
+          if (isMatch) {
             return {
               ...p,
               score: p.score + points,
@@ -371,6 +382,8 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
     const startTime = Date.now();
     const limit = currentQ.time_limit;
+
+    answersMapRef.current.clear();
 
     // Snapshot each player's true previousScore and previousRank before this question begins
     const sortedBefore = [...stateRef.current.players].sort((a, b) => {
