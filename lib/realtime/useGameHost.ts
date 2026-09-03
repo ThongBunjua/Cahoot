@@ -481,25 +481,29 @@ export function useGameHost(pin: string, quiz: Quiz) {
   // Show Final 1st/2nd/3rd Podium
   const showPodium = useCallback(() => {
     sounds.playPodiumFanfare();
-    const sorted = [...stateRef.current.players].sort((a, b) => b.score - a.score);
+    const sorted = [...stateRef.current.players].sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.id.localeCompare(b.id);
+    });
+    const ranked = sorted.map((p, idx) => ({ ...p, rank: idx + 1 }));
 
     const updatedState = {
       ...stateRef.current,
       phase: "podium" as GamePhase,
-      players: sorted,
+      players: ranked,
     };
     stateRef.current = updatedState;
     setState(updatedState);
 
     broadcast("GAME_OVER", {
-      top3: sorted.slice(0, 3).map((p) => ({
+      top3: ranked.slice(0, 3).map((p) => ({
         id: p.id,
         nickname: p.nickname,
         avatar: p.avatar,
         score: p.score,
         rank: p.rank,
       })),
-      allPlayers: sorted.map((p) => ({
+      allPlayers: ranked.map((p) => ({
         id: p.id,
         nickname: p.nickname,
         avatar: p.avatar,
@@ -509,7 +513,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
     });
 
     if (isSupabaseConfigured()) {
-      persistGameResults(pin, quiz.id, sorted).catch(console.warn);
+      persistGameResults(pin, quiz.id, ranked).catch(console.warn);
     }
   }, [broadcast, pin, quiz]);
 
@@ -525,18 +529,30 @@ export function useGameHost(pin: string, quiz: Quiz) {
       return;
     }
 
-    const sorted = [...stateRef.current.players].sort((a, b) => b.score - a.score);
+    const sorted = [...stateRef.current.players].sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.id.localeCompare(b.id);
+    });
+    const ranked = sorted.map((p, idx) => ({ ...p, rank: idx + 1 }));
 
     const updatedState = {
       ...stateRef.current,
       phase: "leaderboard" as GamePhase,
-      players: sorted,
+      players: ranked,
     };
     stateRef.current = updatedState;
     setState(updatedState);
 
     broadcast("SHOW_LEADERBOARD", {
-      topPlayers: sorted.slice(0, 5).map((p) => ({
+      topPlayers: ranked.slice(0, 5).map((p) => ({
+        id: p.id,
+        nickname: p.nickname,
+        avatar: p.avatar,
+        score: p.score,
+        streak: p.streak,
+        rank: p.rank,
+      })),
+      allPlayers: ranked.map((p) => ({
         id: p.id,
         nickname: p.nickname,
         avatar: p.avatar,

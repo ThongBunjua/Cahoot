@@ -351,11 +351,11 @@ export function useGamePlayer(initialPin: string = "") {
 
       // 5. Leaderboard
       if (payload.event === "SHOW_LEADERBOARD") {
-        const { topPlayers } = eventData;
-        const topArray = Array.isArray(topPlayers) ? topPlayers : [];
+        const { topPlayers, allPlayers } = eventData;
+        const lookup = Array.isArray(allPlayers) ? allPlayers : Array.isArray(topPlayers) ? topPlayers : [];
         const me = myId
-          ? topArray.find((p: any) => p.id === myId)
-          : topArray.find((p: any) => p.nickname && p.nickname.toLowerCase() === myNickname);
+          ? lookup.find((p: any) => p.id === myId)
+          : lookup.find((p: any) => p.nickname && p.nickname.toLowerCase() === myNickname);
         setState((prev) => ({
           ...prev,
           phase: "leaderboard",
