@@ -27,6 +27,16 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
   const timerRef = useRef<any>(null);
   const answersMapRef = useRef<Map<string, { answerIndex: number; timestamp: number }>>(new Map());
+  const lastClickAudioRef = useRef(0);
+  const lastActionTimeRef = useRef(0);
+
+  const playThrottledClick = useCallback(() => {
+    const now = Date.now();
+    if (now - lastClickAudioRef.current > 75) {
+      lastClickAudioRef.current = now;
+      sounds.playClick();
+    }
+  }, []);
 
   // Broadcast event helper
   const broadcast = useCallback((event: RealtimeEvent, data: any) => {
@@ -186,14 +196,22 @@ export function useGameHost(pin: string, quiz: Quiz) {
         const cleanId = String(data.id || `player_${Date.now()}`);
         const cleanAvatar = typeof data.avatar === "string" ? data.avatar : "🦊";
 
-        const exists = currentState.players.some(
-          (p) => p.id === cleanId || p.nickname.toLowerCase() === cleanNickname.toLowerCase()
-        );
+        // Check if player ID already registered (reconnect or handshake retry)
+        const idExists = currentState.players.some((p) => p.id === cleanId);
+        if (idExists) {
+          syncLobby(currentState.players);
+        } else {
+          // Auto-resolve duplicate nickname to guarantee no player is dropped
+          let uniqueNickname = cleanNickname;
+          let suffix = 2;
+          while (currentState.players.some((p) => p.nickname.toLowerCase() === uniqueNickname.toLowerCase())) {
+            uniqueNickname = `${cleanNickname} ${suffix}`;
+            suffix++;
+          }
 
-        if (!exists) {
           const newPlayer: Player = {
             id: cleanId,
-            nickname: cleanNickname,
+            nickname: uniqueNickname,
             avatar: cleanAvatar,
             score: 0,
             previousScore: 0,
@@ -209,10 +227,8 @@ export function useGameHost(pin: string, quiz: Quiz) {
           const updatedPlayers = [...currentState.players, newPlayer];
           stateRef.current = { ...stateRef.current, players: updatedPlayers };
           setState((prev) => ({ ...prev, players: updatedPlayers }));
-          sounds.playClick();
+          playThrottledClick();
           syncLobby(updatedPlayers);
-        } else {
-          syncLobby(currentState.players);
         }
       }
 
@@ -236,8 +252,8 @@ export function useGameHost(pin: string, quiz: Quiz) {
           typeof payloadData.answerIndex === "number"
             ? payloadData.answerIndex
             : typeof payloadData.choiceIndex === "number"
-            ? payloadData.choiceIndex
-            : -1;
+              ? payloadData.choiceIndex
+              : -1;
 
         if (answerIndex < 0 || answerIndex > 3) return;
 
@@ -252,7 +268,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
         answersMapRef.current.set(answerKey, { answerIndex, timestamp: hostNow });
 
         const isCorrect = Number(answerIndex) === Number(question.correct_index);
-        
+
         // Match player by ID or Nickname
         const player = currentState.players.find(
           (p) => (playerId && p.id === playerId) || (nickname && p.nickname.toLowerCase() === nickname.toLowerCase())
@@ -300,7 +316,7 @@ export function useGameHost(pin: string, quiz: Quiz) {
         };
 
         setState(stateRef.current);
-        sounds.playClick();
+        playThrottledClick();
 
         // Check if EVERY registered player has actually submitted an answer
         const allRegisteredPlayersAnswered =
@@ -459,6 +475,10 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
   // Transition from question results to leaderboard (or directly to podium on last question)
   const showLeaderboard = useCallback(() => {
+    const now = Date.now();
+    if (now - lastActionTimeRef.current < 800) return;
+    lastActionTimeRef.current = now;
+
     const isLast = stateRef.current.currentQuestionIndex >= quiz.questions.length - 1;
     if (isLast) {
       showPodium();
@@ -490,6 +510,10 @@ export function useGameHost(pin: string, quiz: Quiz) {
 
   // Advance to next question or final podium
   const nextStep = useCallback(() => {
+    const now = Date.now();
+    if (now - lastActionTimeRef.current < 800) return;
+    lastActionTimeRef.current = now;
+
     const currentState = stateRef.current;
     if (currentState.currentQuestionIndex < quiz.questions.length - 1) {
       startGetReady(currentState.currentQuestionIndex + 1);
